@@ -112,16 +112,17 @@ export function AvailabilityEditor({
       {action.error && <p role="alert">{action.error}</p>}
       <ul className="space-y-2">
         {overrides.map((override) => (
-          <li key={override.date} className="flex items-center gap-3">
+          <li key={override.date} className="flex flex-wrap items-center gap-3">
             <span>
               {override.date}: {override.is_working ? "Working" : "Not working"}
             </span>
             <Button
+              aria-label={`Restore calendar default for ${override.date}`}
               variant="outline"
               disabled={!canEdit || action.busy}
               onClick={() => void action.run(() => clear(override.date))}
             >
-              Restore calendar default for {override.date}
+              Restore default {override.date}
             </Button>
           </li>
         ))}
