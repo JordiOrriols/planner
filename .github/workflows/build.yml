@@ -16,6 +16,11 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    env:
+      GITHUB_TOKEN: ${{ secrets.UI_READ_TOKEN || github.token }}
+    defaults:
+      run:
+        working-directory: planner
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -24,15 +29,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          path: planner
+
+      - name: Checkout shared UI
+        uses: actions/checkout@v4
+        with:
+          repository: jordiorriols/ui
+          ref: ${{ vars.UI_REF || 'main' }}
+          path: ui
+          token: ${{ secrets.UI_READ_TOKEN || github.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            planner/package-lock.json
+            ui/package-lock.json
+
+      - name: Build shared UI
+        working-directory: ui
+        run: npm ci --ignore-scripts && npm run build
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --install-links
 
       - name: Compile Typescript project
         run: npm run compile
@@ -58,7 +80,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: planner/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
