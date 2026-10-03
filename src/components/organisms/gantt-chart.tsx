@@ -2,21 +2,28 @@ import React from "react";
 import { format } from "date-fns";
 import { peakDevs, durationWeeks, fmtDate } from "@/lib/planning";
 import { cn } from "@/lib/utils";
+import type { CapacityWeek, ScheduledProject } from "@/lib/planning";
 
 const BAR_TONES = [
   "bg-brand",
-  "bg-[hsl(var(--chart-2))]",
-  "bg-[hsl(var(--chart-3))]",
-  "bg-[hsl(var(--chart-4))]",
-  "bg-[hsl(var(--chart-1))]",
-  "bg-[hsl(var(--chart-5))]",
+  "bg-sky-600",
+  "bg-emerald-600",
+  "bg-amber-600",
+  "bg-rose-600",
+  "bg-slate-600",
 ];
 
-export default function GanttChart({ weeks, schedule }) {
+export default function GanttChart({
+  weeks,
+  schedule,
+}: {
+  weeks: CapacityWeek[];
+  schedule: ScheduledProject[];
+}) {
   if (!weeks.length) return null;
   const N = weeks.length;
 
-  const monthGroups = [];
+  const monthGroups: { label: string; start: number; span: number }[] = [];
   weeks.forEach((w, i) => {
     const m = format(w.weekStart, "MMM yy");
     const last = monthGroups[monthGroups.length - 1];
@@ -57,7 +64,7 @@ export default function GanttChart({ weeks, schedule }) {
 
         <div className="space-y-1.5 mt-2">
           {schedule.map((s, idx) => {
-            const scheduled = s.startIdx != null;
+            const scheduled = s.startIdx != null && s.endIdx != null;
             const peak = peakDevs(s.project);
             const dur = durationWeeks(s.project);
             return (
@@ -72,11 +79,12 @@ export default function GanttChart({ weeks, schedule }) {
                       "rounded-md px-2.5 py-1.5 text-white text-xs font-medium flex items-center justify-between gap-2 shadow-sm",
                       BAR_TONES[idx % BAR_TONES.length]
                     )}
-                    style={{ gridColumn: `${s.startIdx + 1} / ${s.endIdx + 2}` }}
+                    style={{ gridColumn: `${(s.startIdx ?? 0) + 1} / ${(s.endIdx ?? 0) + 2}` }}
+                    aria-label={`${s.project.name}: ${s.start ? fmtDate(s.start) : ""} to ${s.end ? fmtDate(s.end) : "not completed"}`}
                   >
                     <span className="truncate">{s.project.name}</span>
                     <span className="shrink-0 tabular-nums opacity-90">
-                      {peak}d · {dur}w
+                      {peak}p · {dur}w{s.complete ? "" : " · partial"}
                     </span>
                   </div>
                 ) : (
@@ -97,7 +105,8 @@ export default function GanttChart({ weeks, schedule }) {
                 <div key={s.project.id} className="flex justify-between">
                   <span className="font-medium text-foreground">{s.project.name}</span>
                   <span className="tabular-nums">
-                    {fmtDate(s.start)} → {fmtDate(s.end)}
+                    {s.start ? fmtDate(s.start) : "Not started"} →{" "}
+                    {s.end ? fmtDate(s.end) : s.reason}
                   </span>
                 </div>
               ))}

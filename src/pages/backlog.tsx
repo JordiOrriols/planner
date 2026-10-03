@@ -1,176 +1,142 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowUp, ArrowDown, Users, CalendarRange } from "lucide-react";
-import GanttChart from "@/components/GanttChart";
-import { computeSchedule, peakDevs, durationWeeks, fmtDate, getMonday } from "@/lib/planning";
-import { format, addWeeks } from "date-fns";
+import React, { useState } from "react";
+import { Button, EmptyState } from "@jordiorriols/ui";
+import { ArrowUp, ArrowDown, GanttChartSquare } from "@jordiorriols/ui/icons";
+import { useAsyncAction } from "@jordiorriols/ui/hooks";
+import { format } from "date-fns";
+import GanttChart from "@/components/organisms/gantt-chart";
+import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
+import { useWorkspace } from "@/data/WorkspaceProvider";
+import { useData } from "@/data/DataProvider";
 
 export default function Backlog() {
-  const [projects, setProjects] = useState([]);
-  const [members, setMembers] = useState([]);
-  const [vacations, setVacations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState(format(getMonday(new Date()), "yyyy-MM-dd"));
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [p, m, v] = await Promise.all([
-        base44.entities.Project.list("-created_date", 200),
-        base44.entities.TeamMember.list("-created_date", 200),
-        base44.entities.Vacation.list("-created_date", 200),
-      ]);
-      setProjects(p);
-      setMembers(m);
-      setVacations(v);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const backlog = projects
-    .filter((p) => p.in_backlog)
-    .sort((a, b) => (a.priority || 0) - (b.priority || 0));
-
-  const move = async (p, dir) => {
-    const idx = backlog.findIndex((x) => x.id === p.id);
-    const swap = backlog[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      base44.entities.Project.update(p.id, { priority: swap.priority }),
-      base44.entities.Project.update(swap.id, { priority: p.priority }),
-    ]);
-    load();
-  };
-
-  const start = parseISOsafe(startDate) || getMonday(new Date());
-  const { weeks, schedule } = computeSchedule(backlog, members, vacations, start);
-  const scheduledCount = schedule.filter((s) => s.startIdx != null).length;
-  const lastEnd = schedule
-    .filter((s) => s.startIdx != null)
-    .reduce((m, s) => (s.endIdx > m ? s.endIdx : m), -1);
-  const finishDate = lastEnd >= 0 ? weeks[lastEnd].weekStart : null;
-
+  const { projects, members, availability, workspace, isOwner, refresh } = useWorkspace();
+  const { repository } = useData();
+  const action = useAsyncAction();
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const backlog = [...projects]
+    .filter((project) => project.in_backlog)
+    .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  let result: ReturnType<typeof computeSchedule> | null = null;
+  let error: string | null = null;
+  try {
+    result = computeSchedule(backlog, members, availability, parseDate(startDate));
+  } catch (cause) {
+    error = cause instanceof Error ? cause.message : String(cause);
+  }
+  const completed = result?.schedule.filter((item) => item.complete) ?? [];
+  const finish = completed.reduce<Date | null>(
+    (latest, item) => (item.end && (!latest || item.end > latest) ? item.end : latest),
+    null
+  );
+  function move(index: number, direction: number) {
+    const ids = backlog.map((project) => project.id);
+    const first = ids[index],
+      second = ids[index + direction];
+    if (!repository || !first || !second) return;
+    ids[index] = second;
+    ids[index + direction] = first;
+    void action.run(async () => {
+      await repository.reorder(workspace.id, ids);
+      await refresh();
+    });
+  }
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">Backlog plan</h1>
+        <h1 className="font-heading text-2xl font-semibold">Backlog plan</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Drag-order your backlog by priority. Projects run in parallel when squad capacity allows —
-          capacity comes from your team minus planned time off.
+          Priority allocates available people by role each day. Roles and projects overlap when
+          capacity allows.
         </p>
       </div>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <InfoCard
-          icon={Users}
-          label="Squad size"
-          value={`${members.length} dev${members.length === 1 ? "" : "s"}`}
-        />
-        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3">
-          <CalendarRange className="h-5 w-5 text-brand" />
-          <div>
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Plan starts
-            </div>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="text-sm font-medium bg-transparent outline-none cursor-pointer"
-            />
-          </div>
+      <div className="grid sm:grid-cols-3 gap-3">
+        <div className="panel">
+          <p className="text-xs text-muted-foreground">Squad size</p>
+          <p className="font-semibold">{members.length} people</p>
         </div>
-        <InfoCard
-          icon={CalendarRange}
-          label="Backlog finishes"
-          value={finishDate ? fmtDate(addWeeks(finishDate, 1)) : "—"}
-        />
+        <div className="panel">
+          <label htmlFor="plan-start" className="text-xs text-muted-foreground">
+            Plan starts
+          </label>
+          <input
+            id="plan-start"
+            className="field mt-1"
+            type="date"
+            min="2026-01-01"
+            max="2027-12-31"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+          />
+        </div>
+        <div className="panel">
+          <p className="text-xs text-muted-foreground">Backlog finishes</p>
+          <p className="font-semibold">
+            {completed.length === backlog.length && finish
+              ? fmtDate(finish)
+              : "Not fully scheduled"}
+          </p>
+        </div>
       </div>
-
-      {loading ? (
-        <div className="text-sm text-muted-foreground py-12 text-center">Loading…</div>
-      ) : backlog.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
-          No projects in the backlog yet. Mark microprojects as “in backlog” from the Estimation
-          page.
-        </div>
+      {(error || action.error) && (
+        <p role="alert" className="text-destructive">
+          {error ?? action.error}
+        </p>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Barcelona holidays verified for 2026–2027. A person-week is five working days; vacations
+        extend the forecast. Estimates are not delivery commitments.
+      </p>
+      {result?.calendarLimited && (
+        <p role="status">The forecast stops at the end of the verified holiday calendar.</p>
+      )}
+      {!backlog.length ? (
+        <EmptyState
+          icon={<GanttChartSquare />}
+          title="No projects in the backlog"
+          description="Add selected estimates from the Estimation page."
+        />
       ) : (
         <>
-          <div className="space-y-1.5">
-            {backlog.map((p, i) => (
-              <div
-                key={p.id}
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2"
-              >
-                <div className="text-xs font-medium text-muted-foreground w-6 tabular-nums">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{p.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {peakDevs(p)} devs · {durationWeeks(p)} weeks
-                  </div>
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  disabled={i === 0}
-                  onClick={() => move(p, -1)}
-                >
-                  <ArrowUp className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  disabled={i === backlog.length - 1}
-                  onClick={() => move(p, 1)}
-                >
-                  <ArrowDown className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+          <ol className="space-y-2">
+            {backlog.map((project, index) => (
+              <li key={project.id} className="panel !p-3 flex items-center gap-3">
+                <span className="text-muted-foreground text-sm">{index + 1}</span>
+                <span className="flex-1 font-medium">{project.name}</span>
+                {isOwner && (
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Move ${project.name} up`}
+                      disabled={action.busy || index === 0}
+                      onClick={() => move(index, -1)}
+                    >
+                      <ArrowUp size={16} />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Move ${project.name} down`}
+                      disabled={action.busy || index === backlog.length - 1}
+                      onClick={() => move(index, 1)}
+                    >
+                      <ArrowDown size={16} />
+                    </Button>
+                  </>
+                )}
+              </li>
             ))}
-          </div>
-
-          <Card className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-semibold tracking-tight">Schedule</h2>
-              <span className="text-xs text-muted-foreground">
-                {scheduledCount}/{backlog.length} projects scheduled
-              </span>
-            </div>
-            <GanttChart weeks={weeks} schedule={schedule} />
-          </Card>
+          </ol>
+          {result && (
+            <section className="panel" aria-label="Project schedule">
+              <h2 className="font-semibold mb-4">
+                Schedule · {completed.length}/{backlog.length} completed in forecast
+              </h2>
+              <GanttChart weeks={result.weeks} schedule={result.schedule} />
+            </section>
+          )}
         </>
       )}
     </div>
   );
-}
-
-function InfoCard({ icon: Icon, label, value }) {
-  return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center gap-3">
-      <Icon className="h-5 w-5 text-brand" />
-      <div>
-        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-        <div className="text-sm font-semibold">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function parseISOsafe(s) {
-  try {
-    const d = new Date(s + "T00:00:00");
-    return isNaN(d) ? null : d;
-  } catch {
-    return null;
-  }
 }
