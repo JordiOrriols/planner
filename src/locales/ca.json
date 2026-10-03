@@ -1,4 +1,23 @@
 {
+  "planner": {
+    "name": "Cadence",
+    "brand": "Cadence / Planner",
+    "subtitle": "Estimació i planificació de projectes",
+    "pages": "Pàgines de Planner",
+    "workspace": "Espai de treball",
+    "owner": "Propietari",
+    "member": "Membre",
+    "newWorkspace": "Nou espai",
+    "tabs": { "estimation": "Estimació", "backlog": "Pla del backlog", "vacations": "Vacances" },
+    "welcome": {
+      "title": "Fes espai per a la feina que ve.",
+      "description": "Estima microprojectes, planifica segons la capacitat real de l'equip i tingues en compte els seus dies lliures.",
+      "estimates": "Estimacions per rol",
+      "backlog": "Un backlog realista",
+      "calendar": "Calendari de Barcelona",
+      "authUnavailable": "Configura VITE_SUPABASE_URL i VITE_SUPABASE_PUBLISHABLE_KEY per fer servir el teu compte de Ladders. Planner no desa dades localment."
+    }
+  },
   "header": {
     "title": "Escala d'Enginyeria",
     "subtitle": "Rastreador de competències del equip",

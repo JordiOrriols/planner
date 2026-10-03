@@ -1,4 +1,27 @@
 {
+  "planner": {
+    "name": "Cadence",
+    "brand": "Cadence / Planner",
+    "subtitle": "Estimación y planificación de proyectos",
+    "pages": "Páginas de Planner",
+    "workspace": "Espacio de trabajo",
+    "owner": "Propietario",
+    "member": "Miembro",
+    "newWorkspace": "Nuevo espacio",
+    "tabs": {
+      "estimation": "Estimación",
+      "backlog": "Plan del backlog",
+      "vacations": "Vacaciones"
+    },
+    "welcome": {
+      "title": "Haz espacio para el trabajo que viene.",
+      "description": "Estima microproyectos, planifica según la capacidad real del equipo y ten en cuenta sus días libres.",
+      "estimates": "Estimaciones por rol",
+      "backlog": "Un backlog realista",
+      "calendar": "Calendario de Barcelona",
+      "authUnavailable": "Configura VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY para usar tu cuenta de Ladders. Planner no guarda datos localmente."
+    }
+  },
   "header": {
     "title": "Escalera de Ingeniería",
     "subtitle": "Rastreador de competencias del equipo",

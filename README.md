@@ -30,6 +30,11 @@ Authentication views and form/session hooks come from `@jordiorriols/ui`.
 Planner does not duplicate login, signup, GitHub OAuth or password recovery.
 Ladders' tables and business logic are not used.
 
+Both apps use UI's `WelcomeScreen` and `AppHeader`. Branding, translations and
+auth callbacks remain app-owned. The header shares title/subtitle/icon sizes,
+language and account controls; Planner's page navigation is a separate row below
+it. Workspace selection stays in the page toolbar.
+
 ### Refresh shared UI during development
 
 The library is installed as a packed `file:../ui` dependency, not a symlink.
@@ -43,6 +48,9 @@ cd ../planner
 npm uninstall @jordiorriols/ui --ignore-scripts
 npm install ../ui --install-links --ignore-scripts
 ```
+
+Restart the app's development server after refreshing UI; Vite can retain
+transformed dependency modules even when the installed package is up to date.
 
 Shared Tailwind tokens are imported by `index.css`; keep its `@source`
 directives. Official Radix exports and the original UI Button are unchanged.
@@ -63,12 +71,17 @@ directives. Official Radix exports and the original UI Button are unchanged.
 ## Estimates and scheduling
 
 For each microproject, enter people and weeks for backend, frontend, design and
-QA. Both values must be positive for an active role (or both zero).
+QA. People and weeks must be whole numbers. Both values must be positive for an
+active role (or both zero). Decimal input is rejected by the form, repository and
+database, never silently rounded. Existing fractional estimates are preserved
+but must be edited to whole numbers before they can be scheduled.
 
 - **Effort** is the sum of `people × weeks` across roles.
 - **Ideal duration** is the longest role estimate, assuming roles run concurrently.
 - **Peak team** is the sum of requested people across roles.
 - Only projects explicitly added to the backlog are scheduled.
+- Add/remove existing estimates directly on Backlog Plan using **Add projects**.
+  The picker links to Estimation when a new estimate is needed.
 - Daily available capacity is allocated by role and backlog priority.
 - Different roles and projects can overlap when capacity allows. If only one
   backend person is available for a two-person estimate, completion takes longer.
@@ -88,13 +101,15 @@ Calendar values are date-only local calendar days, not UTC timestamps.
 
 ## Supabase setup
 
-The two additive Planner migrations have been applied to the configured shared
+The additive Planner migrations have been applied to the configured shared
 project with approval:
 
 1. `20261003140000_planner_workspaces.sql`: workspace, member, project and daily
    availability tables, RLS, verified-email invitations and transactional actions.
 2. `20261003150000_planner_team_and_priority.sql`: owner-controlled role editing
    and deterministic, serialized backlog insertion.
+3. `20261003170000_planner_whole_estimates.sql`: reject fractional people/weeks
+   on new inserts/updates, without modifying any pre-existing estimates.
 
 Only `planner_*` tables and functions are added; no Ladders table is modified.
 The earlier numbered migrations are the shared project's copied Ladders migration

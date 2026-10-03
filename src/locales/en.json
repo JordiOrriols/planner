@@ -1,4 +1,23 @@
 {
+  "planner": {
+    "name": "Cadence",
+    "brand": "Cadence / Planner",
+    "subtitle": "Project estimation & planning",
+    "pages": "Planner pages",
+    "workspace": "Workspace",
+    "owner": "Owner",
+    "member": "Member",
+    "newWorkspace": "New workspace",
+    "tabs": { "estimation": "Estimation", "backlog": "Backlog Plan", "vacations": "Vacations" },
+    "welcome": {
+      "title": "Make room for the work ahead.",
+      "description": "Estimate microprojects, plan around real squad capacity, and keep everyone's time off in view.",
+      "estimates": "Role-based estimates",
+      "backlog": "A realistic backlog",
+      "calendar": "Barcelona calendar",
+      "authUnavailable": "Configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to use your Ladders account. Planner does not save data locally."
+    }
+  },
   "header": {
     "title": "Engineering Ladder",
     "subtitle": "Team competency tracker",
