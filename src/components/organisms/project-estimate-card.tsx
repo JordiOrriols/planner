@@ -102,9 +102,9 @@ export default function ProjectEstimateCard({
       </div>
 
       <div className="mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-border">
-        <Stat label="Peak team" value={`${peak}`} sub="devs" />
+        <Stat label="Peak team" value={`${peak}`} sub="people" />
         <Stat label="Duration" value={`${dur}`} sub="weeks" />
-        <Stat label="Effort" value={`${dw}`} sub="dev-wks" />
+        <Stat label="Effort" value={`${dw}`} sub="person-wks" />
       </div>
     </article>
   );

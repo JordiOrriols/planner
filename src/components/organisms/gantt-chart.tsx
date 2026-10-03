@@ -22,6 +22,7 @@ export default function GanttChart({
 }) {
   if (!weeks.length) return null;
   const N = weeks.length;
+  const columns = `180px repeat(${N}, minmax(28px, 1fr))`;
 
   const monthGroups: { label: string; start: number; span: number }[] = [];
   weeks.forEach((w, i) => {
@@ -33,25 +34,23 @@ export default function GanttChart({
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[860px]">
-        <div
-          className="grid border-b border-border"
-          style={{ gridTemplateColumns: `repeat(${N}, minmax(0,1fr))` }}
-        >
+      <div style={{ minWidth: Math.max(860, N * 28 + 180) }}>
+        <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+          <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
+            Project
+          </div>
           {monthGroups.map((g) => (
             <div
               key={g.label + g.start}
               className="text-[11px] font-medium text-muted-foreground px-2 py-1.5 border-l first:border-l-0 text-center"
-              style={{ gridColumn: `${g.start + 1} / ${g.start + g.span + 1}` }}
+              style={{ gridColumn: `${g.start + 2} / ${g.start + g.span + 2}` }}
             >
               {g.label}
             </div>
           ))}
         </div>
-        <div
-          className="grid border-b border-border"
-          style={{ gridTemplateColumns: `repeat(${N}, minmax(0,1fr))` }}
-        >
+        <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+          <div className="sticky left-0 bg-card z-10 text-xs px-2">Week of</div>
           {weeks.map((w, i) => (
             <div
               key={i}
@@ -71,24 +70,34 @@ export default function GanttChart({
               <div
                 key={s.project.id}
                 className="grid items-stretch"
-                style={{ gridTemplateColumns: `repeat(${N}, minmax(0,1fr))` }}
+                style={{ gridTemplateColumns: columns }}
               >
+                <div
+                  className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-medium truncate"
+                  title={s.project.name}
+                >
+                  {s.project.name}
+                </div>
                 {scheduled ? (
                   <div
                     className={cn(
                       "rounded-md px-2.5 py-1.5 text-white text-xs font-medium flex items-center justify-between gap-2 shadow-sm",
                       BAR_TONES[idx % BAR_TONES.length]
                     )}
-                    style={{ gridColumn: `${(s.startIdx ?? 0) + 1} / ${(s.endIdx ?? 0) + 2}` }}
+                    style={{ gridColumn: `${(s.startIdx ?? 0) + 2} / ${(s.endIdx ?? 0) + 3}` }}
+                    title={`${s.project.name}: ${peak} people, ${dur} ideal weeks${s.complete ? "" : " (partial forecast)"}`}
                     aria-label={`${s.project.name}: ${s.start ? fmtDate(s.start) : ""} to ${s.end ? fmtDate(s.end) : "not completed"}`}
                   >
-                    <span className="truncate">{s.project.name}</span>
-                    <span className="shrink-0 tabular-nums opacity-90">
-                      {peak}p · {dur}w{s.complete ? "" : " · partial"}
+                    <span className="sr-only">
+                      {s.project.name}
+                      {s.complete ? "" : " (partial)"}
                     </span>
                   </div>
                 ) : (
-                  <div className="col-span-full text-xs text-destructive px-2 py-1.5 rounded-md bg-destructive/5 border border-destructive/20">
+                  <div
+                    style={{ gridColumn: "2 / -1" }}
+                    className="text-xs text-destructive px-2 py-1.5 rounded-md bg-destructive/5 border border-destructive/20"
+                  >
                     ⚠ {s.project.name} — {s.reason}
                   </div>
                 )}
@@ -97,6 +106,23 @@ export default function GanttChart({
           })}
         </div>
 
+        <div
+          className="grid mt-4 border-t text-[10px] tabular-nums"
+          style={{ gridTemplateColumns: columns }}
+        >
+          <div className="sticky left-0 bg-card z-10 p-2 font-medium">Available person-weeks</div>
+          {weeks.map((week, index) => (
+            <div key={index} className="text-center py-2 border-l">
+              {week.capacity.toFixed(1)}
+            </div>
+          ))}
+          <div className="sticky left-0 bg-card z-10 p-2 font-medium">Allocated person-weeks</div>
+          {weeks.map((week, index) => (
+            <div key={index} className="text-center py-2 border-l">
+              {week.allocated.toFixed(1)}
+            </div>
+          ))}
+        </div>
         {schedule.some((s) => s.startIdx != null) && (
           <div className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
             {schedule
