@@ -39,15 +39,15 @@ export function validateProject(input: ProjectInput) {
     const devs = roleDevs(input, role),
       weeks = roleWeeks(input, role);
     if (
-      !Number.isFinite(devs) ||
-      !Number.isFinite(weeks) ||
+      !Number.isInteger(devs) ||
+      !Number.isInteger(weeks) ||
       devs < 0 ||
       weeks < 0 ||
       devs > 100 ||
       weeks > 104
     )
       throw new Error(
-        `${ROLE_LABELS[role]} estimates must be between 0 and 100 people / 104 weeks.`
+        `${ROLE_LABELS[role]} estimates must be whole numbers between 0 and 100 people / 104 weeks.`
       );
     if ((devs === 0) !== (weeks === 0))
       throw new Error(`Set both people and weeks for ${ROLE_LABELS[role]}, or leave both at zero.`);

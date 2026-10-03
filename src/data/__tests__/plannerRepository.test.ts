@@ -54,6 +54,21 @@ describe("Planner repository", () => {
     await expect(
       repository.saveProject(workspace.id, { ...EMPTY_PROJECT, name: "Invalid", backend_devs: 1 })
     ).rejects.toThrow(/both/);
+    for (const role of ["backend", "frontend", "design", "qa"] as const) {
+      for (const [people, weeks] of [
+        [1.5, 1],
+        [1, 1.5],
+      ]) {
+        await expect(
+          repository.saveProject(workspace.id, {
+            ...EMPTY_PROJECT,
+            name: "Fractional",
+            [`${role}_devs`]: people,
+            [`${role}_weeks`]: weeks,
+          })
+        ).rejects.toThrow(/whole numbers/);
+      }
+    }
     expect(fetch).not.toHaveBeenCalled();
     fetch.mockResolvedValue(response(null));
     await repository.reorder(workspace.id, ["one", "two"]);

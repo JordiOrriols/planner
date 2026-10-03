@@ -42,6 +42,15 @@ beforeAll(async () => {
     "utf8"
   );
   await db.exec(priorityMigration);
+  await db.exec(
+    await readFile(
+      new URL(
+        "../../../supabase/migrations/20261003170000_planner_whole_estimates.sql",
+        import.meta.url
+      ),
+      "utf8"
+    )
+  );
 });
 beforeEach(async () => {
   await db.exec("reset role; delete from public.planner_workspaces");
@@ -56,6 +65,31 @@ afterAll(async () => {
 });
 
 describe("Planner migration and real PostgreSQL permissions", () => {
+  it("rejects decimal people and weeks for every role at the database boundary", async () => {
+    for (const role of ["backend", "frontend", "design", "qa"]) {
+      for (const [people, weeks] of [
+        [1.5, 1],
+        [1, 1.5],
+      ]) {
+        await expect(
+          db.query(
+            `insert into public.planner_projects(workspace_id,name,${role}_devs,${role}_weeks)
+           values($1,'Fractional',$2,$3)`,
+            [workspace, people, weeks]
+          )
+        ).rejects.toThrow(/planner_projects_whole_estimates/);
+      }
+    }
+    const saved = await db.query<{ id: string }>(
+      "insert into public.planner_projects(workspace_id,name,backend_devs,backend_weeks) values($1,'Whole',1,2) returning id",
+      [workspace]
+    );
+    await expect(
+      db.query("update public.planner_projects set backend_weeks = 2.5 where id=$1", [
+        saved.rows[0]!.id,
+      ])
+    ).rejects.toThrow(/planner_projects_whole_estimates/);
+  });
   it("creates only prefixed tables and atomically registers the owner", async () => {
     const members = await db.query<{ user_id: string }>(
       "select user_id from public.planner_members"

@@ -32,7 +32,7 @@ export default function ProjectForm({
         if (!value && !action.busy) onClose();
       }}
       title={initial ? "Edit microproject" : "New microproject"}
-      description="Roles run concurrently. People × weeks is the effort for each role."
+      description="Roles run concurrently. Use whole numbers for people and weeks."
       closeLabel="Close"
     >
       <form
@@ -81,7 +81,7 @@ export default function ProjectForm({
                 type="number"
                 min={0}
                 max={100}
-                step={0.1}
+                step={1}
                 value={form[`${role}_devs`]}
                 required
                 onChange={(event) =>
@@ -96,7 +96,7 @@ export default function ProjectForm({
                 type="number"
                 min={0}
                 max={104}
-                step={0.1}
+                step={1}
                 value={form[`${role}_weeks`]}
                 required
                 onChange={(event) =>

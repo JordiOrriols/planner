@@ -124,6 +124,14 @@ describe("daily role-based capacity", () => {
   it("fails explicitly on invalid estimates and unknown calendar years", () => {
     expect(() => validateProject({ ...project(), backend_weeks: 0 })).toThrow(/both/);
     expect(() => validateProject({ ...project(), backend_devs: NaN })).toThrow(/estimates/);
+    for (const role of ["backend", "frontend", "design", "qa"] as const) {
+      expect(() =>
+        validateProject({ ...project(), [`${role}_devs`]: 1.5, [`${role}_weeks`]: 1 })
+      ).toThrow(/whole numbers/);
+      expect(() =>
+        validateProject({ ...project(), [`${role}_devs`]: 1, [`${role}_weeks`]: 1.5 })
+      ).toThrow(/whole numbers/);
+    }
     expect(() => parseDate("2026-02-30")).toThrow(/valid/);
     expect(() => computeSchedule([project()], [member], [], date("2028-01-03"))).toThrow(
       /verified/
@@ -132,8 +140,9 @@ describe("daily role-based capacity", () => {
   it("uses verified days in partial weeks at both calendar boundaries", () => {
     const first = computeSchedule([project()], [member], [], date("2026-01-01"));
     expect(end(first)).toBe("2026-01-09");
-    const last = computeSchedule([project("short", 0.4)], [member], [], date("2027-12-30"));
-    expect(end(last)).toBe("2027-12-31");
+    const last = computeSchedule([project()], [member], [], date("2027-12-30"));
+    expect(last.weeks[0]?.allocated).toBeCloseTo(0.4);
+    expect(last.schedule[0]?.end).toBeNull();
     expect(last.calendarLimited).toBe(true);
   });
 });
