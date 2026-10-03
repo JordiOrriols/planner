@@ -48,9 +48,12 @@ describe("EntryGate", () => {
   });
 
   it("opens account creation directly in sign-up mode", async () => {
+    const errors = vi.spyOn(console, "error");
     renderGate();
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(screen.getByRole("heading", { name: "Create an account" })).toBeInTheDocument();
+    expect(errors.mock.calls.flat().join(" ")).not.toContain("cannot be given refs");
+    errors.mockRestore();
   });
 
   it("bypasses the welcome page for authenticated users", () => {
