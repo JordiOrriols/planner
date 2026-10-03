@@ -2,9 +2,13 @@ import React from "react";
 import type { ReactNode } from "react";
 import { useData } from "@/data/DataProvider";
 import { WelcomePage } from "@/pages/WelcomePage";
+import { useLocation } from "react-router-dom";
 
 export function EntryGate({ children }: { children: ReactNode }) {
   const { user, loading, authError } = useData();
+  const { pathname } = useLocation();
+
+  if (/^\/vacations\/[^/]+\/?$/.test(pathname)) return children;
 
   if (loading) {
     return (

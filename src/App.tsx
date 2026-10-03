@@ -12,6 +12,7 @@ import AppLayout from "./components/organisms/app-layout";
 const Estimation = lazy(() => import("./pages/estimation"));
 const Backlog = lazy(() => import("./pages/backlog"));
 const Vacations = lazy(() => import("./pages/vacations"));
+const VacationLink = lazy(() => import("./pages/vacation-link"));
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
 });
@@ -31,18 +32,26 @@ export default function App() {
         <DataProvider>
           <PasswordResetDialog />
           <EntryGate>
-            <WorkspaceProvider>
-              <Suspense fallback={<Spinner label="Loading page" />}>
-                <Routes>
-                  <Route element={<AppLayout />}>
-                    <Route path="/" element={<Estimation />} />
-                    <Route path="/backlog" element={<Backlog />} />
-                    <Route path="/vacations" element={<Vacations />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Route>
-                </Routes>
-              </Suspense>
-            </WorkspaceProvider>
+            <Suspense fallback={<Spinner label="Loading page" />}>
+              <Routes>
+                <Route path="/vacations/:token" element={<VacationLink />} />
+                <Route
+                  path="*"
+                  element={
+                    <WorkspaceProvider>
+                      <Routes>
+                        <Route element={<AppLayout />}>
+                          <Route path="/" element={<Estimation />} />
+                          <Route path="/backlog" element={<Backlog />} />
+                          <Route path="/vacations" element={<Vacations />} />
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Route>
+                      </Routes>
+                    </WorkspaceProvider>
+                  }
+                />
+              </Routes>
+            </Suspense>
           </EntryGate>
         </DataProvider>
       </QueryClientProvider>
