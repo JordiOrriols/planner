@@ -72,12 +72,14 @@ beforeEach(async () => {
   );
   await login(owner);
   const teams = await db.query<{ id: string }>(
-    "select id from public.teams where owner_id = auth.uid()"
+    "select id from public.teams where owner_id = auth.uid() and is_default"
   );
   team = teams.rows[0]!.id;
   await login(stranger);
   otherTeam = (
-    await db.query<{ id: string }>("select id from public.teams where owner_id = auth.uid()")
+    await db.query<{ id: string }>(
+      "select id from public.teams where owner_id = auth.uid() and is_default"
+    )
   ).rows[0]!.id;
   await login(owner);
   member = (
