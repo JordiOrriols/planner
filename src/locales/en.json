@@ -1,0 +1,427 @@
+{
+  "header": {
+    "title": "Engineering Ladder",
+    "subtitle": "Team competency tracker",
+    "selfAssessment": "Self Assessment",
+    "language": "Language",
+    "reference": "Reference",
+    "addMember": "Add Member"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "add": "Add Member",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "shareLink": "Share Link",
+    "current": "Current",
+    "currentPlus": "Current +",
+    "goal": "Goal",
+    "goalPlus": "Goal +",
+    "publish": "Publish",
+    "submit": "Submit"
+  },
+  "forms": {
+    "addTeamMember": "Add Team Member",
+    "editTeamMember": "Edit Team Member",
+    "name": "Name",
+    "role": "Role (optional)",
+    "competencies": "Competencies",
+    "preview": "Preview",
+    "comments": "Comments",
+    "commentsPlaceholder": "Add notes for this competency",
+    "rolePlaceholder": "e.g. Senior Engineer",
+    "namePlaceholder": "Enter your name",
+    "memberNamePlaceholder": "Enter member name",
+    "example": "Example"
+  },
+  "validation": {
+    "importSuccess": "Self assessment imported successfully",
+    "importError": "Failed to import file. Please ensure it's a valid self-assessment JSON file."
+  },
+  "tabs": {
+    "team": "Team",
+    "individual": "Individual"
+  },
+  "teams": {
+    "create": "Create team",
+    "createTitle": "Create a team",
+    "createDescription": "Group members who work together and manage access separately.",
+    "name": "Team name",
+    "share": "Share",
+    "shareTitle": "Share {{name}}",
+    "shareDescription": "Add an existing account by email and choose read-only or edit access.",
+    "permission": "Permission",
+    "permissionFor": "Permission for {{email}}",
+    "viewer": "View",
+    "editor": "Edit",
+    "noShares": "This team has not been shared yet.",
+    "removeShare": "Remove {{email}}",
+    "rename": "Rename",
+    "renameAria": "Rename {{name}}",
+    "renameTitle": "Rename team",
+    "renameDescription": "Choose a new name for this team.",
+    "addMemberTo": "Add member to {{name}}",
+    "emptyTeam": "No members yet.",
+    "delete": "Delete team",
+    "deleteAria": "Delete {{name}}",
+    "deleteTitle": "Delete empty team?",
+    "deleteDescription": "This permanently deletes the empty team and cannot be undone."
+  },
+  "teamView": {
+    "empty": "No team members yet",
+    "emptyDescription": "Add your first team member to start tracking competencies",
+    "addFirst": "Add First Member"
+  },
+  "individualView": {
+    "empty": "No team members",
+    "emptyDescription": "Add team members to view individual profiles",
+    "selectMember": "Select a member"
+  },
+  "memberDetails": {
+    "competencyDetails": "Competency Details"
+  },
+  "reference": {
+    "title": "Engineering Ladder Reference",
+    "levelTemplate": "L{level}: {name}"
+  },
+  "deleteDialog": {
+    "title": "Delete team member?",
+    "description": "This action cannot be undone. This will permanently delete the team member and their data."
+  },
+  "levels": {
+    "Technology": {
+      "1": {
+        "name": "Adopts",
+        "description": "Actively learns and adopts the technology and tools defined by the team"
+      },
+      "2": {
+        "name": "Specializes",
+        "description": "Is the go-to person for one or more technologies and takes initiative to learn new ones"
+      },
+      "3": {
+        "name": "Evangelizes",
+        "description": "Researches, creates proofs of concept and introduces new technologies to the team"
+      },
+      "4": {
+        "name": "Masters",
+        "description": "Has very deep knowledge about the whole technology stack of the system"
+      },
+      "5": {
+        "name": "Creates",
+        "description": "Designs and creates new technologies that are widely used either by internal or external teams"
+      }
+    },
+    "System": {
+      "1": {
+        "name": "Enhances",
+        "description": "Successfully pushes new features and bug fixes to improve and extend the system"
+      },
+      "2": {
+        "name": "Designs",
+        "description": "Designs and implements medium to large size features while reducing the system's tech debt"
+      },
+      "3": {
+        "name": "Owns",
+        "description": "Owns the production operation and monitoring of the system and is aware of its SLAs"
+      },
+      "4": {
+        "name": "Evolves",
+        "description": "Evolves the architecture to support future requirements and defines its SLAs"
+      },
+      "5": {
+        "name": "Leads",
+        "description": "Leads the technical excellence of the system and creates plans to mitigate outages"
+      }
+    },
+    "People": {
+      "1": {
+        "name": "Learns",
+        "description": "Quickly learns from others and consistently steps up when it is required"
+      },
+      "2": {
+        "name": "Supports",
+        "description": "Proactively supports other team members and helps them to be successful"
+      },
+      "3": {
+        "name": "Mentors",
+        "description": "Mentors others to accelerate their career-growth and encourages them to participate"
+      },
+      "4": {
+        "name": "Coordinates",
+        "description": "Coordinates team members providing effective feedback and moderating discussions"
+      },
+      "5": {
+        "name": "Manages",
+        "description": "Manages the team members' career, expectations, performance and level of happiness"
+      }
+    },
+    "Process": {
+      "1": {
+        "name": "Follows",
+        "description": "Follows the team processes, delivering a consistent flow of features to production"
+      },
+      "2": {
+        "name": "Enforces",
+        "description": "Enforces the team processes, making sure everybody understands the benefits and tradeoffs"
+      },
+      "3": {
+        "name": "Challenges",
+        "description": "Challenges the team processes, looking for ways to improve them"
+      },
+      "4": {
+        "name": "Adjusts",
+        "description": "Adjusts the team processes, listening to feedback and guiding the team through the changes"
+      },
+      "5": {
+        "name": "Defines",
+        "description": "Defines the right processes for the team's maturity level, balancing agility and discipline"
+      }
+    },
+    "Influence": {
+      "1": {
+        "name": "Subsystem",
+        "description": "Makes an impact on one or more subsystems",
+        "example": "One area inside a squad: the checkout UI in a frontend squad, the payments API in a backend squad, or the E2E suite as QA."
+      },
+      "2": {
+        "name": "Team",
+        "description": "Makes an impact on the whole team, not just on specific parts of it",
+        "example": "The whole squad (front, back and QA together): sets review standards, the release pipeline or the testing strategy for the squad."
+      },
+      "3": {
+        "name": "Multiple Teams",
+        "description": "Makes an impact not only on their team but also on other teams",
+        "example": "Several squads of a tribe or area: a shared design system, a platform API used by other squads, or a QA strategy across squads."
+      },
+      "4": {
+        "name": "Company",
+        "description": "Makes an impact on the whole tech organization",
+        "example": "All teams across the company: engineering-wide standards, an architecture guild, or the hiring process."
+      },
+      "5": {
+        "name": "Community",
+        "description": "Makes an impact on the tech community",
+        "example": "Outside the company: maintains open-source projects, speaks at conferences or publishes widely used content."
+      }
+    }
+  },
+  "competencyLabels": {
+    "current": "Current: {{level}} {{name}}",
+    "currentNotSet": "Current: Not set",
+    "goal": "Goal: {{level}} {{name}}",
+    "self": "Self: {{level}} {{name}}"
+  },
+  "memberAssessment": {
+    "title": "Team Member Assessment",
+    "subtitle": "Draft changes are saved automatically; publish when the evaluation is ready",
+    "personalInfo": "Personal Information",
+    "competencies": "Competencies",
+    "preview": "{{name}} Preview",
+    "member": "Member",
+    "currentAverage": "Current Average",
+    "goalAverage": "Goal Average",
+    "competencyLevels": "Competency Levels",
+    "evaluationTab": "Evaluation"
+  },
+  "smartGoals": {
+    "newComment": "New comment",
+    "addComment": "Add comment",
+    "tab": "SMART Goals",
+    "title": "SMART Goals",
+    "description": "Turn growth priorities into clear, trackable commitments.",
+    "goalTitle": "Title",
+    "titlePlaceholder": "What outcome will you achieve?",
+    "goalDescription": "Description",
+    "dueDate": "Target date",
+    "progress": "Progress",
+    "comments": "Comments",
+    "add": "Add goal",
+    "save": "Save changes",
+    "delete": "Delete goal",
+    "empty": "No goals yet.",
+    "noDate": "No target date",
+    "daysRemaining": "{{days}} days remaining",
+    "overdue": "{{days}} days overdue"
+  },
+  "selfAssessment": {
+    "title": "Self Assessment",
+    "subtitle": "Evaluate your competencies",
+    "personalInfo": "Personal Information",
+    "competencies": "Competencies",
+    "preview": "{{name}} Preview",
+    "yourAssessment": "Your Assessment",
+    "currentAverage": "Current Average",
+    "competencyLevels": "Competency Levels",
+    "shareLink": "Share Link",
+    "howToUse": "How to use",
+    "howToUseItems": [
+      "Set your current level for each competency",
+      "Your draft is saved automatically as you work",
+      "Publish when the assessment is ready to become a version",
+      "Use the seniority template to compare with the expected level"
+    ],
+    "clearConfirmTitle": "Clear all assessment data?",
+    "clearConfirmDesc": "This will remove all your assessment data including name, role, and all competency levels. This action cannot be undone.",
+    "clearAll": "Clear All"
+  },
+  "alerts": {
+    "linkCopied": "Link copied to clipboard!",
+    "shareLinkCopied": "Self-assessment link copied to clipboard!",
+    "failedToCopyLink": "Failed to copy link",
+    "memberDeleted": "Member deleted successfully!",
+    "published": "Version published.",
+    "nameRequired": "Please enter a name before saving.",
+    "authorRequired": "Please enter your name before submitting.",
+    "saveFailed": "Could not save. Please try again.",
+    "publishDraftFirst": "Save a draft before publishing.",
+    "saveMemberFirst": "Save the member first."
+  },
+  "influenceScope": "Scope guide: a squad is one cross-functional team (front, back, QA); several squads form a tribe or area; the company is the whole tech organization; the community is outside the company.",
+  "series": {
+    "current": "Current",
+    "goal": "Goal"
+  },
+  "comments": {
+    "title": "Comments"
+  },
+  "autosave": {
+    "saving": "Saving...",
+    "saved": "Draft saved",
+    "error": "Could not save"
+  },
+  "versions": {
+    "returnToDraft": "Return to draft",
+    "title": "Versions",
+    "filter": "Filter versions by author",
+    "empty": "No versions saved yet",
+    "compare": "Show on chart",
+    "deleteTitle": "Delete this version?",
+    "deleteDescription": "This version will be permanently removed from the history.",
+    "kind": {
+      "manager": "Manager",
+      "self": "Self",
+      "peer": "Peer"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published"
+    }
+  },
+  "templates": {
+    "title": "Seniority template",
+    "none": "No template",
+    "whatItMeans": "What this level means",
+    "seriesLabel": "{{id}} expected",
+    "tracks": {
+      "developer": "Developer",
+      "techLead": "Tech Lead",
+      "engineeringManager": "Engineering Manager"
+    },
+    "summaries": {
+      "D1": "Learns the stack and delivers well-scoped features and fixes, following the team processes.",
+      "D2": "Designs medium-sized features, proactively supports teammates and enforces the team processes.",
+      "D3": "Go-to person for some technologies; challenges the processes and impacts the whole team.",
+      "D4": "Introduces new technologies, owns production operation and mentors others.",
+      "D5": "Masters the whole stack, evolves the architecture and impacts multiple teams.",
+      "D6": "Creates widely used technologies and leads technical excellence across the company.",
+      "D7": "Technical work with impact on the wider tech community.",
+      "TL4": "Owns the system in production, coordinates the team and adjusts its processes.",
+      "TL5": "Evolves the architecture and defines the team processes; impacts the whole team.",
+      "TL6": "Masters the stack and leads technical excellence across multiple teams.",
+      "TL7": "Leads technical direction with impact on the whole tech organization.",
+      "EM5": "Manages careers, performance and happiness of the team while owning its operation.",
+      "EM6": "Manages the team, evolves the architecture and defines processes for its maturity.",
+      "EM7": "Manages with impact beyond the team, across multiple teams."
+    }
+  },
+  "share": {
+    "title": "Permanent links",
+    "action": "Share",
+    "menuLabel": "Choose a sharing link",
+    "loginRequired": "Sign in and save the member to get permanent sharing links.",
+    "copy": "Copy link",
+    "self": {
+      "label": "Self-evaluation",
+      "hint": "The person saves their own versions directly here. No login needed."
+    },
+    "peer": {
+      "label": "Peer evaluation",
+      "hint": "Anyone with this link can submit an evaluation; you review and publish it."
+    },
+    "view": {
+      "label": "View my evaluation",
+      "hint": "Read-only: your published versions, published peer versions and their self versions.",
+      "enable": "Enabled"
+    }
+  },
+  "welcome": {
+    "eyebrow": "Engineering Ladder",
+    "title": "How do you want to start?",
+    "description": "Sign in to keep your team protected and available across devices.",
+    "accountTitle": "Use an account",
+    "accountDescription": "Save your team in the database and create permanent links for self and peer evaluations.",
+    "authUnavailable": "Account access is not configured for this deployment."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "signOut": "Sign out",
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create an account",
+    "description": "Save your team securely and get permanent sharing links. Data on this device is uploaded to a new empty account.",
+    "email": "Email",
+    "password": "Password",
+    "continueWithGitHub": "Continue with GitHub",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a secure reset link.",
+    "sendResetEmail": "Send reset email",
+    "passwordResetSent": "Check your email for password reset instructions.",
+    "backToSignIn": "Back to sign in",
+    "resetPasswordTitle": "Set a new password",
+    "resetPasswordDescription": "Choose a new password with at least 8 characters.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "updatePassword": "Update password",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "checkEmail": "Check your email to confirm your account.",
+    "switchToSignUp": "No account? Create one",
+    "switchToSignIn": "Already have an account? Sign in"
+  },
+  "pageMessage": {
+    "loading": "Loading...",
+    "notFound": "This link is not valid or is no longer available.",
+    "error": "Something went wrong while loading.",
+    "thanks": "Thanks! Your evaluation has been sent.",
+    "home": "Go to home"
+  },
+  "peerAssessment": {
+    "title": "Evaluate {{name}}",
+    "subtitle": "Your evaluation will be reviewed before it is published",
+    "personalInfo": "Who you are evaluating",
+    "competencies": "Competencies",
+    "preview": "{{name}} Preview",
+    "yourName": "Your name",
+    "another": "Submit another evaluation",
+    "howToUseItems": [
+      "Enter your name so the manager knows who evaluated",
+      "Set the level you observe for each competency",
+      "Add comments with concrete examples"
+    ]
+  },
+  "viewPage": {
+    "title": "{{name}} · Evaluation"
+  },
+  "labels": {
+    "teamOverview": "Team Overview",
+    "teamLegend": "Team Legend",
+    "member": "member",
+    "members": "members",
+    "noTeamMembers": "No team members yet",
+    "addMembersToSeeOverview": "Add members to see the team overview",
+    "currentNotSet": "Not set"
+  }
+}

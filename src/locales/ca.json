@@ -1,0 +1,428 @@
+{
+  "header": {
+    "title": "Escala d'Enginyeria",
+    "subtitle": "Rastreador de competències del equip",
+    "selfAssessment": "Autoevaluació",
+    "language": "Idioma",
+    "reference": "Referència",
+    "addMember": "Afegir Membre"
+  },
+  "buttons": {
+    "cancel": "Cancelar",
+    "save": "Guardar Canvis",
+    "add": "Afegir Membre",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Tancar",
+    "clear": "Netejar",
+    "shareLink": "Compartir Enllaç",
+    "current": "Actual",
+    "currentPlus": "Actual +",
+    "goal": "Objectiu",
+    "goalPlus": "Objectiu +",
+    "publish": "Publicar",
+    "submit": "Enviar"
+  },
+  "forms": {
+    "addTeamMember": "Afegir Membre de l'Equip",
+    "editTeamMember": "Editar Membre de l'Equip",
+    "name": "Nom",
+    "role": "Rol (opcional)",
+    "competencies": "Competències",
+    "preview": "Vista Prèvia",
+    "comments": "Comentaris",
+    "commentsPlaceholder": "Afegir notes per a aquesta competència",
+    "rolePlaceholder": "p.ex. Enginyer Sènior",
+    "namePlaceholder": "Introdueix el teu nom",
+    "memberNamePlaceholder": "Introdueix el nom del membre",
+    "example": "Exemple"
+  },
+  "validation": {
+    "importSuccess": "Autoevaluació importada correctament",
+    "importError": "Error en importar l'arxiu. Assegureu-vos que és un arxiu JSON d'autoevaluació vàlid."
+  },
+  "tabs": {
+    "team": "Equip",
+    "individual": "Individual"
+  },
+  "teams": {
+    "create": "Crear equip",
+    "createTitle": "Crear un equip",
+    "createDescription": "Agrupeu les persones que treballen juntes i gestioneu l'accés per separat.",
+    "name": "Nom de l'equip",
+    "share": "Compartir",
+    "shareTitle": "Compartir {{name}}",
+    "shareDescription": "Afegiu un compte existent per email i trieu accés de lectura o edició.",
+    "permission": "Permís",
+    "permissionFor": "Permís per a {{email}}",
+    "viewer": "Veure",
+    "editor": "Editar",
+    "noShares": "Aquest equip encara no s'ha compartit.",
+    "removeShare": "Eliminar {{email}}",
+    "rename": "Canviar nom",
+    "renameAria": "Canviar el nom de {{name}}",
+    "renameTitle": "Canviar el nom de l'equip",
+    "renameDescription": "Trieu un nou nom per a aquest equip.",
+    "addMemberTo": "Afegir membre a {{name}}",
+    "emptyTeam": "Encara no hi ha membres.",
+    "delete": "Eliminar equip",
+    "deleteAria": "Eliminar {{name}}",
+    "deleteTitle": "Eliminar l'equip buit?",
+    "deleteDescription": "Això elimina permanentment l'equip buit i no es pot desfer."
+  },
+  "teamView": {
+    "empty": "Sense membres de l'equip encara",
+    "emptyDescription": "Afegiu el vostre primer membre de l'equip per comenzar a rastrejar competències",
+    "addFirst": "Afegir Primer Membre"
+  },
+  "individualView": {
+    "empty": "Sense membres de l'equip",
+    "emptyDescription": "Afegiu membres de l'equip per veure perfils individuals",
+    "selectMember": "Seleccionar un membre"
+  },
+  "memberDetails": {
+    "competencyDetails": "Detalls de Competències"
+  },
+  "reference": {
+    "title": "Referència de Escala d'Enginyeria",
+    "levelTemplate": "N{level}: {name}"
+  },
+  "deleteDialog": {
+    "title": "Eliminar membre de l'equip?",
+    "description": "Aquesta acció no es pot desfer. Això eliminarà permanentment el membre de l'equip i les seves dades."
+  },
+  "levels": {
+    "Technology": {
+      "1": {
+        "name": "Adopta",
+        "description": "Aprèn activament i adopta la tecnologia i les eines definides per l'equip"
+      },
+      "2": {
+        "name": "Especialitza",
+        "description": "És la persona clau per a una o més tecnologies i pren la iniciativa per aprendre noves"
+      },
+      "3": {
+        "name": "Evangelitza",
+        "description": "Investiga, crea proves de concepte i introdueix noves tecnologies a l'equip"
+      },
+      "4": {
+        "name": "Domina",
+        "description": "Té coneixement molt profund de tota l'stack de tecnologia del sistema"
+      },
+      "5": {
+        "name": "Crea",
+        "description": "Dissenya i crea noves tecnologies que són àmpliament utilitzades per equips interns o externs"
+      }
+    },
+    "System": {
+      "1": {
+        "name": "Millora",
+        "description": "Implementa exitosament noves característiques i correccions d'errors per millorar i estendre el sistema"
+      },
+      "2": {
+        "name": "Dissenya",
+        "description": "Dissenya i implementa característiques de mitjà a gran mida mentre redueix la deuta tècnica del sistema"
+      },
+      "3": {
+        "name": "Posseeix",
+        "description": "Posseeix l'operació de producció i monitoratge del sistema i és conscient dels seus SLA"
+      },
+      "4": {
+        "name": "Evoluciona",
+        "description": "Evoluciona l'arquitectura per suportar requisits futurs i defineix els seus SLA"
+      },
+      "5": {
+        "name": "Lidera",
+        "description": "Lidera l'excel·lència tècnica del sistema i crea plans per mitigar interrupcions"
+      }
+    },
+    "People": {
+      "1": {
+        "name": "Aprèn",
+        "description": "Aprèn ràpidament dels altres i es presenta consistentment quan és necessari"
+      },
+      "2": {
+        "name": "Suporta",
+        "description": "Suporta proactivament altres membres de l'equip i els ajuda a tenir èxit"
+      },
+      "3": {
+        "name": "Mentoritza",
+        "description": "Mentoritza altres per accelerar el seu creixement professional i els anima a participar"
+      },
+      "4": {
+        "name": "Coordina",
+        "description": "Coordina membres de l'equip proporcionant retroalimentació efectiva i moderant discussions"
+      },
+      "5": {
+        "name": "Gestiona",
+        "description": "Gestiona la carrera, expectatives, rendiment i nivell de felicitat dels membres de l'equip"
+      }
+    },
+    "Process": {
+      "1": {
+        "name": "Segueix",
+        "description": "Segueix els processos de l'equip, entregant un flux consistent de característiques a producció"
+      },
+      "2": {
+        "name": "Reforça",
+        "description": "Reforça els processos de l'equip, assegurant que tots entenen els beneficis i compromisos"
+      },
+      "3": {
+        "name": "Desafia",
+        "description": "Desafia els processos de l'equip, cercant formes de millorar-los"
+      },
+      "4": {
+        "name": "Ajusta",
+        "description": "Ajusta els processos de l'equip, escoltant retroalimentació i guiant l'equip a través dels canvis"
+      },
+      "5": {
+        "name": "Defineix",
+        "description": "Defineix els processos correctes per al nivell de maduresa de l'equip, equilibrant agilitat i disciplina"
+      }
+    },
+    "Influence": {
+      "1": {
+        "name": "Subsistema",
+        "description": "Té impacte en un o més subsistemes",
+        "example": "Una àrea dins d'un squad: la UI de checkout en un squad de front, l'API de pagaments en un squad de back o la suite E2E com a QA."
+      },
+      "2": {
+        "name": "Equip",
+        "description": "Té impacte en tot l'equip, no només en parts específiques",
+        "example": "Tot el squad (front, back i QA junts): defineix estàndards de revisió, el pipeline de desplegament o l'estratègia de testing del squad."
+      },
+      "3": {
+        "name": "Múltiples Equips",
+        "description": "Té impacte no només en el seu equip sinó també en altres equips",
+        "example": "Diversos squads d'una tribu o àrea: un design system compartit, una API de plataforma usada per altres squads o una estratègia de QA entre squads."
+      },
+      "4": {
+        "name": "Empresa",
+        "description": "Té impacte en tota l'organització tècnica",
+        "example": "Tots els equips de l'empresa: estàndards d'enginyeria globals, un guild d'arquitectura o el procés de contractació."
+      },
+      "5": {
+        "name": "Comunitat",
+        "description": "Té impacte en la comunitat tecnològica",
+        "example": "Fora de l'empresa: manté projectes open source, fa xerrades en conferències o publica contingut molt utilitzat."
+      }
+    }
+  },
+  "competencyLabels": {
+    "current": "Actual: {{level}} {{name}}",
+    "currentNotSet": "Actual: No establert",
+    "goal": "Objectiu: {{level}} {{name}}",
+    "self": "Autoevaluació: {{level}} {{name}}"
+  },
+  "memberAssessment": {
+    "title": "Avaluació de Membre de l'Equip",
+    "subtitle": "Els canvis de l'esborrany es desen automàticament; publiqueu-lo quan estigui llest",
+    "personalInfo": "Informació Personal",
+    "competencies": "Competències",
+    "preview": "Vista Prèvia {{name}}",
+    "member": "Membre",
+    "currentAverage": "Mitjana Actual",
+    "goalAverage": "Mitjana d'Objectiu",
+    "competencyLevels": "Nivells de Competència",
+    "evaluationTab": "Avaluació"
+  },
+  "smartGoals": {
+    "newComment": "Nou comentari",
+    "addComment": "Afegir comentari",
+    "tab": "Objectius SMART",
+    "title": "Objectius SMART",
+    "description": "Convertiu les prioritats de creixement en compromisos clars i mesurables.",
+    "goalTitle": "Títol",
+    "titlePlaceholder": "Quin resultat assolireu?",
+    "goalDescription": "Descripció",
+    "dueDate": "Data objectiu",
+    "progress": "Progrés",
+    "comments": "Comentaris",
+    "add": "Afegir objectiu",
+    "save": "Desar canvis",
+    "delete": "Eliminar objectiu",
+    "empty": "Encara no hi ha objectius.",
+    "noDate": "Sense data objectiu",
+    "daysRemaining": "Queden {{days}} dies",
+    "overdue": "{{days}} dies de retard"
+  },
+  "selfAssessment": {
+    "title": "Autoevaluació",
+    "subtitle": "Avalueu les vostres competències",
+    "personalInfo": "Informació Personal",
+    "competencies": "Competències",
+    "preview": "Vista Prèvia {{name}}",
+    "yourAssessment": "La Vostra Avaluació",
+    "currentAverage": "Mitjana Actual",
+    "competencyLevels": "Nivells de Competència",
+    "shareLink": "Compartir Enllaç",
+    "howToUse": "Com usar",
+    "howToUseItems": [
+      "Establiu el vostre nivell actual per a cada competència",
+      "L'esborrany es desa automàticament mentre treballeu",
+      "Publiqueu quan l'avaluació estigui llesta per convertir-se en una versió",
+      "Useu la plantilla de seniority per comparar amb el nivell esperat"
+    ],
+    "clearConfirmTitle": "¿Netejar totes les dades d'avaluació?",
+    "clearConfirmDesc": "Això eliminarà totes les vostres dades d'avaluació inclòs nom, rol i tots els nivells de competència. Aquesta acció no es pot desfer.",
+    "clearAll": "Netejar Tot"
+  },
+  "alerts": {
+    "linkCopied": "¡Enllaç copiat al porta-retalls!",
+    "shareLinkCopied": "¡Enllaç d'autoevaluació copiat al porta-retalls!",
+    "failedToCopyLink": "Error en copiar l'enllaç",
+    "memberDeleted": "¡Membre eliminat correctament!",
+    "published": "Versió publicada.",
+    "nameRequired": "Introduïu un nom abans de desar.",
+    "authorRequired": "Introduïu el vostre nom abans d'enviar.",
+    "saveFailed": "No s'ha pogut desar. Torneu-ho a provar.",
+    "publishDraftFirst": "Deseu un esborrany abans de publicar.",
+    "saveMemberFirst": "Deseu primer el membre."
+  },
+  "influenceScope": "Guia d'abast: un squad és un equip multifuncional (front, back, QA); diversos squads formen una tribu o àrea; l'empresa és tota l'organització tècnica; la comunitat és fora de l'empresa.",
+  "series": {
+    "current": "Actual",
+    "goal": "Objectiu"
+  },
+  "comments": {
+    "title": "Comentaris"
+  },
+  "autosave": {
+    "saving": "Desant...",
+    "saved": "Esborrany desat",
+    "error": "No s'ha pogut desar"
+  },
+  "versions": {
+    "returnToDraft": "Tornar a esborrany",
+    "title": "Versions",
+    "filter": "Filtrar versions per autor",
+    "empty": "Encara no hi ha versions desades",
+    "compare": "Mostrar al gràfic",
+    "deleteTitle": "Eliminar aquesta versió?",
+    "deleteDescription": "Aquesta versió s'eliminarà permanentment de l'historial.",
+    "kind": {
+      "manager": "Manager",
+      "self": "Autoavaluació",
+      "peer": "Company"
+    },
+    "status": {
+      "draft": "Esborrany",
+      "published": "Publicada"
+    }
+  },
+  "templates": {
+    "title": "Plantilla de seniority",
+    "none": "Sense plantilla",
+    "whatItMeans": "Què significa aquest nivell",
+    "seriesLabel": "{{id}} esperat",
+    "tracks": {
+      "developer": "Desenvolupador",
+      "techLead": "Tech Lead",
+      "engineeringManager": "Engineering Manager"
+    },
+    "summaries": {
+      "D1": "Aprèn l'stack i lliura funcionalitats i correccions acotades, seguint els processos de l'equip.",
+      "D2": "Dissenya funcionalitats mitjanes, dona suport proactiu a l'equip i reforça els seus processos.",
+      "D3": "Referent en algunes tecnologies; qüestiona els processos i té impacte en tot l'equip.",
+      "D4": "Introdueix noves tecnologies, és responsable de l'operació en producció i mentoritza altres.",
+      "D5": "Domina tot l'stack, evoluciona l'arquitectura i té impacte en diversos equips.",
+      "D6": "Crea tecnologies molt utilitzades i lidera l'excel·lència tècnica a l'empresa.",
+      "D7": "Treball tècnic amb impacte en la comunitat tecnològica.",
+      "TL4": "Responsable del sistema en producció, coordina l'equip i ajusta els seus processos.",
+      "TL5": "Evoluciona l'arquitectura i defineix els processos de l'equip; impacte en tot l'equip.",
+      "TL6": "Domina l'stack i lidera l'excel·lència tècnica en diversos equips.",
+      "TL7": "Lidera la direcció tècnica amb impacte en tota l'organització.",
+      "EM5": "Gestiona la carrera, el rendiment i la felicitat de l'equip, i la seva operació.",
+      "EM6": "Gestiona l'equip, evoluciona l'arquitectura i defineix processos segons la seva maduresa.",
+      "EM7": "Gestiona amb impacte més enllà de l'equip, en diversos equips."
+    }
+  },
+  "share": {
+    "title": "Enllaços permanents",
+    "action": "Compartir",
+    "menuLabel": "Triar un enllaç per compartir",
+    "loginRequired": "Inicieu sessió i deseu el membre per obtenir enllaços permanents.",
+    "copy": "Copiar enllaç",
+    "self": {
+      "label": "Autoavaluació",
+      "hint": "La persona desa les seves pròpies versions directament aquí. Sense login."
+    },
+    "peer": {
+      "label": "Avaluació de companys",
+      "hint": "Qualsevol amb aquest enllaç pot enviar una avaluació; vosaltres la reviseu i la publiqueu."
+    },
+    "view": {
+      "label": "Veure la meva avaluació",
+      "hint": "Només lectura: les vostres versions publicades, les de companys publicades i les seves autoavaluacions.",
+      "enable": "Activat"
+    }
+  },
+  "welcome": {
+    "eyebrow": "Escala d'Enginyeria",
+    "title": "Com voleu començar?",
+    "description": "Inicieu sessió per mantenir el vostre equip protegit i disponible entre dispositius.",
+    "accountTitle": "Usar un compte",
+    "accountDescription": "Deseu el vostre equip a la base de dades i creeu enllaços permanents per a autoavaluacions i avaluacions de companys.",
+    "authUnavailable": "L'accés amb compte no està configurat en aquest desplegament."
+  },
+  "auth": {
+    "signIn": "Iniciar sessió",
+    "signUp": "Crear compte",
+    "signOut": "Tancar sessió",
+    "signInTitle": "Iniciar sessió",
+    "signUpTitle": "Crear un compte",
+    "description": "Deseu el vostre equip de forma segura i obtingueu enllaços permanents. Les dades d'aquest dispositiu es pugen a un compte nou buit.",
+    "email": "Email",
+    "password": "Contrasenya",
+    "continueWithGitHub": "Continuar amb GitHub",
+    "forgotPassword": "Heu oblidat la contrasenya?",
+    "forgotPasswordTitle": "Restablir la contrasenya",
+    "forgotPasswordDescription": "Introduïu el vostre email i us enviarem un enllaç segur per restablir-la.",
+    "sendResetEmail": "Enviar email de recuperació",
+    "passwordResetSent": "Reviseu el vostre email per continuar amb el canvi de contrasenya.",
+    "backToSignIn": "Tornar a iniciar sessió",
+    "resetPasswordTitle": "Establir una contrasenya nova",
+    "resetPasswordDescription": "Trieu una contrasenya nova de com a mínim 8 caràcters.",
+    "newPassword": "Contrasenya nova",
+    "confirmPassword": "Confirmar contrasenya",
+    "updatePassword": "Actualitzar contrasenya",
+    "passwordTooShort": "La contrasenya ha de tenir com a mínim 8 caràcters.",
+    "passwordsDoNotMatch": "Les contrasenyes no coincideixen.",
+    "checkEmail": "Reviseu el vostre email per confirmar el compte.",
+    "switchToSignUp": "No teniu compte? Creeu-ne un",
+    "switchToSignIn": "Ja teniu compte? Inicieu sessió"
+  },
+  "pageMessage": {
+    "loading": "Carregant...",
+    "notFound": "Aquest enllaç no és vàlid o ja no està disponible.",
+    "error": "Alguna cosa ha fallat en carregar.",
+    "thanks": "Gràcies! La vostra avaluació s'ha enviat.",
+    "home": "Anar a l'inici"
+  },
+  "peerAssessment": {
+    "title": "Avaluar {{name}}",
+    "subtitle": "La vostra avaluació es revisarà abans de publicar-se",
+    "personalInfo": "A qui avalueu",
+    "competencies": "Competències",
+    "preview": "Vista Prèvia {{name}}",
+    "yourName": "El vostre nom",
+    "another": "Enviar una altra avaluació",
+    "howToUseItems": [
+      "Introduïu el vostre nom perquè el manager sàpiga qui ha avaluat",
+      "Indiqueu el nivell que observeu en cada competència",
+      "Afegiu comentaris amb exemples concrets"
+    ]
+  },
+  "viewPage": {
+    "title": "{{name}} · Avaluació"
+  },
+  "labels": {
+    "teamOverview": "Descripció General de l'Equip",
+    "teamLegend": "Llegenda de l'Equip",
+    "member": "membre",
+    "members": "membres",
+    "noTeamMembers": "Sense membres de l'equip encara",
+    "addMembersToSeeOverview": "Afegiu membres per veure la descripció general de l'equip",
+    "currentNotSet": "No establert"
+  }
+}
