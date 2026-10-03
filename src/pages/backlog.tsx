@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Button, EmptyState } from "@jordiorriols/ui";
-import { ArrowUp, ArrowDown, GanttChartSquare } from "@jordiorriols/ui/icons";
+import { Button, EmptyState, Modal } from "@jordiorriols/ui";
+import { ArrowUp, ArrowDown, GanttChartSquare, Plus, X } from "@jordiorriols/ui/icons";
+import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { format } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
@@ -13,6 +14,9 @@ export default function Backlog() {
   const { repository } = useData();
   const action = useAsyncAction();
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [adding, setAdding] = useState(false);
+  const availableProjects = projects.filter((project) => !project.in_backlog);
+  if (!repository) throw new Error("Sign in to manage the backlog");
   const backlog = [...projects]
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -40,14 +44,29 @@ export default function Backlog() {
       await refresh();
     });
   }
+  function toggle(id: string, included: boolean) {
+    if (!repository) throw new Error("Sign in to manage the backlog");
+    void action.run(async () => {
+      await repository.toggleBacklog(workspace.id, id, included);
+      await refresh();
+    });
+  }
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">Backlog plan</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Priority allocates available people by role each day. Roles and projects overlap when
-          capacity allows.
-        </p>
+      <div className="flex flex-wrap justify-between gap-4 items-end">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold">Backlog plan</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Priority allocates available people by role each day. Roles and projects overlap when
+            capacity allows.
+          </p>
+        </div>
+        {isOwner && (
+          <Button onClick={() => setAdding(true)}>
+            <Plus className="size-4" />
+            Add projects
+          </Button>
+        )}
       </div>
       <div className="grid sm:grid-cols-3 gap-3">
         <div className="panel">
@@ -93,7 +112,12 @@ export default function Backlog() {
         <EmptyState
           icon={<GanttChartSquare />}
           title="No projects in the backlog"
-          description="Add selected estimates from the Estimation page."
+          description={
+            isOwner
+              ? "Choose which estimates to include in this plan."
+              : "The workspace owner selects projects for this plan."
+          }
+          action={isOwner && <Button onClick={() => setAdding(true)}>Add projects</Button>}
         />
       ) : (
         <>
@@ -122,6 +146,15 @@ export default function Backlog() {
                     >
                       <ArrowDown size={16} />
                     </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Remove from backlog: ${project.name}`}
+                      disabled={action.busy}
+                      onClick={() => toggle(project.id, false)}
+                    >
+                      <X size={16} />
+                    </Button>
                   </>
                 )}
               </li>
@@ -136,6 +169,55 @@ export default function Backlog() {
             </section>
           )}
         </>
+      )}
+      {isOwner && adding && (
+        <Modal
+          isOpen
+          title="Add projects to backlog"
+          description="Choose existing estimates. Adding a project places it at the end of the priority list."
+          closeLabel="Close"
+          onOpenChange={(open) => {
+            if (!open && !action.busy) setAdding(false);
+          }}
+        >
+          {action.error && (
+            <p role="alert" className="text-destructive">
+              {action.error}
+            </p>
+          )}
+          {availableProjects.length ? (
+            <ul className="max-h-[50vh] overflow-y-auto space-y-2">
+              {availableProjects.map((project) => (
+                <li
+                  key={project.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                >
+                  <span className="font-medium">{project.name}</span>
+                  <Button
+                    size="sm"
+                    disabled={action.busy}
+                    aria-label={`Add to backlog: ${project.name}`}
+                    onClick={() => toggle(project.id, true)}
+                  >
+                    Add
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {projects.length
+                ? "All estimates are already in the backlog."
+                : "Create an estimate first, then choose it for the plan."}
+            </p>
+          )}
+          <Link
+            to="/"
+            className="inline-flex mt-4 text-sm text-primary underline underline-offset-4"
+          >
+            Create a new estimate
+          </Link>
+        </Modal>
       )}
     </div>
   );
