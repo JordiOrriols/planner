@@ -22,6 +22,7 @@ interface WorkspaceContextValue {
   isOwner: boolean;
   userId: string;
   selectWorkspace: (id: string) => void;
+  createWorkspace: () => void;
   refresh: () => Promise<void>;
 }
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -32,9 +33,10 @@ export function useWorkspace() {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const { repository, user } = useData();
+  const { repository, user, signOut } = useData();
   const client = useQueryClient();
   const [selected, setSelected] = useState("");
+  const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [memberName, setMemberName] = useState("");
   const [role, setRole] = useState<Role>("backend");
@@ -82,15 +84,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         <p role="alert">{(directory.error ?? data.error)?.message}</p>
         <p>Confirm the Planner migration is installed in your Supabase project.</p>
         <Button onClick={() => void refresh()}>Retry</Button>
+        <Button variant="ghost" onClick={() => void action.run(signOut)}>
+          Sign out
+        </Button>
+        {action.error && <p role="alert">{action.error}</p>}
       </div>
     );
-  if (!workspace || !data.data)
+  if (creating || !workspace || !data.data)
     return (
       <main className="max-w-xl mx-auto p-8 space-y-6">
         <h1 className="text-2xl font-semibold">Your planning workspace</h1>
         <p className="text-muted-foreground">
           Create a squad or accept an invitation sent to {user.email}.
         </p>
+        <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
+          Sign out
+        </Button>
         {action.error && (
           <p role="alert" className="text-destructive">
             {action.error}
@@ -117,6 +126,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             void action.run(async () => {
               const created = await repository.createWorkspace(name, memberName, role);
               setSelected(created.id);
+              setCreating(false);
+              setName("");
+              setMemberName("");
               await refresh();
             });
           }}
@@ -155,6 +167,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           <Button type="submit" disabled={action.busy}>
             Create workspace
           </Button>
+          {!!workspace && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setCreating(false)}
+              disabled={action.busy}
+            >
+              Cancel
+            </Button>
+          )}
         </form>
       </main>
     );
@@ -167,10 +189,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         isOwner: workspace.owner_id === user.id,
         userId: user.id,
         selectWorkspace: setSelected,
+        createWorkspace: () => setCreating(true),
         refresh,
       }}
     >
-      {children}
+      <React.Fragment key={workspace.id}>{children}</React.Fragment>
       {!!directory.data?.invitations.length && (
         <section
           className="mx-auto max-w-7xl px-6 pb-8 space-y-2"

@@ -15,7 +15,7 @@ const NAV = [
 
 export default function AppLayout() {
   const { signOut } = useData();
-  const { workspace, workspaces, selectWorkspace, isOwner } = useWorkspace();
+  const { workspace, workspaces, selectWorkspace, isOwner, createWorkspace } = useWorkspace();
   const action = useAsyncAction();
   return (
     <div className="min-h-screen bg-background">
@@ -67,6 +67,9 @@ export default function AppLayout() {
               ))}
             </select>
             <span className="text-xs text-muted-foreground">{isOwner ? "Owner" : "Member"}</span>
+            <Button variant="ghost" onClick={createWorkspace}>
+              New workspace
+            </Button>
             <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
               Sign out
             </Button>
