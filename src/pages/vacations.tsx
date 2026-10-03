@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Button, Input, Label, ConfirmDialog } from "@jordiorriols/ui";
+import { Button, Input, Label, ConfirmDialog, Modal } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { Trash2, UserPlus } from "@jordiorriols/ui/icons";
+import { Trash2, UserPlus, Pencil } from "@jordiorriols/ui/icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { startOfMonth, format } from "date-fns";
 import VacationCalendar from "@/components/organisms/vacation-calendar";
@@ -27,6 +27,7 @@ export default function Vacations() {
   const [end, setEnd] = useState("");
   const [working, setWorking] = useState(false);
   const [deleting, setDeleting] = useState<PlannerMember | null>(null);
+  const [editing, setEditing] = useState<PlannerMember | null>(null);
   const action = useAsyncAction();
   if (!repository) throw new Error("Sign in to manage availability");
   const velocity = squadVelocity(members, availability, new Date(), 16);
@@ -76,6 +77,17 @@ export default function Vacations() {
                   {ROLE_LABELS[member.role]} · {member.user_id ? "Joined" : "Invited"}
                 </span>
               </button>
+              {isOwner && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Edit ${member.name}`}
+                  disabled={action.busy}
+                  onClick={() => setEditing(member)}
+                >
+                  <Pencil size={16} />
+                </Button>
+              )}
               {isOwner && member.user_id !== user?.id && (
                 <Button
                   size="icon"
@@ -311,6 +323,58 @@ export default function Vacations() {
           });
         }}
       />
+      {editing && (
+        <Modal
+          isOpen
+          onOpenChange={(open) => {
+            if (!open && !action.busy) setEditing(null);
+          }}
+          title="Edit team member"
+          description="Changing a role changes future planning capacity. Existing availability is preserved."
+          closeLabel="Close"
+        >
+          <form
+            className="space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void action.run(async () => {
+                await repository.updateMember(editing.id, editing.name, editing.role);
+                setEditing(null);
+                await refresh();
+              });
+            }}
+          >
+            <Label htmlFor="edit-member-name">Member name</Label>
+            <Input
+              id="edit-member-name"
+              required
+              maxLength={120}
+              value={editing.name}
+              onChange={(event) => setEditing({ ...editing, name: event.target.value })}
+            />
+            <Label htmlFor="edit-member-role">Member role</Label>
+            <select
+              id="edit-member-role"
+              className="field"
+              value={editing.role}
+              onChange={(event) => {
+                const next = ROLES.find((item) => item === event.target.value);
+                if (next) setEditing({ ...editing, role: next });
+              }}
+            >
+              {ROLES.map((item) => (
+                <option key={item} value={item}>
+                  {ROLE_LABELS[item]}
+                </option>
+              ))}
+            </select>
+            {action.error && <p role="alert">{action.error}</p>}
+            <Button type="submit" disabled={action.busy}>
+              Save member
+            </Button>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }
