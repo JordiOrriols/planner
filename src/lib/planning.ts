@@ -93,8 +93,11 @@ export function squadVelocity(
   const weeks: CapacityWeek[] = [];
   for (let i = 0; i < numWeeks; i++) {
     const weekStart = addWeeks(start, i);
-    if (!hasHolidayCalendar(format(addDays(weekStart, 6), "yyyy-MM-dd"))) break;
-    const capacity = Array.from({ length: 7 }, (_, day) => addDays(weekStart, day)).reduce(
+    const verifiedDays = Array.from({ length: 7 }, (_, day) => addDays(weekStart, day)).filter(
+      (date) => hasHolidayCalendar(format(date, "yyyy-MM-dd"))
+    );
+    if (!verifiedDays.length) break;
+    const capacity = verifiedDays.reduce(
       (sum, date) =>
         sum + members.filter((member) => isWorking(member, date, availability)).length / 5,
       0
@@ -149,7 +152,7 @@ export function computeSchedule(
   weeks.forEach((week, weekIndex) => {
     for (let day = 0; day < 7; day++) {
       const date = addDays(week.weekStart, day);
-      if (date < startDate) continue;
+      if (date < startDate || !hasHolidayCalendar(format(date, "yyyy-MM-dd"))) continue;
       const free = Object.fromEntries(
         ROLES.map((role) => [
           role,
@@ -181,5 +184,12 @@ export function computeSchedule(
     if (!item.complete && !item.reason)
       item.reason = "Not completed within the verified planning horizon";
   }
-  return { weeks, schedule, calendarLimited: weeks.length < horizon };
+  const finalWeek = weeks.at(-1);
+  return {
+    weeks,
+    schedule,
+    calendarLimited:
+      weeks.length < horizon ||
+      (!!finalWeek && !hasHolidayCalendar(format(addDays(finalWeek.weekStart, 6), "yyyy-MM-dd"))),
+  };
 }

@@ -129,4 +129,11 @@ describe("daily role-based capacity", () => {
       /verified/
     );
   });
+  it("uses verified days in partial weeks at both calendar boundaries", () => {
+    const first = computeSchedule([project()], [member], [], date("2026-01-01"));
+    expect(end(first)).toBe("2026-01-09");
+    const last = computeSchedule([project("short", 0.4)], [member], [], date("2027-12-30"));
+    expect(end(last)).toBe("2027-12-31");
+    expect(last.calendarLimited).toBe(true);
+  });
 });
