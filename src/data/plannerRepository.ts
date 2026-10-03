@@ -42,7 +42,7 @@ const invitationSchema = z.object({ member_id: z.string().uuid(), workspace_name
 export function createPlannerRepository(client: SupabaseClient) {
   async function rpc(name: string, args?: Record<string, unknown>) {
     const { data, error } = await client.rpc(name, args);
-    if (error) throw error;
+    if (error) throw new Error(error.message, { cause: error });
     return data;
   }
   async function list<T>(table: string, schema: z.ZodType<T>, workspace?: string): Promise<T[]> {
@@ -54,9 +54,10 @@ export function createPlannerRepository(client: SupabaseClient) {
         .select("*")
         .order(table === "planner_availability" ? "date" : "id")
         .range(offset, offset + 499);
+      if (table === "planner_availability") query = query.order("member_id");
       if (workspace) query = query.eq("workspace_id", workspace);
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) throw new Error(error.message, { cause: error });
       const page = z.array(schema).parse(data);
       result.push(...page);
       if (page.length < 500) return result;
@@ -82,6 +83,8 @@ export function createPlannerRepository(client: SupabaseClient) {
         member_name: name,
         member_role: role,
       }),
+    updateMember: (member: string, name: string, role: Role) =>
+      rpc("planner_update_member", { member, member_name: name, member_role: role }),
     async loadWorkspace(workspace: string) {
       const [projects, members] = await Promise.all([
         list("planner_projects", projectSchema, workspace),
@@ -100,19 +103,13 @@ export function createPlannerRepository(client: SupabaseClient) {
         ? client.from("planner_projects").update(payload).eq("id", id).eq("workspace_id", workspace)
         : client.from("planner_projects").insert(payload);
       const { data, error } = await query.select("*").single();
-      if (error) throw error;
+      if (error) throw new Error(error.message, { cause: error });
       return projectSchema.parse(data);
     },
     async toggleBacklog(workspace: string, id: string, inBacklog: boolean) {
-      const { data, error } = await client
-        .from("planner_projects")
-        .update({ in_backlog: inBacklog, priority: Date.now() % 2147483647 })
-        .eq("id", id)
-        .eq("workspace_id", workspace)
-        .select("*")
-        .single();
-      if (error) throw error;
-      return projectSchema.parse(data);
+      return projectSchema.parse(
+        await rpc("planner_toggle_backlog", { workspace, project: id, included: inBacklog })
+      );
     },
     async deleteProject(workspace: string, id: string) {
       const { error, data } = await client
@@ -122,7 +119,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .eq("workspace_id", workspace)
         .select("id")
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message, { cause: error });
       if (!data) throw new Error("Project was not deleted.");
     },
     reorder: (workspace: string, ids: string[]) =>
@@ -135,7 +132,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .delete()
         .eq("member_id", member)
         .eq("date", date);
-      if (error) throw error;
+      if (error) throw new Error(error.message, { cause: error });
     },
     async deleteMember(id: string) {
       const { error } = await client
@@ -144,7 +141,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .eq("id", id)
         .select("id")
         .single();
-      if (error) throw error;
+      if (error) throw new Error(error.message, { cause: error });
     },
   };
 }

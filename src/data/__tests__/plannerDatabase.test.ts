@@ -34,6 +34,14 @@ beforeAll(async () => {
     "utf8"
   );
   await db.exec(migration);
+  const priorityMigration = await readFile(
+    new URL(
+      "../../../supabase/migrations/20261003150000_planner_team_and_priority.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+  await db.exec(priorityMigration);
 });
 beforeEach(async () => {
   await db.exec("reset role; delete from public.planner_workspaces");
@@ -67,6 +75,23 @@ describe("Planner migration and real PostgreSQL permissions", () => {
         workspace,
       ])
     ).rejects.toThrow(/row-level security/);
+  });
+  it("denies anonymous access and refuses unverified workspace creation", async () => {
+    await db.exec("reset role; set role anon");
+    await expect(db.query("select * from public.planner_workspaces")).rejects.toThrow(
+      /permission denied/
+    );
+    await expect(db.query("select public.planner_list_invitations()")).rejects.toThrow(
+      /permission denied/
+    );
+    await db.exec("reset role");
+    await db.query("update auth.users set email_confirmed_at = null where id=$1", [stranger]);
+    await login(stranger);
+    await expect(
+      db.query("select public.planner_create_workspace('Bad','Unverified','qa')")
+    ).rejects.toThrow(/verified email/);
+    await db.exec("reset role");
+    await db.query("update auth.users set email_confirmed_at = now() where id=$1", [stranger]);
   });
   it("lets only the invited verified email accept and read, without giving project write access", async () => {
     await db.query(
@@ -170,5 +195,36 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     ]);
     await db.query("delete from public.planner_members where id=$1", [member]);
     expect((await db.query("select * from public.planner_availability")).rows).toHaveLength(0);
+  });
+  it("appends projects with deterministic priorities and restricts team role changes", async () => {
+    const projects = await db.query<{ id: string }>(
+      "insert into public.planner_projects(workspace_id,name) values($1,'A'),($1,'B') returning id",
+      [workspace]
+    );
+    for (const project of projects.rows)
+      await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project.id]);
+    expect(
+      (
+        await db.query<{ priority: number }>(
+          "select priority from public.planner_projects order by priority"
+        )
+      ).rows.map((row) => row.priority)
+    ).toEqual([1, 2]);
+    const member = (await db.query<{ id: string }>("select id from public.planner_members"))
+      .rows[0]!.id;
+    await db.query("select public.planner_update_member($1,'Owner','design')", [member]);
+    expect(
+      (await db.query<{ role: string }>("select role from public.planner_members")).rows[0]?.role
+    ).toBe("design");
+    await login(stranger);
+    await expect(
+      db.query("select public.planner_update_member($1,'Bad','qa')", [member])
+    ).rejects.toThrow(/Only the owner/);
+    await expect(
+      db.query("select public.planner_toggle_backlog($1,$2,true)", [
+        workspace,
+        projects.rows[0]!.id,
+      ])
+    ).rejects.toThrow(/Only the owner/);
   });
 });

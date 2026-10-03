@@ -1,0 +1,66 @@
+import { createClient } from "@supabase/supabase-js";
+import { describe, expect, it, vi } from "vitest";
+import { createPlannerRepository } from "../plannerRepository";
+import { EMPTY_PROJECT } from "@/types/planner";
+
+const workspace = {
+  id: "11111111-1111-4111-8111-111111111111",
+  owner_id: "22222222-2222-4222-8222-222222222222",
+  name: "Squad",
+};
+function setup() {
+  const fetch = vi.fn<typeof globalThis.fetch>();
+  const client = createClient("https://example.supabase.co", "public-test-key", {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      storageKey: `planner-test-${crypto.randomUUID()}`,
+    },
+    global: { fetch },
+  });
+  const response = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+  return { fetch, response, repository: createPlannerRepository(client) };
+}
+describe("Planner repository", () => {
+  it("converts plain PostgREST failures into visible error messages", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockImplementation(async () =>
+      response({ message: "Only the owner can edit", code: "42501" }, 403)
+    );
+    await expect(repository.updateMember("member", "Ada", "backend")).rejects.toThrow(
+      "Only the owner can edit"
+    );
+    await expect(repository.listWorkspaces()).rejects.toThrow("Only the owner can edit");
+  });
+  it("does not silently truncate more than one page of workspaces", async () => {
+    const { fetch, response, repository } = setup();
+    const rows = Array.from({ length: 500 }, (_, index) => ({
+      ...workspace,
+      name: `Squad ${index}`,
+    }));
+    fetch.mockResolvedValueOnce(response(rows)).mockResolvedValueOnce(response([workspace]));
+    expect(await repository.listWorkspaces()).toHaveLength(501);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("offset=500");
+  });
+  it("rejects invalid database response shapes instead of showing empty success", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockResolvedValue(response([{ id: "invalid", name: "Squad" }]));
+    await expect(repository.listWorkspaces()).rejects.toThrow();
+  });
+  it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
+    const { fetch, response, repository } = setup();
+    await expect(
+      repository.saveProject(workspace.id, { ...EMPTY_PROJECT, name: "Invalid", backend_devs: 1 })
+    ).rejects.toThrow(/both/);
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockResolvedValue(response(null));
+    await repository.reorder(workspace.id, ["one", "two"]);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_reorder_projects");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      workspace: workspace.id,
+      project_ids: ["one", "two"],
+    });
+  });
+});
