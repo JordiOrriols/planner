@@ -5,7 +5,8 @@ availability. The copied Base44 layouts now use Supabase instead of Base44.
 
 ## Start locally
 
-Use Node.js 24+ and keep `ui` and `planner` as sibling folders:
+Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI) and keep `ui` and
+`planner` as sibling folders:
 
 ```bash
 cd ../ui
@@ -171,6 +172,18 @@ the environment/keychain. Tests create unique workspaces and delete only their
 own data afterward; they never reset Ladders data or send invitation emails.
 
 ## CI and deployment
+
+CI pins Node.js 24.21.0 and uses `npm ci --install-links`; do not replace this
+with `npm install` to work around lockfile errors. Older npm versions can omit
+optional WASM peer dependencies that newer npm requires. When updating
+dependencies, regenerate the lockfile with npm 11.19.0 and validate it in a
+clean sibling checkout before committing:
+
+```bash
+npx --yes --package=npm@11.19.0 npm install --package-lock-only --install-links --ignore-scripts
+# In a disposable clean checkout, with the sibling UI built:
+npx --yes --package=npm@11.19.0 npm ci --install-links
+```
 
 The workflow checks out and builds the sibling UI source before installing
 Planner. Set `UI_REF` to the shared UI revision to deploy; its local extraction
