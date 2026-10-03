@@ -11,10 +11,10 @@ import {
 
 const member: PlannerMember = {
   id: "backend",
-  workspace_id: "workspace",
+  team_id: "team",
   name: "Ada",
-  email: "ada@example.com",
-  user_id: "ada",
+  can_edit: true,
+  vacation_token: null,
   role: "backend",
 };
 const project = (id = "one", weeks = 1): Project => ({
@@ -32,6 +32,13 @@ const end = (result: ReturnType<typeof computeSchedule>, index = 0) =>
   format(result.schedule[index]!.end!, "yyyy-MM-dd");
 
 describe("daily role-based capacity", () => {
+  it("excludes unassigned Ladders members instead of silently assuming a role", () => {
+    const unassigned: PlannerMember = { ...member, role: null };
+    expect(squadVelocity([unassigned], [], date("2026-02-02"), 1)[0]?.capacity).toBe(0);
+    expect(
+      computeSchedule([project()], [unassigned], [], date("2026-02-02")).schedule[0]?.reason
+    ).toBe("No Backend capacity");
+  });
   it("schedules one person for eight weeks as forty working days", () => {
     const result = computeSchedule([project("one", 8)], [member], [], date("2026-02-02"));
     expect(end(result)).toBe("2026-03-27");

@@ -4,14 +4,12 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { Button, Input, Label } from "@jordiorriols/ui";
 import { useData } from "./DataProvider";
 import {
-  ROLES,
   type Workspace,
   type Project,
   type PlannerMember,
   type Availability,
-  type Role,
+  type LinkedTeam,
 } from "@/types/planner";
-import { ROLE_LABELS } from "@/lib/planning";
 
 interface WorkspaceContextValue {
   workspace: Workspace;
@@ -19,6 +17,7 @@ interface WorkspaceContextValue {
   projects: Project[];
   members: PlannerMember[];
   availability: Availability[];
+  linkedTeams: LinkedTeam[];
   isOwner: boolean;
   userId: string;
   selectWorkspace: (id: string) => void;
@@ -38,8 +37,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState("");
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
-  const [memberName, setMemberName] = useState("");
-  const [role, setRole] = useState<Role>("backend");
   const action = useAsyncAction();
   const directoryKey = ["planner-directory", user?.id];
   const directory = useQuery({
@@ -47,11 +44,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     enabled: !!repository,
     queryFn: async () => {
       if (!repository) throw new Error("Sign in before loading workspaces");
-      const [workspaces, invitations] = await Promise.all([
-        repository.listWorkspaces(),
-        repository.listInvitations(),
-      ]);
-      return { workspaces, invitations };
+      return { workspaces: await repository.listWorkspaces() };
     },
   });
   const workspace =
@@ -95,7 +88,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       <main className="max-w-xl mx-auto p-8 space-y-6">
         <h1 className="text-2xl font-semibold">Your planning workspace</h1>
         <p className="text-muted-foreground">
-          Create a squad or accept an invitation sent to {user.email}.
+          Create a planning workspace, then link your existing Ladders teams on the Vacations page.
         </p>
         <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
           Sign out
@@ -105,30 +98,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             {action.error}
           </p>
         )}
-        {directory.data?.invitations.map((invitation) => (
-          <Button
-            key={invitation.member_id}
-            disabled={action.busy}
-            onClick={() =>
-              void action.run(async () => {
-                await repository.acceptInvitation(invitation.member_id);
-                await refresh();
-              })
-            }
-          >
-            Join {invitation.workspace_name}
-          </Button>
-        ))}
         <form
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
             void action.run(async () => {
-              const created = await repository.createWorkspace(name, memberName, role);
+              const created = await repository.createWorkspace(name);
               setSelected(created.id);
               setCreating(false);
               setName("");
-              setMemberName("");
               await refresh();
             });
           }}
@@ -141,29 +119,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             required
             maxLength={120}
           />
-          <Label htmlFor="member-name">Your name</Label>
-          <Input
-            id="member-name"
-            value={memberName}
-            onChange={(event) => setMemberName(event.target.value)}
-            required
-            maxLength={120}
-          />
-          <Label htmlFor="member-role">Your role</Label>
-          <select
-            id="member-role"
-            className="field"
-            value={role}
-            onChange={(event) =>
-              setRole(ROLES.find((item) => item === event.target.value) ?? "backend")
-            }
-          >
-            {ROLES.map((item) => (
-              <option key={item} value={item}>
-                {ROLE_LABELS[item]}
-              </option>
-            ))}
-          </select>
           <Button type="submit" disabled={action.busy}>
             Create workspace
           </Button>
@@ -194,28 +149,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }}
     >
       <React.Fragment key={workspace.id}>{children}</React.Fragment>
-      {!!directory.data?.invitations.length && (
-        <section
-          className="mx-auto max-w-7xl px-6 pb-8 space-y-2"
-          aria-label="Workspace invitations"
-        >
-          {directory.data.invitations.map((invitation) => (
-            <Button
-              key={invitation.member_id}
-              disabled={action.busy}
-              onClick={() =>
-                void action.run(async () => {
-                  await repository.acceptInvitation(invitation.member_id);
-                  await refresh();
-                })
-              }
-            >
-              Join {invitation.workspace_name}
-            </Button>
-          ))}
-          {action.error && <p role="alert">{action.error}</p>}
-        </section>
-      )}
     </WorkspaceContext.Provider>
   );
 }

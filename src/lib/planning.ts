@@ -61,7 +61,11 @@ export function parseDate(value: string): Date {
   return date;
 }
 
-export function isWorking(member: PlannerMember, date: Date, availability: Availability[]) {
+export function isWorking(
+  member: Pick<PlannerMember, "id">,
+  date: Date,
+  availability: Availability[]
+) {
   const key = format(date, "yyyy-MM-dd");
   const override = availability.find((item) => item.member_id === member.id && item.date === key);
   if (!hasHolidayCalendar(key))
@@ -99,7 +103,10 @@ export function squadVelocity(
     if (!verifiedDays.length) break;
     const capacity = verifiedDays.reduce(
       (sum, date) =>
-        sum + members.filter((member) => isWorking(member, date, availability)).length / 5,
+        sum +
+        members.filter((member) => member.role !== null && isWorking(member, date, availability))
+          .length /
+          5,
       0
     );
     weeks.push({ weekStart, capacity, allocated: 0 });

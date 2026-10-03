@@ -28,7 +28,7 @@ describe("Planner repository", () => {
     fetch.mockImplementation(async () =>
       response({ message: "Only the owner can edit", code: "42501" }, 403)
     );
-    await expect(repository.updateMember("member", "Ada", "backend")).rejects.toThrow(
+    await expect(repository.updatePlanningRole("member", "backend")).rejects.toThrow(
       "Only the owner can edit"
     );
     await expect(repository.listWorkspaces()).rejects.toThrow("Only the owner can edit");
@@ -48,6 +48,43 @@ describe("Planner repository", () => {
     const { fetch, response, repository } = setup();
     fetch.mockResolvedValue(response([{ id: "invalid", name: "Squad" }]));
     await expect(repository.listWorkspaces()).rejects.toThrow();
+  });
+  it("uses Ladders team linking and a separate global planning-role RPC", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockImplementation(async () => response(null));
+    await repository.setWorkspaceTeams(workspace.id, ["team-one", "team-two"]);
+    await repository.updatePlanningRole("member", null);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_set_workspace_teams");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      workspace: workspace.id,
+      team_ids: ["team-one", "team-two"],
+    });
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({
+      member: "member",
+      member_role: null,
+    });
+  });
+  it("delegates anonymous writes only through member-token RPCs", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockImplementation(async () => response(null));
+    await repository.saveVacation("token", "2026-11-02", "2026-11-03", false);
+    await repository.clearVacation("token", "2026-11-02");
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_vacation_save");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      token: "token",
+      start_date: "2026-11-02",
+      end_date: "2026-11-03",
+      working: false,
+    });
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({
+      token: "token",
+      day: "2026-11-02",
+    });
+  });
+  it("does not treat an empty vacation-member response as successful", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockImplementation(async () => response([]));
+    await expect(repository.loadVacation("token")).rejects.toThrow("Invalid vacation link");
   });
   it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
     const { fetch, response, repository } = setup();

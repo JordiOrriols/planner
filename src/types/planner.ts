@@ -15,12 +15,18 @@ export interface Workspace {
 }
 export interface PlannerMember {
   id: string;
-  workspace_id: string;
-  user_id: string | null;
-  email: string;
+  team_id: string;
   name: string;
-  role: Role;
+  role: Role | null;
+  can_edit: boolean;
+  vacation_token: string | null;
 }
+export interface LaddersTeam {
+  id: string;
+  name: string;
+  access_level: "owner" | "editor" | "viewer";
+}
+export type LinkedTeam = Pick<LaddersTeam, "id" | "name">;
 export interface Availability {
   member_id: string;
   date: string;

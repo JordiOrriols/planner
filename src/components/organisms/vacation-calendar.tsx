@@ -27,7 +27,7 @@ export default function VacationCalendar({
 }: {
   month: Date;
   onMonthChange: (month: Date) => void;
-  teamMembers: PlannerMember[];
+  teamMembers: Pick<PlannerMember, "id" | "name" | "role">[];
   availability: Availability[];
   selectedMember: string;
   onSelectRange: (start: string, end: string) => void;

@@ -10,11 +10,11 @@ const workspaceSchema = z.object({
 });
 const memberSchema = z.object({
   id: z.string().uuid(),
-  workspace_id: z.string().uuid(),
-  user_id: z.string().uuid().nullable(),
+  team_id: z.string().uuid(),
   name: z.string(),
-  email: z.string(),
-  role: z.enum(ROLES),
+  role: z.enum(ROLES).nullable(),
+  can_edit: z.boolean(),
+  vacation_token: z.string().uuid().nullable(),
 });
 const projectSchema = z.object({
   id: z.string().uuid(),
@@ -37,13 +37,33 @@ const availabilitySchema = z.object({
   date: z.string(),
   is_working: z.boolean(),
 });
-const invitationSchema = z.object({ member_id: z.string().uuid(), workspace_name: z.string() });
+const teamSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  access_level: z.enum(["owner", "editor", "viewer"]),
+});
+const linkedTeamSchema = teamSchema.pick({ id: true, name: true });
+const vacationMemberSchema = memberSchema.pick({ id: true, name: true, role: true });
 
 export function createPlannerRepository(client: SupabaseClient) {
   async function rpc(name: string, args?: Record<string, unknown>) {
     const { data, error } = await client.rpc(name, args);
     if (error) throw new Error(error.message, { cause: error });
     return data;
+  }
+  async function rpcList<T>(
+    name: string,
+    schema: z.ZodType<T>,
+    args?: Record<string, unknown>
+  ): Promise<T[]> {
+    const rows: T[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await client.rpc(name, args).range(offset, offset + 499);
+      if (error) throw new Error(error.message, { cause: error });
+      const page = z.array(schema).parse(data);
+      rows.push(...page);
+      if (page.length < 500) return rows;
+    }
   }
   async function list<T>(table: string, schema: z.ZodType<T>, workspace?: string): Promise<T[]> {
     // Supabase caps response sizes. Page instead of silently truncating capacity/history.
@@ -52,9 +72,9 @@ export function createPlannerRepository(client: SupabaseClient) {
       let query = client
         .from(table)
         .select("*")
-        .order(table === "planner_availability" ? "date" : "id")
+        .order(table.endsWith("availability") ? "date" : "id")
         .range(offset, offset + 499);
-      if (table === "planner_availability") query = query.order("member_id");
+      if (table.endsWith("availability")) query = query.order("member_id");
       if (workspace) query = query.eq("workspace_id", workspace);
       const { data, error } = await query;
       if (error) throw new Error(error.message, { cause: error });
@@ -65,36 +85,28 @@ export function createPlannerRepository(client: SupabaseClient) {
   }
   return {
     listWorkspaces: () => list("planner_workspaces", workspaceSchema),
-    listInvitations: async () =>
-      z.array(invitationSchema).parse(await rpc("planner_list_invitations")),
-    createWorkspace: async (name: string, memberName: string, role: Role) =>
+    createWorkspace: async (name: string) =>
       workspaceSchema.parse(
-        await rpc("planner_create_workspace", {
+        await rpc("planner_create_linked_workspace", {
           workspace_name: name,
-          member_name: memberName,
-          member_role: role,
         })
       ),
-    acceptInvitation: (member: string) => rpc("planner_accept_invitation", { member }),
-    inviteMember: (workspace: string, email: string, name: string, role: Role) =>
-      rpc("planner_invite_member", {
-        workspace,
-        member_email: email,
-        member_name: name,
-        member_role: role,
-      }),
-    updateMember: (member: string, name: string, role: Role) =>
-      rpc("planner_update_member", { member, member_name: name, member_role: role }),
+    listTeams: () => rpcList("list_accessible_teams", teamSchema),
+    setWorkspaceTeams: (workspace: string, ids: string[]) =>
+      rpc("planner_set_workspace_teams", { workspace, team_ids: ids }),
+    updatePlanningRole: (member: string, role: Role | null) =>
+      rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [projects, members] = await Promise.all([
+      const [projects, members, linkedTeams] = await Promise.all([
         list("planner_projects", projectSchema, workspace),
-        list("planner_members", memberSchema, workspace),
+        rpcList("planner_workspace_roster", memberSchema, { workspace }),
+        rpcList("planner_linked_teams", linkedTeamSchema, { workspace }),
       ]);
       const ids = new Set(members.map((member) => member.id));
-      const availability = (await list("planner_availability", availabilitySchema)).filter((item) =>
-        ids.has(item.member_id)
+      const availability = (await list("planner_team_availability", availabilitySchema)).filter(
+        (item) => ids.has(item.member_id)
       );
-      return { projects, members, availability };
+      return { projects, members, availability, linkedTeams };
     },
     async saveProject(workspace: string, input: ProjectInput, id?: string) {
       validateProject(input);
@@ -125,24 +137,28 @@ export function createPlannerRepository(client: SupabaseClient) {
     reorder: (workspace: string, ids: string[]) =>
       rpc("planner_reorder_projects", { workspace, project_ids: ids }),
     setAvailability: (member: string, start: string, end: string, working: boolean) =>
-      rpc("planner_set_availability", { member, start_date: start, end_date: end, working }),
+      rpc("planner_set_team_availability", { member, start_date: start, end_date: end, working }),
     async clearAvailability(member: string, date: string) {
       const { error } = await client
-        .from("planner_availability")
+        .from("planner_team_availability")
         .delete()
         .eq("member_id", member)
         .eq("date", date);
       if (error) throw new Error(error.message, { cause: error });
     },
-    async deleteMember(id: string) {
-      const { error } = await client
-        .from("planner_members")
-        .delete()
-        .eq("id", id)
-        .select("id")
-        .single();
-      if (error) throw new Error(error.message, { cause: error });
+    async loadVacation(token: string) {
+      const [members, availability] = await Promise.all([
+        rpc("planner_vacation_member", { token }),
+        rpcList("planner_vacation_list", availabilitySchema, { token }),
+      ]);
+      const member = z.array(vacationMemberSchema).parse(members)[0];
+      if (!member) throw new Error("Invalid vacation link");
+      return { member, availability: z.array(availabilitySchema).parse(availability) };
     },
+    saveVacation: (token: string, start: string, end: string, working: boolean) =>
+      rpc("planner_vacation_save", { token, start_date: start, end_date: end, working }),
+    clearVacation: (token: string, date: string) =>
+      rpc("planner_vacation_clear", { token, day: date }),
   };
 }
 export type PlannerRepository = ReturnType<typeof createPlannerRepository>;
