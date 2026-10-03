@@ -1,225 +1,316 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
-import { UserPlus, Trash2, TrendingUp } from "lucide-react";
+import React, { useState } from "react";
+import { Button, Input, Label, ConfirmDialog } from "@jordiorriols/ui";
+import { useAsyncAction } from "@jordiorriols/ui/hooks";
+import { Trash2, UserPlus } from "@jordiorriols/ui/icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import VacationCalendar from "@/components/VacationCalendar";
-import { ROLE_LABELS, squadVelocity, fmtDate } from "@/lib/planning";
 import { startOfMonth, format } from "date-fns";
+import VacationCalendar from "@/components/organisms/vacation-calendar";
+import { ROLE_LABELS, squadVelocity, parseDate } from "@/lib/planning";
+import { ROLES, type Role, type PlannerMember } from "@/types/planner";
+import { useData } from "@/data/DataProvider";
+import { useWorkspace } from "@/data/WorkspaceProvider";
 
 export default function Vacations() {
-  const [members, setMembers] = useState([]);
-  const [vacations, setVacations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { repository, user } = useData();
+  const { members, availability, workspace, isOwner, refresh } = useWorkspace();
   const [month, setMonth] = useState(startOfMonth(new Date()));
-  const [selected, setSelected] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newRole, setNewRole] = useState("backend");
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [m, v] = await Promise.all([
-        base44.entities.TeamMember.list("-created_date", 200),
-        base44.entities.Vacation.list("-created_date", 200),
-      ]);
-      setMembers(m);
-      setVacations(v);
-      if (!selected && m.length) setSelected(m[0].name);
-    } finally {
-      setLoading(false);
-    }
-  }, [selected]);
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const addMember = async (e) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    await base44.entities.TeamMember.create({ name: newName.trim(), role: newRole });
-    setNewName("");
-    load();
-  };
-  const removeMember = async (m) => {
-    await base44.entities.TeamMember.delete(m.id);
-    const remaining = vacations.filter((v) => v.team_member_name === m.name);
-    if (remaining.length) await base44.entities.Vacation.deleteMany({ team_member_name: m.name });
-    if (selected === m.name) setSelected("");
-    load();
-  };
-  const createVacation = async (name, start, end) => {
-    await base44.entities.Vacation.create({
-      team_member_name: name,
-      start_date: start,
-      end_date: end,
-      reason: "vacation",
-    });
-    load();
-  };
-  const deleteVacation = async (id) => {
-    await base44.entities.Vacation.delete(id);
-    load();
-  };
-
-  const velocity = squadVelocity(members, vacations, new Date(), 16);
-  const chartData = velocity.map((w) => ({
-    label: format(w.weekStart, "MMM d"),
-    capacity: Math.round(w.capacity * 10) / 10,
+  const [selectedId, setSelectedId] = useState("");
+  const selected =
+    members.find((member) => member.id === selectedId) ??
+    members.find((member) => member.user_id === user?.id) ??
+    members[0];
+  const canEdit = isOwner || selected?.user_id === user?.id;
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<Role>("backend");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [working, setWorking] = useState(false);
+  const [deleting, setDeleting] = useState<PlannerMember | null>(null);
+  const action = useAsyncAction();
+  if (!repository) throw new Error("Sign in to manage availability");
+  const velocity = squadVelocity(members, availability, new Date(), 16);
+  const chartData = velocity.map((week) => ({
+    label: format(week.weekStart, "MMM d"),
+    capacity: Number(week.capacity.toFixed(1)),
   }));
-  const avgCapacity = velocity.length
-    ? (velocity.reduce((s, w) => s + w.capacity, 0) / velocity.length).toFixed(1)
-    : 0;
-
+  const changes = availability
+    .filter((item) => item.member_id === selected?.id)
+    .sort((a, b) => a.date.localeCompare(b.date));
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">Team vacations</h1>
+        <h1 className="font-heading text-2xl font-semibold">Team vacations</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Mark time off for each team member. Barcelona public holidays are preloaded. Squad
-          velocity below feeds the backlog plan.
+          Barcelona holidays and weekends are off by default. Mark time off or explicitly mark days
+          you will work.
         </p>
       </div>
-
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="p-5 h-fit space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold mb-2">Team</h2>
-            <div className="space-y-1.5">
-              {members.length === 0 && (
-                <p className="text-xs text-muted-foreground">No team members yet.</p>
-              )}
-              {members.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between rounded-lg border border-border px-3 py-2"
-                >
-                  <button
-                    className="flex items-center gap-2 min-w-0 text-left"
-                    onClick={() => setSelected(m.name)}
-                  >
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${selected === m.name ? "bg-brand" : "bg-muted-foreground/30"}`}
-                    />
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium truncate">{m.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{ROLE_LABELS[m.role]}</div>
-                    </div>
-                  </button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-destructive"
-                    onClick={() => removeMember(m)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <form onSubmit={addMember} className="space-y-2 pt-3 border-t border-border">
-            <Label className="text-xs">Add team member</Label>
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Name"
-            />
-            <Select value={newRole} onValueChange={setNewRole}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>
-                    {v}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit" variant="outline" className="w-full">
-              <UserPlus className="h-4 w-4 mr-1.5" /> Add member
-            </Button>
-          </form>
-        </Card>
-
-        <div className="space-y-5">
-          {loading ? (
-            <div className="text-sm text-muted-foreground py-12 text-center">Loading…</div>
-          ) : members.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
-              Add a team member to start marking vacations.
-            </div>
-          ) : (
-            <>
-              <div className="text-sm text-muted-foreground">
-                Marking time off for <strong className="text-foreground">{selected || "—"}</strong>.
-                Click a first day, then a second day to set a range.
-              </div>
-              <Card className="p-5">
-                <VacationCalendar
-                  month={month}
-                  onMonthChange={setMonth}
-                  teamMembers={members}
-                  vacations={vacations}
-                  selectedMember={selected}
-                  onCreateVacation={createVacation}
-                  onDeleteVacation={deleteVacation}
-                />
-              </Card>
-            </>
-          )}
-        </div>
-      </div>
-
-      {members.length > 0 && (
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-brand" />
-              <h2 className="font-heading font-semibold tracking-tight">Squad velocity</h2>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              Avg {avgCapacity} devs/week · next 16 weeks
-            </span>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                interval={1}
-              />
-              <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals />
-              <Tooltip
-                cursor={{ fill: "hsl(var(--muted))" }}
-                contentStyle={{
-                  borderRadius: 8,
-                  border: "1px solid hsl(var(--border))",
-                  fontSize: 12,
-                }}
-                formatter={(v) => [`${v} devs`, "Available"]}
-                labelFormatter={(l) => `Week of ${l}`}
-              />
-              <Bar dataKey="capacity" fill="hsl(var(--brand))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+      {action.error && (
+        <p role="alert" className="text-destructive">
+          {action.error}
+        </p>
       )}
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <aside className="panel space-y-4 h-fit">
+          <h2 className="font-semibold">Squad</h2>
+          {members.map((member) => (
+            <div key={member.id} className="flex items-center gap-2 border rounded-lg p-2">
+              <button
+                className="flex-1 text-left"
+                aria-pressed={selected?.id === member.id}
+                onClick={() => {
+                  setSelectedId(member.id);
+                  setStart("");
+                  setEnd("");
+                }}
+              >
+                <span
+                  className={
+                    selected?.id === member.id ? "text-primary font-semibold" : "font-medium"
+                  }
+                >
+                  {member.name}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {ROLE_LABELS[member.role]} · {member.user_id ? "Joined" : "Invited"}
+                </span>
+              </button>
+              {isOwner && member.user_id !== user?.id && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Remove ${member.name}`}
+                  disabled={action.busy}
+                  onClick={() => setDeleting(member)}
+                >
+                  <Trash2 size={16} />
+                </Button>
+              )}
+            </div>
+          ))}
+          {isOwner && (
+            <form
+              className="border-t pt-4 space-y-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void action.run(async () => {
+                  await repository.inviteMember(workspace.id, email, name, role);
+                  setName("");
+                  setEmail("");
+                  await refresh();
+                });
+              }}
+            >
+              <h3 className="text-sm font-semibold">Invite a teammate</h3>
+              <Label htmlFor="invite-name">Name</Label>
+              <Input
+                id="invite-name"
+                value={name}
+                required
+                maxLength={120}
+                onChange={(event) => setName(event.target.value)}
+              />
+              <Label htmlFor="invite-email">Email</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={email}
+                required
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              <Label htmlFor="invite-role">Role</Label>
+              <select
+                id="invite-role"
+                className="field"
+                value={role}
+                onChange={(event) => {
+                  const next = ROLES.find((item) => item === event.target.value);
+                  if (next) setRole(next);
+                }}
+              >
+                {ROLES.map((item) => (
+                  <option key={item} value={item}>
+                    {ROLE_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                They join by signing in to Planner with this verified email. No invitation email is
+                sent. Invited people already count toward capacity.
+              </p>
+              <Button type="submit" disabled={action.busy}>
+                <UserPlus size={16} />
+                Invite member
+              </Button>
+            </form>
+          )}
+        </aside>
+        <section className="space-y-4">
+          <p className="text-sm">
+            Availability for <strong>{selected?.name ?? "No member"}</strong>.{" "}
+            {canEdit
+              ? "Select a range, then save."
+              : "You can view the squad, but only edit your own availability."}
+          </p>
+          <div className="panel">
+            <VacationCalendar
+              key={selected?.id}
+              month={month}
+              onMonthChange={setMonth}
+              teamMembers={members}
+              availability={availability}
+              selectedMember={selected?.id ?? ""}
+              disabled={!canEdit || action.busy}
+              onSelectRange={(first, last) => {
+                setStart(first);
+                setEnd(last);
+              }}
+            />
+          </div>
+          {canEdit && selected && (
+            <form
+              className="panel space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void action.run(async () => {
+                  parseDate(start);
+                  parseDate(end);
+                  if (end < start)
+                    throw new Error("The end date must not be before the start date.");
+                  await repository.setAvailability(selected.id, start, end, working);
+                  setStart("");
+                  setEnd("");
+                  await refresh();
+                });
+              }}
+            >
+              <h2 className="font-semibold">Set availability</h2>
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="availability-start">First day</Label>
+                  <Input
+                    id="availability-start"
+                    type="date"
+                    value={start}
+                    required
+                    min="2026-01-01"
+                    max="2027-12-31"
+                    onChange={(event) => setStart(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="availability-end">Last day</Label>
+                  <Input
+                    id="availability-end"
+                    type="date"
+                    value={end}
+                    required
+                    min={start || "2026-01-01"}
+                    max="2027-12-31"
+                    onChange={(event) => setEnd(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="working">Status</Label>
+                  <select
+                    id="working"
+                    className="field"
+                    value={String(working)}
+                    onChange={(event) => setWorking(event.target.value === "true")}
+                  >
+                    <option value="false">Not working / time off</option>
+                    <option value="true">Working</option>
+                  </select>
+                </div>
+              </div>
+              <Button type="submit" disabled={action.busy}>
+                Save availability
+              </Button>
+            </form>
+          )}
+          {!!changes.length && (
+            <div className="panel space-y-2">
+              <h2 className="font-semibold">Saved overrides</h2>
+              <div className="max-h-64 overflow-auto space-y-1">
+                {changes.map((change) => (
+                  <div
+                    key={change.date}
+                    className="flex justify-between items-center text-sm border-b pb-1"
+                  >
+                    <span>
+                      {change.date} · {change.is_working ? "Working" : "Not working"}
+                    </span>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={action.busy}
+                        onClick={() =>
+                          void action.run(async () => {
+                            await repository.clearAvailability(change.member_id, change.date);
+                            await refresh();
+                          })
+                        }
+                      >
+                        Restore default {change.date}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+      <section className="panel" aria-label="Squad velocity">
+        <h2 className="font-semibold mb-2">Squad velocity</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Available person-weeks (five working days per person), next {velocity.length} verified
+          weeks.
+        </p>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+            <YAxis allowDecimals />
+            <Tooltip />
+            <Bar
+              dataKey="capacity"
+              name="Available person-weeks"
+              fill="#6366f1"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+        <table className="sr-only">
+          <caption>Weekly available person-weeks</caption>
+          <tbody>
+            {chartData.map((week) => (
+              <tr key={week.label}>
+                <th>{week.label}</th>
+                <td>{week.capacity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+      <ConfirmDialog
+        isOpen={!!deleting}
+        title={`Remove ${deleting?.name ?? "member"}?`}
+        description="Their invitation and availability will also be deleted."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => {
+          if (!deleting || action.busy) return;
+          void action.run(async () => {
+            await repository.deleteMember(deleting.id);
+            setDeleting(null);
+            await refresh();
+          });
+        }}
+      />
     </div>
   );
 }
