@@ -41,7 +41,9 @@ describe("EntryGate", () => {
 
   it("offers account access on an owned route", () => {
     renderGate();
-    expect(screen.getByRole("heading", { name: "How do you want to start?" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Make room for the work ahead." })
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Continue anonymously" })).not.toBeInTheDocument();
   });
 
@@ -58,11 +60,13 @@ describe("EntryGate", () => {
   });
 
   it.each(["/e/11111111-1111-4111-8111-111111111111", "/v/11111111-1111-4111-8111-111111111111"])(
-    "always lets shared route %s through",
+    "does not expose obsolete Ladders shared route %s anonymously",
     (path) => {
       renderGate(path);
-      expect(screen.getByText("Owned application")).toBeInTheDocument();
-      expect(screen.queryByText("How do you want to start?")).not.toBeInTheDocument();
+      expect(screen.queryByText("Owned application")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Make room for the work ahead." })
+      ).toBeInTheDocument();
     }
   );
 });

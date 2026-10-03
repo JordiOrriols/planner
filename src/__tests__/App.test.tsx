@@ -1,40 +1,22 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render } from "@testing-library/react";
 import React from "react";
-import { I18nextProvider } from "react-i18next";
-import { BrowserRouter } from "react-router-dom";
-import i18n from "../i18n";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import App from "../App";
+import "../i18n";
 
-const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <BrowserRouter>
-      <I18nextProvider i18n={i18n}>{component}</I18nextProvider>
-    </BrowserRouter>
-  );
-};
-
-describe("App Component", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  it("should render app without errors", () => {
-    try {
-      const { container } = renderWithProviders(<App />);
-      expect(container).toBeTruthy();
-    } catch (e) {
-      // App is complex, mark pass if it tries to render
-      expect(true).toBe(true);
-    }
-  });
-
-  it("should have routes setup", () => {
-    try {
-      const { container } = renderWithProviders(<App />);
-      expect(container.querySelector("div")).toBeTruthy();
-    } catch (e) {
-      expect(true).toBe(true);
-    }
+vi.mock("@/data/supabaseClient", () => ({ supabase: null }));
+describe("Planner entry", () => {
+  it("renders the planning welcome page and explicit configuration error", async () => {
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Make room for the work ahead." })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("VITE_SUPABASE_URL");
   });
 });
