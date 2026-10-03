@@ -29,7 +29,8 @@ there is no fake local persistence mode.
 
 Authentication views and form/session hooks come from `@jordiorriols/ui`.
 Planner does not duplicate login, signup, GitHub OAuth or password recovery.
-Ladders' tables and business logic are not used.
+Ladders teams and members provide the shared roster. Evaluation data and logic
+remain in Ladders.
 
 Both apps use UI's `WelcomeScreen` and `AppHeader`. Branding, translations and
 auth callbacks remain app-owned. The header shares title/subtitle/icon sizes,
@@ -58,16 +59,40 @@ directives. Official Radix exports and the original UI Button are unchanged.
 
 ## Workspaces and access
 
-- A signed-in user can create a workspace, choose their role and invite teammates
-  by email. Multiple workspaces can be selected independently.
-- Owners manage estimates, backlog priorities, the roster and all availability.
-- Members see the workspace plan and edit only their own availability.
-- Invitations are accepted after signing in with the matching **verified email**.
-  Invitations do not send email; give the teammate the Planner URL.
-- Invited roster members count toward capacity even before accepting.
-- Member identity uses UUIDs, not names; renaming someone preserves availability.
-- Removing a member cascades their invitation and saved availability.
+- A verified signed-in user creates a workspace and links one or more existing
+  Ladders teams on **Vacations**. Linking a new team requires team edit access.
+- Workspace owners manage estimates, backlog priorities and linked teams.
+- Linked team collaborators can view plans. Existing Planner collaborators
+  retain their workspace access, but new independent Planner invitations are
+  no longer created.
+- Team owners/editors set a member's shared planning role and availability.
+  A workspace owner does not gain team edit rights by linking it.
+- Planning roles are backend, frontend, design or QA, separate from Ladders job
+  titles. Unassigned members are explicitly excluded from scheduling capacity.
+- Team membership is live, not copied. Members are identified by Ladders UUID,
+  so moving or renaming someone preserves their global vacations.
+- Unlinking a team keeps its vacations; deleting a Ladders member deletes that
+  member's shared availability.
 - Workspace data is isolated by Row Level Security, including direct API calls.
+
+### Personal vacation links
+
+Copy **Vacations** from a Ladders member's share menu, or **Copy vacation link**
+in Planner. The URL is `#/vacations/<vacation-token>` on the Planner application.
+Configure Ladders' `VITE_PLANNER_URL` with Planner's full deployed base URL,
+including any GitHub Pages subpath. Local Ladders development can use Planner
+on `http://127.0.0.1:5176`; production has no guessed-host fallback.
+
+These permanent, private bearer links let members update only their own
+availability without signing in. They do not grant access to teams, workspaces
+or evaluations. Self, peer and view evaluation tokens cannot be used for
+vacations. Keep links private: anyone possessing a vacation link can use it.
+Saved vacations immediately affect all workspaces containing that member.
+
+Old `planner_members` and `planner_availability` rows are preserved as legacy
+data, not used as the current capacity roster. No automatic matching by email
+or name is attempted. Re-enter relevant leave against linked Ladders members,
+or arrange an explicit UUID mapping before migrating old overrides.
 
 ## Estimates and scheduling
 
@@ -111,8 +136,13 @@ project with approval:
    and deterministic, serialized backlog insertion.
 3. `20261003170000_planner_whole_estimates.sql`: reject fractional people/weeks
    on new inserts/updates, without modifying any pre-existing estimates.
+4. `20261003183000_planner_ladders_teams.sql`: workspace-to-Ladders-team links,
+   global member availability and anonymous, member-scoped vacation RPCs.
+   Adds nullable `members.planning_role` and immutable `members.vacation_token`.
 
-Only `planner_*` tables and functions are added; no Ladders table is modified.
+The fourth migration deliberately extends Ladders members; it does not alter
+job titles, existing evaluation tokens or evaluations. Both apps must use this
+same database schema before deploying the updated Ladders repository selectors.
 The earlier numbered migrations are the shared project's copied Ladders migration
 history, **not a separate Planner schema**.
 
@@ -157,8 +187,8 @@ npm audit
 ```
 
 The tests cover role scheduling, partial-week leave, holidays, capacity limits,
-authentication composition, database permissions, invitations and repository
-pagination/error handling.
+authentication composition, linked team access, isolated token permissions,
+legacy data preservation and repository pagination/error handling.
 
 Live end-to-end tests live in the sibling `e2e-tests` project:
 
