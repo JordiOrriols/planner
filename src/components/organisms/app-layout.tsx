@@ -13,11 +13,6 @@ const NAV = [
   { to: "/backlog", key: "backlog", icon: GanttChartSquare, end: false },
   { to: "/vacations", key: "vacations", icon: CalendarDays, end: false },
 ];
-const LANGUAGES = [
-  { code: "en", short: "EN", label: "English" },
-  { code: "es", short: "ES", label: "Español" },
-  { code: "ca", short: "CA", label: "Català" },
-];
 
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
@@ -32,7 +27,6 @@ export default function AppLayout() {
         icon={<GanttChartSquare />}
         actions={
           <LanguageSelector
-            languages={LANGUAGES}
             value={i18n.language}
             label={t("header.language")}
             className="inline-flex"

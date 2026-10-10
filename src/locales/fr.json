@@ -1,0 +1,450 @@
+{
+  "planner": {
+    "name": "Cadence",
+    "brand": "Cadence / Planner",
+    "subtitle": "Estimation et planification de projets",
+    "pages": "Pages Planner",
+    "workspace": "Espace de travail",
+    "owner": "Propriétaire",
+    "member": "Membre",
+    "newWorkspace": "Nouvel espace de travail",
+    "tabs": {
+      "estimation": "Estimation",
+      "backlog": "Plan du backlog",
+      "vacations": "Vacances"
+    },
+    "welcome": {
+      "title": "Faites de la place pour le travail à venir.",
+      "description": "Estimez les microprojets, planifiez selon la capacité réelle de la squad et gardez les congés de chacun en vue.",
+      "estimates": "Estimations par rôle",
+      "backlog": "Un backlog réaliste",
+      "calendar": "Calendrier de Barcelone",
+      "authUnavailable": "Configurez VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY pour utiliser votre compte Ladders. Planner n’enregistre pas de données localement."
+    }
+  },
+  "header": {
+    "title": "Échelle d’ingénierie",
+    "subtitle": "Suivi des compétences de l’équipe",
+    "selfAssessment": "Auto-évaluation",
+    "language": "Langue",
+    "reference": "Référence",
+    "addMember": "Ajouter un membre"
+  },
+  "buttons": {
+    "cancel": "Annuler",
+    "save": "Enregistrer les modifications",
+    "add": "Ajouter un membre",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "shareLink": "Partager le lien",
+    "current": "Actuel",
+    "currentPlus": "Actuel +",
+    "goal": "Objectif",
+    "goalPlus": "Objectif +",
+    "publish": "Publier",
+    "submit": "Envoyer"
+  },
+  "forms": {
+    "addTeamMember": "Ajouter un membre de l’équipe",
+    "editTeamMember": "Modifier le membre de l’équipe",
+    "name": "Nom",
+    "role": "Rôle (facultatif)",
+    "competencies": "Compétences",
+    "preview": "Aperçu",
+    "comments": "Commentaires",
+    "commentsPlaceholder": "Ajouter des notes pour cette compétence",
+    "rolePlaceholder": "p. ex. ingénieur senior",
+    "namePlaceholder": "Saisissez votre nom",
+    "memberNamePlaceholder": "Saisissez le nom du membre",
+    "example": "Exemple"
+  },
+  "validation": {
+    "importSuccess": "Auto-évaluation importée avec succès",
+    "importError": "Échec de l’importation du fichier. Assurez-vous qu’il s’agit d’un fichier JSON d’auto-évaluation valide."
+  },
+  "tabs": {
+    "team": "Équipe",
+    "individual": "Individuel"
+  },
+  "teams": {
+    "create": "Créer une équipe",
+    "createTitle": "Créer une équipe",
+    "createDescription": "Regroupez les membres qui travaillent ensemble et gérez les accès séparément.",
+    "name": "Nom de l’équipe",
+    "share": "Partager",
+    "shareTitle": "Partager {{name}}",
+    "shareDescription": "Ajoutez un compte existant par e-mail et choisissez un accès en lecture seule ou en modification.",
+    "permission": "Autorisation",
+    "permissionFor": "Autorisation pour {{email}}",
+    "viewer": "Afficher",
+    "editor": "Modifier",
+    "noShares": "Cette équipe n’a pas encore été partagée.",
+    "removeShare": "Supprimer {{email}}",
+    "rename": "Renommer",
+    "renameAria": "Renommer {{name}}",
+    "renameTitle": "Renommer l’équipe",
+    "renameDescription": "Choisissez un nouveau nom pour cette équipe.",
+    "addMemberTo": "Ajouter un membre à {{name}}",
+    "emptyTeam": "Aucun membre pour le moment.",
+    "delete": "Supprimer l’équipe",
+    "deleteAria": "Supprimer {{name}}",
+    "deleteTitle": "Supprimer l’équipe vide ?",
+    "deleteDescription": "Cette action supprime définitivement l’équipe vide et ne peut pas être annulée."
+  },
+  "teamView": {
+    "empty": "Aucun membre d’équipe pour le moment",
+    "emptyDescription": "Ajoutez votre premier membre d’équipe pour commencer à suivre les compétences",
+    "addFirst": "Ajouter le premier membre"
+  },
+  "individualView": {
+    "empty": "Aucun membre d’équipe",
+    "emptyDescription": "Ajoutez des membres d’équipe pour afficher les profils individuels",
+    "selectMember": "Sélectionner un membre"
+  },
+  "memberDetails": {
+    "competencyDetails": "Détails des compétences"
+  },
+  "reference": {
+    "title": "Référence de l’échelle d’ingénierie",
+    "levelTemplate": "N{level}: {name}"
+  },
+  "deleteDialog": {
+    "title": "Supprimer le membre d’équipe ?",
+    "description": "Cette action ne peut pas être annulée. Elle supprimera définitivement le membre d’équipe et ses données."
+  },
+  "levels": {
+    "Technology": {
+      "1": {
+        "name": "Adopte",
+        "description": "Apprend activement et adopte les technologies et outils définis par l’équipe"
+      },
+      "2": {
+        "name": "Se spécialise",
+        "description": "Est la personne de référence pour une ou plusieurs technologies et prend l’initiative d’en apprendre de nouvelles"
+      },
+      "3": {
+        "name": "Évangélise",
+        "description": "Recherche, crée des preuves de concept et introduit de nouvelles technologies dans l’équipe"
+      },
+      "4": {
+        "name": "Maîtrise",
+        "description": "Possède une connaissance très approfondie de toute la pile technologique du système"
+      },
+      "5": {
+        "name": "Crée",
+        "description": "Conçoit et crée de nouvelles technologies largement utilisées par des équipes internes ou externes"
+      }
+    },
+    "System": {
+      "1": {
+        "name": "Améliore",
+        "description": "Livre avec succès de nouvelles fonctionnalités et des correctifs pour améliorer et étendre le système"
+      },
+      "2": {
+        "name": "Conçoit",
+        "description": "Conçoit et implémente des fonctionnalités de taille moyenne à grande tout en réduisant la dette technique du système"
+      },
+      "3": {
+        "name": "Assume la responsabilité",
+        "description": "Assume l’exploitation en production et la supervision du système, et connaît ses SLA"
+      },
+      "4": {
+        "name": "Fait évoluer",
+        "description": "Fait évoluer l’architecture pour prendre en charge les besoins futurs et définit ses SLA"
+      },
+      "5": {
+        "name": "Dirige",
+        "description": "Dirige l’excellence technique du système et crée des plans pour limiter les interruptions"
+      }
+    },
+    "People": {
+      "1": {
+        "name": "Apprend",
+        "description": "Apprend rapidement des autres et prend régulièrement le relais lorsque c’est nécessaire"
+      },
+      "2": {
+        "name": "Soutient",
+        "description": "Soutient proactivement les autres membres de l’équipe et les aide à réussir"
+      },
+      "3": {
+        "name": "Mentore",
+        "description": "Mentore les autres pour accélérer leur évolution de carrière et les encourage à participer"
+      },
+      "4": {
+        "name": "Coordonne",
+        "description": "Coordonne les membres de l’équipe en fournissant des retours efficaces et en modérant les discussions"
+      },
+      "5": {
+        "name": "Manage",
+        "description": "Gère la carrière, les attentes, la performance et le niveau de satisfaction des membres de l’équipe"
+      }
+    },
+    "Process": {
+      "1": {
+        "name": "Suit",
+        "description": "Suit les processus de l’équipe en livrant un flux régulier de fonctionnalités en production"
+      },
+      "2": {
+        "name": "Fait respecter",
+        "description": "Fait respecter les processus de l’équipe en s’assurant que tout le monde comprend les bénéfices et les compromis"
+      },
+      "3": {
+        "name": "Remet en question",
+        "description": "Remet en question les processus de l’équipe en cherchant des moyens de les améliorer"
+      },
+      "4": {
+        "name": "Ajuste",
+        "description": "Ajuste les processus de l’équipe en écoutant les retours et en accompagnant l’équipe dans les changements"
+      },
+      "5": {
+        "name": "Définit",
+        "description": "Définit les bons processus pour le niveau de maturité de l’équipe, en équilibrant agilité et discipline"
+      }
+    },
+    "Influence": {
+      "1": {
+        "name": "Sous-système",
+        "description": "A un impact sur un ou plusieurs sous-systèmes",
+        "example": "Une zone au sein d’une squad: l’interface de paiement dans une squad frontend, l’API de paiement dans une squad backend, ou la suite E2E côté QA."
+      },
+      "2": {
+        "name": "Équipe",
+        "description": "A un impact sur toute l’équipe, pas seulement sur certaines parties précises",
+        "example": "Toute la squad (front, back et QA ensemble): définit les standards de revue, le pipeline de livraison ou la stratégie de test de la squad."
+      },
+      "3": {
+        "name": "Plusieurs équipes",
+        "description": "A un impact non seulement sur son équipe, mais aussi sur d’autres équipes",
+        "example": "Plusieurs squads d’une tribe ou d’un domaine: un design system partagé, une API de plateforme utilisée par d’autres squads, ou une stratégie QA entre squads."
+      },
+      "4": {
+        "name": "Entreprise",
+        "description": "A un impact sur toute l’organisation tech",
+        "example": "Toutes les équipes de l’entreprise: standards d’ingénierie globaux, guilde d’architecture ou processus de recrutement."
+      },
+      "5": {
+        "name": "Communauté",
+        "description": "A un impact sur la communauté tech",
+        "example": "En dehors de l’entreprise: maintient des projets open source, intervient en conférence ou publie des contenus largement utilisés."
+      }
+    }
+  },
+  "competencyLabels": {
+    "current": "Actuel: {{level}} {{name}}",
+    "currentNotSet": "Actuel: non défini",
+    "goal": "Objectif: {{level}} {{name}}",
+    "self": "Auto-évaluation: {{level}} {{name}}"
+  },
+  "memberAssessment": {
+    "title": "Évaluation du membre d’équipe",
+    "subtitle": "Les brouillons sont enregistrés automatiquement; publiez lorsque l’évaluation est prête",
+    "personalInfo": "Informations personnelles",
+    "competencies": "Compétences",
+    "preview": "Aperçu de {{name}}",
+    "member": "Membre",
+    "currentAverage": "Moyenne actuelle",
+    "goalAverage": "Moyenne cible",
+    "competencyLevels": "Niveaux de compétence",
+    "evaluationTab": "Évaluation"
+  },
+  "smartGoals": {
+    "newComment": "Nouveau commentaire",
+    "addComment": "Ajouter un commentaire",
+    "tab": "Objectifs SMART",
+    "title": "Objectifs SMART",
+    "description": "Transformez les priorités de développement en engagements clairs et suivables.",
+    "goalTitle": "Titre",
+    "titlePlaceholder": "Quel résultat allez-vous atteindre ?",
+    "goalDescription": "Description",
+    "dueDate": "Date cible",
+    "progress": "Avancement",
+    "comments": "Commentaires",
+    "add": "Ajouter un objectif",
+    "save": "Enregistrer les modifications",
+    "delete": "Supprimer l’objectif",
+    "empty": "Aucun objectif pour le moment.",
+    "noDate": "Aucune date cible",
+    "daysRemaining": "{{days}} jours restants",
+    "overdue": "{{days}} jours de retard"
+  },
+  "selfAssessment": {
+    "title": "Auto-évaluation",
+    "subtitle": "Évaluez vos compétences",
+    "personalInfo": "Informations personnelles",
+    "competencies": "Compétences",
+    "preview": "Aperçu de {{name}}",
+    "yourAssessment": "Votre évaluation",
+    "currentAverage": "Moyenne actuelle",
+    "competencyLevels": "Niveaux de compétence",
+    "shareLink": "Partager le lien",
+    "howToUse": "Mode d’emploi",
+    "howToUseItems": {
+      "0": "Définissez votre niveau actuel pour chaque compétence",
+      "1": "Votre brouillon est enregistré automatiquement pendant que vous travaillez",
+      "2": "Publiez lorsque l’évaluation est prête à devenir une version",
+      "3": "Utilisez le modèle de séniorité pour comparer avec le niveau attendu"
+    },
+    "clearConfirmTitle": "Effacer toutes les données d’évaluation ?",
+    "clearConfirmDesc": "Cela supprimera toutes vos données d’évaluation, y compris le nom, le rôle et tous les niveaux de compétence. Cette action ne peut pas être annulée.",
+    "clearAll": "Tout effacer"
+  },
+  "alerts": {
+    "linkCopied": "Lien copié dans le presse-papiers !",
+    "shareLinkCopied": "Lien d’auto-évaluation copié dans le presse-papiers !",
+    "failedToCopyLink": "Échec de la copie du lien",
+    "memberDeleted": "Membre supprimé avec succès !",
+    "published": "Version publiée.",
+    "nameRequired": "Veuillez saisir un nom avant d’enregistrer.",
+    "authorRequired": "Veuillez saisir votre nom avant d’envoyer.",
+    "saveFailed": "Impossible d’enregistrer. Veuillez réessayer.",
+    "publishDraftFirst": "Enregistrez un brouillon avant de publier.",
+    "saveMemberFirst": "Enregistrez d’abord le membre."
+  },
+  "influenceScope": "Guide de portée: une squad est une équipe pluridisciplinaire (front, back, QA); plusieurs squads forment une tribe ou un domaine; l’entreprise correspond à toute l’organisation tech; la communauté est extérieure à l’entreprise.",
+  "series": {
+    "current": "Actuel",
+    "goal": "Objectif"
+  },
+  "comments": {
+    "title": "Commentaires"
+  },
+  "autosave": {
+    "saving": "Enregistrement...",
+    "saved": "Brouillon enregistré",
+    "error": "Impossible d’enregistrer"
+  },
+  "versions": {
+    "returnToDraft": "Revenir au brouillon",
+    "title": "Versions",
+    "filter": "Filtrer les versions par auteur",
+    "empty": "Aucune version enregistrée pour le moment",
+    "compare": "Afficher sur le graphique",
+    "deleteTitle": "Supprimer cette version ?",
+    "deleteDescription": "Cette version sera définitivement supprimée de l’historique.",
+    "kind": {
+      "manager": "Manager",
+      "self": "Auto-évaluation",
+      "peer": "Pair"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "published": "Publiée"
+    }
+  },
+  "templates": {
+    "title": "Modèle de séniorité",
+    "none": "Aucun modèle",
+    "whatItMeans": "Ce que ce niveau signifie",
+    "seriesLabel": "{{id}} attendu",
+    "tracks": {
+      "developer": "Développeur",
+      "techLead": "Tech Lead",
+      "engineeringManager": "Engineering Manager"
+    },
+    "summaries": {
+      "D1": "Apprend la stack et livre des fonctionnalités et correctifs bien cadrés, en suivant les processus de l’équipe.",
+      "D2": "Conçoit des fonctionnalités de taille moyenne, soutient proactivement ses coéquipiers et fait respecter les processus de l’équipe.",
+      "D3": "Personne de référence pour certaines technologies; remet les processus en question et a un impact sur toute l’équipe.",
+      "D4": "Introduit de nouvelles technologies, assume l’exploitation en production et mentore les autres.",
+      "D5": "Maîtrise toute la stack, fait évoluer l’architecture et a un impact sur plusieurs équipes.",
+      "D6": "Crée des technologies largement utilisées et dirige l’excellence technique à l’échelle de l’entreprise.",
+      "D7": "Travail technique ayant un impact sur la communauté tech élargie.",
+      "TL4": "Assume la responsabilité du système en production, coordonne l’équipe et ajuste ses processus.",
+      "TL5": "Fait évoluer l’architecture et définit les processus de l’équipe; a un impact sur toute l’équipe.",
+      "TL6": "Maîtrise la stack et dirige l’excellence technique sur plusieurs équipes.",
+      "TL7": "Dirige l’orientation technique avec un impact sur toute l’organisation tech.",
+      "EM5": "Gère les carrières, la performance et la satisfaction de l’équipe tout en assumant son exploitation.",
+      "EM6": "Manage l’équipe, fait évoluer l’architecture et définit les processus adaptés à sa maturité.",
+      "EM7": "Manage avec un impact au-delà de l’équipe, sur plusieurs équipes."
+    }
+  },
+  "share": {
+    "title": "Liens permanents",
+    "action": "Partager",
+    "menuLabel": "Choisir un lien de partage",
+    "loginRequired": "Connectez-vous et enregistrez le membre pour obtenir des liens de partage permanents.",
+    "copy": "Copier le lien",
+    "self": {
+      "label": "Auto-évaluation",
+      "hint": "La personne enregistre ses propres versions directement ici. Aucune connexion requise."
+    },
+    "peer": {
+      "label": "Évaluation par un pair",
+      "hint": "Toute personne disposant de ce lien peut envoyer une évaluation; vous la relisez et la publiez."
+    },
+    "view": {
+      "label": "Voir mon évaluation",
+      "hint": "Lecture seule: vos versions publiées, les versions publiées par des pairs et leurs auto-évaluations.",
+      "enable": "Activé"
+    }
+  },
+  "welcome": {
+    "eyebrow": "Échelle d’ingénierie",
+    "title": "Comment voulez-vous commencer ?",
+    "description": "Connectez-vous pour garder votre équipe protégée et disponible sur tous vos appareils.",
+    "accountTitle": "Utiliser un compte",
+    "accountDescription": "Enregistrez votre équipe dans la base de données et créez des liens permanents pour les auto-évaluations et les évaluations par les pairs.",
+    "authUnavailable": "L’accès au compte n’est pas configuré pour ce déploiement."
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte",
+    "signOut": "Se déconnecter",
+    "signInTitle": "Se connecter",
+    "signUpTitle": "Créer un compte",
+    "description": "Enregistrez votre équipe en toute sécurité et obtenez des liens de partage permanents. Les données de cet appareil sont téléversées vers un nouveau compte vide.",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "continueWithGitHub": "Continuer avec GitHub",
+    "forgotPassword": "Mot de passe oublié ?",
+    "forgotPasswordTitle": "Réinitialiser votre mot de passe",
+    "forgotPasswordDescription": "Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation sécurisé.",
+    "sendResetEmail": "Envoyer l’e-mail de réinitialisation",
+    "passwordResetSent": "Consultez votre e-mail pour les instructions de réinitialisation du mot de passe.",
+    "backToSignIn": "Retour à la connexion",
+    "resetPasswordTitle": "Définir un nouveau mot de passe",
+    "resetPasswordDescription": "Choisissez un nouveau mot de passe d’au moins 8 caractères.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "passwordTooShort": "Le mot de passe doit comporter au moins 8 caractères.",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
+    "checkEmail": "Consultez votre e-mail pour confirmer votre compte.",
+    "switchToSignUp": "Pas de compte ? Créez-en un",
+    "switchToSignIn": "Vous avez déjà un compte ? Connectez-vous"
+  },
+  "pageMessage": {
+    "loading": "Chargement...",
+    "notFound": "Ce lien n’est pas valide ou n’est plus disponible.",
+    "error": "Une erreur s’est produite pendant le chargement.",
+    "thanks": "Merci ! Votre évaluation a été envoyée.",
+    "home": "Aller à l’accueil"
+  },
+  "peerAssessment": {
+    "title": "Évaluer {{name}}",
+    "subtitle": "Votre évaluation sera relue avant d’être publiée",
+    "personalInfo": "Qui vous évaluez",
+    "competencies": "Compétences",
+    "preview": "Aperçu de {{name}}",
+    "yourName": "Votre nom",
+    "another": "Envoyer une autre évaluation",
+    "howToUseItems": {
+      "0": "Saisissez votre nom pour que le manager sache qui a évalué",
+      "1": "Définissez le niveau que vous observez pour chaque compétence",
+      "2": "Ajoutez des commentaires avec des exemples concrets"
+    }
+  },
+  "viewPage": {
+    "title": "{{name}} · Évaluation"
+  },
+  "labels": {
+    "teamOverview": "Vue d’ensemble de l’équipe",
+    "teamLegend": "Légende de l’équipe",
+    "member": "membre",
+    "members": "membres",
+    "noTeamMembers": "Aucun membre d’équipe pour le moment",
+    "addMembersToSeeOverview": "Ajoutez des membres pour voir la vue d’ensemble de l’équipe",
+    "currentNotSet": "Non défini"
+  }
+}
