@@ -5,15 +5,13 @@ availability. The copied Base44 layouts now use Supabase instead of Base44.
 
 ## Start locally
 
-Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI) and keep `ui` and
-`planner` as sibling folders:
+Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI). The shared UI library is installed from GitHub Packages as
+`@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
+`.npmrc` reads it from `GITHUB_TOKEN`:
 
 ```bash
-cd ../ui
+export GITHUB_TOKEN=<token with read:packages>
 npm install
-npm run build
-cd ../planner
-npm install --install-links
 cp .env.example .env # Only when .env does not already exist
 npm start
 ```
@@ -37,22 +35,10 @@ auth callbacks remain app-owned. The header shares title/subtitle/icon sizes,
 language and account controls; Planner's page navigation is a separate row below
 it. Workspace selection stays in the page toolbar.
 
-### Refresh shared UI during development
+### Update shared UI
 
-The library is installed as a packed `file:../ui` dependency, not a symlink.
-This avoids loading the library's development React alongside Planner's React.
-When rebuilding UI without changing its package version, npm can keep the old
-installed copy. Refresh it explicitly:
-
-```bash
-cd ../ui && npm run build
-cd ../planner
-npm uninstall @jordiorriols/ui --ignore-scripts
-npm install ../ui --install-links --ignore-scripts
-```
-
-Restart the app's development server after refreshing UI; Vite can retain
-transformed dependency modules even when the installed package is up to date.
+UI publishes a new patch version on every push to its `main` branch. Update with
+`npm install @jordiorriols/ui@latest` and restart the development server.
 
 Shared Tailwind tokens are imported by `index.css`; keep its `@source`
 directives. Official Radix exports and the original UI Button are unchanged.
@@ -207,24 +193,20 @@ Pushes to `master` or `main`, as well as manual dispatch, run the same validatio
 and Pages deployment stages as Ladders. Database tests read the copied shared
 migrations from this repository; a sibling Ladders checkout is not required.
 
-CI pins Node.js 24.21.0 and uses `npm ci --install-links`; do not replace this
-with `npm install` to work around lockfile errors. Older npm versions can omit
+CI pins Node.js 24.21.0 and uses `npm ci`; do not replace this with
+`npm install` to work around lockfile errors. Older npm versions can omit
 optional WASM peer dependencies that newer npm requires. When updating
-dependencies, regenerate the lockfile with npm 11.19.0 and validate it in a
-clean sibling checkout before committing:
+dependencies, regenerate the lockfile with npm 11.19.0:
 
 ```bash
-npx --yes --package=npm@11.19.0 npm install --package-lock-only --install-links --ignore-scripts
-# In a disposable clean checkout, with the sibling UI built:
-npx --yes --package=npm@11.19.0 npm ci --install-links
+npx --yes --package=npm@11.19.0 npm install --package-lock-only --ignore-scripts
 ```
 
-The workflow checks out and builds the sibling UI source before installing
-Planner. Set `UI_REF` to the shared UI revision to deploy; its local extraction
-commits must be pushed separately before remote CI can consume them. For a
-private UI repository, configure `UI_READ_TOKEN` with read access.
+`npm ci` installs `@jordiorriols/ui` from GitHub Packages with the workflow token
+(`packages: read`). Grant this repository read access in the package's
+**Manage Actions access** settings, or set the `UI_READ_TOKEN` secret to a token
+with `read:packages`.
 
 Set the Planner Supabase URL and publishable-key GitHub configuration values,
 enable GitHub Pages, and add the deployed Planner URL to Supabase's redirect
-allow-list before deploying. No repository was pushed and no package published
-as part of preparing this app.
+allow-list before deploying.

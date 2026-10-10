@@ -3,7 +3,6 @@
 @import "@jordiorriols/ui/styles/tokens";
 
 @source "./node_modules/@jordiorriols/ui/dist";
-@source "../ui/dist";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
