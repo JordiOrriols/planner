@@ -49,7 +49,7 @@ beforeAll(async () => {
     "0004_create_team_rpc.sql",
   ]) {
     const sql = await readFile(
-      new URL(`../../../../ladders/supabase/migrations/${file}`, import.meta.url),
+      new URL(`../../../supabase/migrations/${file}`, import.meta.url),
       "utf8"
     );
     await db.exec(sql.replace("create extension if not exists pgcrypto;", ""));
