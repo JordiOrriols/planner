@@ -158,7 +158,9 @@ also require the Planner URL in that allow-list. Do not replace Ladders' Site UR
 or OAuth provider configuration. No auth configuration was pushed by this work.
 
 The copied Ladders Umami website ID has been removed; configure Planner's own
-analytics identity before enabling its script.
+analytics identity before enabling it with `loadUmami({ websiteId })` from
+`@jordiorriols/ui` at boot (not a `<script>` tag), which skips automated
+browsers so e2e runs never reach Umami.
 
 ## Checks
 
