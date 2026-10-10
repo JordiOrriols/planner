@@ -203,6 +203,10 @@ own data afterward; they never reset Ladders data or send invitation emails.
 
 ## CI and deployment
 
+Pushes to `master` or `main`, as well as manual dispatch, run the same validation
+and Pages deployment stages as Ladders. Database tests read the copied shared
+migrations from this repository; a sibling Ladders checkout is not required.
+
 CI pins Node.js 24.21.0 and uses `npm ci --install-links`; do not replace this
 with `npm install` to work around lockfile errors. Older npm versions can omit
 optional WASM peer dependencies that newer npm requires. When updating
