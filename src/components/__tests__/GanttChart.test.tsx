@@ -53,6 +53,18 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("shows requested people without misrepresenting reduced available capacity", () => {
+    renderSchedule([{ ...mixed, backend_devs: 2, backend_weeks: 1 }]);
+    const backend = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
+    expect(backend).toHaveLength(2);
+    for (const bar of backend) {
+      expect(bar).toHaveTextContent("B2");
+      expect(bar).toHaveAccessibleName(/2 people requested · 1.0 person-weeks/);
+    }
+    for (const bar of screen.getAllByRole("img", { name: /^Mixed · Frontend:/ }))
+      expect(bar).toHaveTextContent("F1");
+  });
+
   it("renders independently delayed backend and frontend work instead of one full-span bar", () => {
     renderSchedule([
       {
