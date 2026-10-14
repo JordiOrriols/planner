@@ -1,5 +1,5 @@
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -41,10 +41,13 @@ function open(path = `/vacations/${token}`) {
 }
 beforeEach(() => {
   vi.clearAllMocks();
-  loadVacation.mockResolvedValue({ member, availability: [] });
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(2026, 10, 1));
+  loadVacation.mockResolvedValue({ member, members: [member], availability: [] });
   saveVacation.mockResolvedValue(undefined);
   clearVacation.mockResolvedValue(undefined);
 });
+afterEach(() => vi.useRealTimers());
 describe("Anonymous member vacation route", () => {
   it("loads just the token member without waiting for login or showing workspace controls", async () => {
     open();
@@ -57,17 +60,26 @@ describe("Anonymous member vacation route", () => {
   it("saves a range with only its vacation token, then refreshes saved overrides", async () => {
     open();
     await screen.findByRole("heading", { name: "Ada" });
-    await userEvent.type(screen.getByLabelText("From"), "2026-11-02");
-    await userEvent.type(screen.getByLabelText("To"), "2026-11-03");
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-03" }));
     loadVacation.mockResolvedValue({
       member,
+      members: [member],
       availability: [{ member_id: "member", date: "2026-11-02", is_working: false }],
     });
-    await userEvent.click(screen.getByRole("button", { name: "Save availability" }));
+    await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
     await waitFor(() =>
       expect(saveVacation).toHaveBeenCalledWith(token, "2026-11-02", "2026-11-03", false)
     );
     expect(await screen.findByText("2026-11-02: Not working")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "2026-11-02" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
     await userEvent.click(
       screen.getByRole("button", { name: "Restore calendar default for 2026-11-02" })
     );
@@ -86,9 +98,9 @@ describe("Anonymous member vacation route", () => {
     saveVacation.mockRejectedValueOnce(new Error("Availability could not be saved"));
     open();
     await screen.findByRole("heading", { name: "Ada" });
-    await userEvent.type(screen.getByLabelText("From"), "2026-11-02");
-    await userEvent.type(screen.getByLabelText("To"), "2026-11-03");
-    await userEvent.click(screen.getByRole("button", { name: "Save availability" }));
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-03" }));
+    await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Availability could not be saved");
   });
   it("does not bypass authentication on the normal vacations page", () => {

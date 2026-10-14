@@ -3,6 +3,7 @@ import { Button } from "@jordiorriols/ui";
 import VacationCalendar from "./vacation-calendar";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { parseDate } from "@/lib/planning";
+import { differenceInCalendarDays } from "date-fns";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 import type { Availability, PlannerMember } from "@/types/planner";
 
@@ -25,11 +26,24 @@ export function AvailabilityEditor({
   save: (start: string, end: string, working: boolean) => Promise<void>;
   clear: (date: string) => Promise<void>;
 }) {
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [working, setWorking] = useState(false);
+  const [range, setRange] = useState<{ start: string; end: string | null } | null>(null);
   const action = useAsyncAction();
   const overrides = availability.filter((item) => item.member_id === member.id);
+  function apply(working: boolean) {
+    void action.run(async () => {
+      if (!canEdit) throw new Error("You cannot edit this member's availability.");
+      if (!range) throw new Error("Select dates on the calendar first.");
+      const end = range.end ?? range.start;
+      const first = parseDate(range.start),
+        last = parseDate(end);
+      if (!hasHolidayCalendar(range.start) || !hasHolidayCalendar(end))
+        throw new Error("Choose dates in a verified holiday year (2026 or 2027).");
+      if (last < first || differenceInCalendarDays(last, first) > 365)
+        throw new Error("Choose a date range of at most 366 days.");
+      await save(range.start, end, working);
+      setRange({ start: range.start, end });
+    });
+  }
   return (
     <div className="space-y-4">
       <VacationCalendar
@@ -38,71 +52,25 @@ export function AvailabilityEditor({
         teamMembers={members}
         availability={availability}
         selectedMember={member.id}
+        selectedRange={range}
+        onClearSelection={() => setRange(null)}
         onSelectRange={(start, end) => {
-          setStart(start);
-          setEnd(end);
+          setRange({ start, end });
         }}
         disabled={!canEdit || action.busy}
       />
-      <form
-        className="flex flex-wrap gap-3 items-end"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void action.run(async () => {
-            const first = parseDate(start),
-              last = parseDate(end);
-            if (!hasHolidayCalendar(start) || !hasHolidayCalendar(end))
-              throw new Error("Choose dates in a verified holiday year (2026 or 2027).");
-            if (last < first || (last.getTime() - first.getTime()) / 86400000 > 365)
-              throw new Error("Choose a date range of at most 366 days.");
-            await save(start, end, working);
-          });
-        }}
-      >
-        <label>
-          From
-          <input
-            aria-label="From"
-            className="field"
-            type="date"
-            required
-            min="2026-01-01"
-            max="2027-12-31"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-            disabled={!canEdit || action.busy}
-          />
-        </label>
-        <label>
-          To
-          <input
-            aria-label="To"
-            className="field"
-            type="date"
-            required
-            min="2026-01-01"
-            max="2027-12-31"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            disabled={!canEdit || action.busy}
-          />
-        </label>
-        <label>
-          Availability
-          <select
-            className="field"
-            value={working ? "working" : "off"}
-            onChange={(e) => setWorking(e.target.value === "working")}
-            disabled={!canEdit || action.busy}
-          >
-            <option value="off">Not working (vacation)</option>
-            <option value="working">Working</option>
-          </select>
-        </label>
-        <Button type="submit" disabled={!canEdit || action.busy}>
-          Save availability
+      <div className="flex flex-wrap gap-2">
+        <Button disabled={!canEdit || action.busy || !range} onClick={() => apply(false)}>
+          Vacations
         </Button>
-      </form>
+        <Button
+          variant="outline"
+          disabled={!canEdit || action.busy || !range}
+          onClick={() => apply(true)}
+        >
+          Working Day
+        </Button>
+      </div>
       {!canEdit && (
         <p>
           Only a Ladders team owner/editor can edit this member. Members can use their personal
