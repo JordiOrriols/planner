@@ -60,6 +60,15 @@ beforeAll(async () => {
       "utf8"
     )
   );
+  await db.exec(
+    await readFile(
+      new URL(
+        "../../../supabase/migrations/20261014225000_planner_workspace_plan_start.sql",
+        import.meta.url
+      ),
+      "utf8"
+    )
+  );
 });
 beforeEach(async () => {
   await db.exec("reset role; delete from public.planner_workspaces");
@@ -74,6 +83,64 @@ afterAll(async () => {
 });
 
 describe("Planner migration and real PostgreSQL permissions", () => {
+  it("stores a default plan date and retains owner changes while denying viewer and outsider updates", async () => {
+    expect(
+      (
+        await db.query<{ same_day: boolean }>(
+          "select plan_start_date=current_date as same_day from public.planner_workspaces where id=$1",
+          [workspace]
+        )
+      ).rows[0]!.same_day
+    ).toBe(true);
+    await db.query(
+      "update public.planner_workspaces set plan_start_date='2026-02-02' where id=$1",
+      [workspace]
+    );
+    await db.query(
+      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
+      [workspace]
+    );
+    await login(teammate);
+    const invitation = (
+      await db.query<{ member_id: string }>("select * from public.planner_list_invitations()")
+    ).rows[0]!;
+    await db.query("select public.planner_accept_invitation($1)", [invitation.member_id]);
+    expect(
+      (
+        await db.query("select plan_start_date::text from public.planner_workspaces where id=$1", [
+          workspace,
+        ])
+      ).rows
+    ).toEqual([{ plan_start_date: "2026-02-02" }]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
+          [workspace]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await login(stranger);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
+          [workspace]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await login(owner);
+    expect(
+      (
+        await db.query("select plan_start_date::text from public.planner_workspaces where id=$1", [
+          workspace,
+        ])
+      ).rows
+    ).toEqual([{ plan_start_date: "2026-02-02" }]);
+    await expect(
+      db.query("update public.planner_workspaces set plan_start_date=null where id=$1", [workspace])
+    ).rejects.toThrow(/null/);
+  });
   it("defaults delivery to false and allows only the owner to change it without changing estimates", async () => {
     const project = (
       await db.query<{ id: string; delivered: boolean }>(

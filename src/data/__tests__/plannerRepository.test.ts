@@ -7,6 +7,7 @@ const workspace = {
   id: "11111111-1111-4111-8111-111111111111",
   owner_id: "22222222-2222-4222-8222-222222222222",
   name: "Squad",
+  plan_start_date: "2026-10-15",
 };
 function setup() {
   const fetch = vi.fn<typeof globalThis.fetch>();
@@ -23,6 +24,27 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("saves the plan start on the workspace and validates dates before requesting", async () => {
+    const { fetch, response, repository } = setup();
+    for (const date of ["", "2026-02-30", "2028-01-01"])
+      await expect(repository.setPlanStart(workspace.id, date)).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockResolvedValue(response({ ...workspace, plan_start_date: "2026-02-02" }));
+    expect(await repository.setPlanStart(workspace.id, "2026-02-02")).toEqual({
+      ...workspace,
+      plan_start_date: "2026-02-02",
+    });
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`/planner_workspaces?id=eq.${workspace.id}`);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      plan_start_date: "2026-02-02",
+    });
+    fetch.mockResolvedValue(response({ message: "Only the owner can edit" }, 403));
+    await expect(repository.setPlanStart(workspace.id, "2026-02-02")).rejects.toThrow(
+      "Only the owner"
+    );
+    fetch.mockResolvedValue(response(null));
+    await expect(repository.setPlanStart(workspace.id, "2026-02-02")).rejects.toThrow();
+  });
   it("converts plain PostgREST failures into visible error messages", async () => {
     const { fetch, response, repository } = setup();
     fetch.mockImplementation(async () =>

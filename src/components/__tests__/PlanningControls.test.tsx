@@ -7,20 +7,21 @@ import Backlog from "@/pages/backlog";
 import ProjectForm from "@/components/organisms/project-form";
 import { EMPTY_PROJECT, type Project } from "@/types/planner";
 
-const { toggleBacklog, reorder, setDelivered, refresh, state } = vi.hoisted(() => ({
+const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
   reorder: vi.fn(),
   setDelivered: vi.fn(),
+  setPlanStart: vi.fn(),
   refresh: vi.fn(),
-  state: { isOwner: true, projects: [] as Project[] },
+  state: { isOwner: true, projects: [] as Project[], planStart: "2026-10-15" },
 }));
 vi.mock("@/data/DataProvider", () => ({
-  useData: () => ({ repository: { toggleBacklog, reorder, setDelivered } }),
+  useData: () => ({ repository: { toggleBacklog, reorder, setDelivered, setPlanStart } }),
 }));
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
     ...state,
-    workspace: { id: "squad" },
+    workspace: { id: "squad", plan_start_date: state.planStart },
     members: [],
     availability: [],
     refresh,
@@ -36,6 +37,10 @@ function renderBacklog() {
 beforeEach(() => {
   vi.clearAllMocks();
   state.isOwner = true;
+  state.planStart = "2026-10-15";
+  setPlanStart.mockImplementation(async (_id: string, date: string) => {
+    state.planStart = date;
+  });
   state.projects = [
     {
       ...EMPTY_PROJECT,
@@ -55,6 +60,49 @@ beforeEach(() => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
+  it("uses the saved workspace date and retains a changed start after page remount", async () => {
+    state.planStart = "2026-02-02";
+    const rendered = renderBacklog();
+    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-02-02");
+    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(setPlanStart).toHaveBeenCalledExactlyOnceWith("squad", "2026-03-02");
+    rendered.unmount();
+    renderBacklog();
+    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-03-02");
+  });
+
+  it("shows save failures and restores the persisted date instead of implying it was saved", async () => {
+    setPlanStart.mockRejectedValueOnce(new Error("Plan start could not be saved"));
+    renderBacklog();
+    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Plan start could not be saved")
+    );
+    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-10-15");
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("disables date changes while saving and for workspace viewers", async () => {
+    let finish!: () => void;
+    setPlanStart.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        })
+    );
+    const rendered = renderBacklog();
+    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
+    await waitFor(() => expect(screen.getByLabelText("Plan starts")).toBeDisabled());
+    finish();
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    rendered.unmount();
+    state.isOwner = false;
+    state.planStart = "2026-04-01";
+    renderBacklog();
+    expect(screen.getByLabelText("Plan starts")).toBeDisabled();
+    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-04-01");
+  });
   it("requires integer steps and makes decimal input invalid for all roles", async () => {
     const save = vi.fn();
     render(<ProjectForm open initial={null} onClose={vi.fn()} onSave={save} />);

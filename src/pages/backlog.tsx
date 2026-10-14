@@ -3,7 +3,6 @@ import { Button, EmptyState, Modal } from "@jordiorriols/ui";
 import { GanttChartSquare, Plus } from "@jordiorriols/ui/icons";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { format } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
 import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
@@ -13,7 +12,8 @@ export default function Backlog() {
   const { projects, members, availability, workspace, isOwner, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
-  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [draftStart, setDraftStart] = useState<string | null>(null);
+  const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
   const availableProjects = projects.filter((project) => !project.in_backlog);
   if (!repository) throw new Error("Sign in to manage the backlog");
@@ -58,6 +58,19 @@ export default function Backlog() {
       await refresh();
     });
   }
+  function changeStart(date: string) {
+    setDraftStart(date);
+    void action.run(async () => {
+      if (!repository || !isOwner)
+        throw new Error("Only the workspace owner can change the plan start.");
+      try {
+        await repository.setPlanStart(workspace.id, date);
+        await refresh();
+      } finally {
+        setDraftStart(null);
+      }
+    });
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
@@ -91,7 +104,8 @@ export default function Backlog() {
             min="2026-01-01"
             max="2027-12-31"
             value={startDate}
-            onChange={(event) => setStartDate(event.target.value)}
+            disabled={!isOwner || action.busy}
+            onChange={(event) => changeStart(event.target.value)}
           />
         </div>
         <div className="panel">

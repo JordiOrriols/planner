@@ -127,8 +127,10 @@ but must be edited to whole numbers before they can be scheduled.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,
   not presented as a successful completion date.
 - The Gantt forecast covers up to 52 weeks and stops at the last verified
-  calendar day, including partial boundary weeks. Start dates are editable;
-  they are not persisted commitments.
+  calendar day, including partial boundary weeks. **Plan starts** is saved on
+  the workspace whenever its owner changes it, so refreshes and other workspace
+  viewers use the same date. Existing and new workspaces initially use the
+  database's current date; this saved date is not a delivery commitment.
 
 The Barcelona calendar is verified for **2026 and 2027** against the
 [City Council calendar](https://ajuntament.barcelona.cat/calendarifestius/en/index.html).
@@ -154,6 +156,8 @@ project with approval:
    current-team names and vacations. Save/reset capabilities remain member-only.
 6. `20261014224000_planner_project_delivery.sql`: persistent project delivery
    status, protected by the existing owner-only project write policy.
+7. `20261014225000_planner_workspace_plan_start.sql`: saved workspace plan start
+   date, protected by existing owner-only workspace update permissions.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

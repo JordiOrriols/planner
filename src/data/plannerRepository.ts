@@ -1,12 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { ROLES, type ProjectInput, type Role } from "@/types/planner";
-import { validateProject } from "@/lib/planning";
+import { parseDate, validateProject } from "@/lib/planning";
+import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 
 const workspaceSchema = z.object({
   id: z.string().uuid(),
   owner_id: z.string().uuid(),
   name: z.string(),
+  plan_start_date: z.string().date("Invalid workspace plan start date"),
 });
 const memberSchema = z.object({
   id: z.string().uuid(),
@@ -86,6 +88,19 @@ export function createPlannerRepository(client: SupabaseClient) {
   }
   return {
     listWorkspaces: () => list("planner_workspaces", workspaceSchema),
+    async setPlanStart(workspace: string, date: string) {
+      parseDate(date);
+      if (!hasHolidayCalendar(date))
+        throw new Error("Choose a start date in a verified holiday year (2026 or 2027).");
+      const { data, error } = await client
+        .from("planner_workspaces")
+        .update({ plan_start_date: date })
+        .eq("id", workspace)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return workspaceSchema.parse(data);
+    },
     createWorkspace: async (name: string) =>
       workspaceSchema.parse(
         await rpc("planner_create_linked_workspace", {

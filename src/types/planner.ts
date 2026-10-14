@@ -13,6 +13,7 @@ export interface Workspace {
   id: string;
   name: string;
   owner_id: string;
+  plan_start_date: string;
 }
 export interface PlannerMember {
   id: string;
