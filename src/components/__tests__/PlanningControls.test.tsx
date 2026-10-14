@@ -1,19 +1,20 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Backlog from "@/pages/backlog";
 import ProjectForm from "@/components/organisms/project-form";
 import { EMPTY_PROJECT, type Project } from "@/types/planner";
 
-const { toggleBacklog, refresh, state } = vi.hoisted(() => ({
+const { toggleBacklog, reorder, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
+  reorder: vi.fn(),
   refresh: vi.fn(),
   state: { isOwner: true, projects: [] as Project[] },
 }));
 vi.mock("@/data/DataProvider", () => ({
-  useData: () => ({ repository: { toggleBacklog } }),
+  useData: () => ({ repository: { toggleBacklog, reorder } }),
 }));
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
@@ -47,6 +48,7 @@ beforeEach(() => {
     },
   ];
   toggleBacklog.mockResolvedValue(undefined);
+  reorder.mockResolvedValue(undefined);
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
@@ -82,7 +84,11 @@ describe("Planner estimate and backlog controls", () => {
   it("removes a selected estimate without deleting it", async () => {
     state.projects[0]!.in_backlog = true;
     renderBacklog();
-    await userEvent.click(screen.getByRole("button", { name: "Remove from backlog: Checkout" }));
+    const schedule = screen.getByRole("region", { name: "Project schedule" });
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    await userEvent.click(
+      within(schedule).getByRole("button", { name: "Remove from backlog: Checkout" })
+    );
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
   });
@@ -101,5 +107,164 @@ describe("Planner estimate and backlog controls", () => {
     expect(
       screen.queryByRole("button", { name: "Remove from backlog: Checkout" })
     ).not.toBeInTheDocument();
+  });
+});
+
+function selectBacklog() {
+  const first = { ...state.projects[0]!, in_backlog: true };
+  state.projects = [
+    first,
+    { ...first, id: "second", name: "Second", priority: 1 },
+    { ...first, id: "third", name: "Third", priority: 2 },
+    { ...first, id: "excluded", name: "Excluded", in_backlog: false },
+  ];
+}
+
+function dragProject(from: string, to: string) {
+  const source = screen.getByRole("button", { name: `Reorder ${from}` });
+  const target = screen.getByRole("button", { name: `Reorder ${to}` }).parentElement!;
+  const dataTransfer = { setData: vi.fn(), effectAllowed: "", dropEffect: "" };
+  fireEvent.dragStart(source, { dataTransfer });
+  fireEvent.dragOver(target, { dataTransfer });
+  fireEvent.drop(target, { dataTransfer });
+  fireEvent.dragEnd(source, { dataTransfer });
+  return dataTransfer;
+}
+
+describe("inline schedule priority controls", () => {
+  it("moves a dragged project upward and saves all selected IDs in their new order", async () => {
+    selectBacklog();
+    renderBacklog();
+    const transfer = dragProject("Third", "Checkout");
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(transfer.setData).toHaveBeenCalledWith("text/plain", "third");
+    expect(reorder).toHaveBeenCalledExactlyOnceWith("squad", ["third", "project", "second"]);
+  });
+
+  it("moves downward by insertion rather than swapping distant projects", async () => {
+    selectBacklog();
+    renderBacklog();
+    dragProject("Checkout", "Third");
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(reorder).toHaveBeenCalledExactlyOnceWith("squad", ["second", "third", "project"]);
+  });
+
+  it("supports keyboard reordering, keeps focus, and ignores boundary moves", async () => {
+    selectBacklog();
+    renderBacklog();
+    const first = screen.getByRole("button", { name: "Reorder Checkout" });
+    first.focus();
+    await userEvent.keyboard("{ArrowUp}");
+    expect(reorder).not.toHaveBeenCalled();
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(reorder).toHaveBeenCalledWith("squad", ["second", "project", "third"]);
+    expect(first).toHaveFocus();
+    const last = screen.getByRole("button", { name: "Reorder Third" });
+    last.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(reorder).toHaveBeenCalledOnce();
+  });
+
+  it("refreshes project order after persistence succeeds", async () => {
+    selectBacklog();
+    reorder.mockImplementation(async (_workspace: string, ids: string[]) => {
+      state.projects = state.projects.map((project) => ({
+        ...project,
+        priority: ids.includes(project.id) ? ids.indexOf(project.id) : project.priority,
+      }));
+    });
+    const rendered = renderBacklog();
+    dragProject("Third", "Checkout");
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    rendered.rerender(
+      <MemoryRouter>
+        <Backlog />
+      </MemoryRouter>
+    );
+    expect(
+      screen.getAllByRole("button", { name: /^Reorder / }).map((button) => button.textContent)
+    ).toEqual(["Third", "Checkout", "Second"]);
+  });
+
+  it("ignores self-drops and external drops", () => {
+    selectBacklog();
+    renderBacklog();
+    dragProject("Checkout", "Checkout");
+    fireEvent.drop(screen.getByRole("button", { name: "Reorder Third" }).parentElement!);
+    expect(reorder).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("surfaces reorder failures without refreshing or changing the displayed order", async () => {
+    selectBacklog();
+    reorder.mockRejectedValue(new Error("Could not save priority"));
+    renderBacklog();
+    dragProject("Third", "Checkout");
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Could not save priority")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+    expect(
+      screen.getAllByRole("button", { name: /^Reorder / }).map((button) => button.textContent)
+    ).toEqual(["Checkout", "Second", "Third"]);
+  });
+
+  it("disables reordering and removal while a priority save is pending", async () => {
+    selectBacklog();
+    let finish!: () => void;
+    reorder.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        })
+    );
+    renderBacklog();
+    dragProject("Third", "Checkout");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Reorder Checkout" })).toBeDisabled()
+    );
+    expect(screen.getByRole("button", { name: "Reorder Checkout" })).toHaveAttribute(
+      "draggable",
+      "false"
+    );
+    expect(screen.getByRole("button", { name: "Remove from backlog: Checkout" })).toBeDisabled();
+    dragProject("Checkout", "Third");
+    expect(reorder).toHaveBeenCalledOnce();
+    finish();
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "Reorder Checkout" })).toBeEnabled();
+  });
+
+  it("does not render schedule mutation controls for viewers", () => {
+    selectBacklog();
+    state.isOwner = false;
+    renderBacklog();
+    expect(screen.getByRole("region", { name: "Project schedule" })).toHaveTextContent("Checkout");
+    expect(screen.queryByRole("button", { name: /^Reorder / })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Remove from backlog:/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Drag project names/)).not.toBeInTheDocument();
+  });
+
+  it("preserves removal controls when invalid estimates prevent computing the forecast", async () => {
+    selectBacklog();
+    state.projects[0]!.backend_weeks = 1.5;
+    renderBacklog();
+    expect(screen.getByRole("alert")).toHaveTextContent("whole numbers");
+    await userEvent.click(screen.getByRole("button", { name: "Remove from backlog: Checkout" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
+  });
+
+  it("surfaces removal failures and keeps the project in the schedule", async () => {
+    selectBacklog();
+    toggleBacklog.mockRejectedValue(new Error("Could not remove project"));
+    renderBacklog();
+    await userEvent.click(screen.getByRole("button", { name: "Remove from backlog: Checkout" }));
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Could not remove project")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Reorder Checkout" })).toBeInTheDocument();
   });
 });
