@@ -94,7 +94,7 @@ export default function GanttChart({
       {onReorder && (
         <p className="mb-2 text-[11px] text-muted-foreground">
           Drag project names to reorder, or use Arrow Up / Arrow Down. Hover bars for details.
-          Right-click a row for delivery and removal actions.
+          Right-click a row (or press Shift+F10) for delivery and removal actions.
         </p>
       )}
       <div className="overflow-x-auto">
@@ -158,6 +158,23 @@ export default function GanttChart({
                     <div
                       tabIndex={onRemove || onDeliveredChange ? 0 : undefined}
                       aria-label={`Schedule row: ${s.project.name}`}
+                      onKeyDown={(event) => {
+                        if (
+                          (!onRemove && !onDeliveredChange) ||
+                          !(event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))
+                        )
+                          return;
+                        event.preventDefault();
+                        const bounds = event.currentTarget.getBoundingClientRect();
+                        event.currentTarget.dispatchEvent(
+                          new MouseEvent("contextmenu", {
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: bounds.left + 24,
+                            clientY: bounds.top + bounds.height / 2,
+                          })
+                        );
+                      }}
                       className={cn(
                         "grid items-stretch border-b border-border/60",
                         dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"

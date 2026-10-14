@@ -56,6 +56,19 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("supports opening the row menu and selecting actions from the keyboard", async () => {
+    const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
+    const delivered = vi.fn();
+    render(
+      <GanttChart weeks={result.weeks} schedule={result.schedule} onDeliveredChange={delivered} />
+    );
+    screen.getByLabelText("Schedule row: Mixed").focus();
+    await userEvent.keyboard("{Shift>}{F10}{/Shift}");
+    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toBeVisible();
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    expect(delivered).toHaveBeenCalledExactlyOnceWith("mixed", true);
+  });
+
   it("opens row actions from the project bar without inline action buttons", async () => {
     const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
     const remove = vi.fn();
