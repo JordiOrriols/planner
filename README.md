@@ -89,7 +89,7 @@ database, never silently rounded. Existing fractional estimates are preserved
 but must be edited to whole numbers before they can be scheduled.
 
 - **Effort** is the sum of `people × weeks` across roles.
-- **Ideal duration** is the longest role estimate, assuming roles run concurrently.
+- **Ideal duration** is design weeks + the longer backend/frontend estimate + QA weeks.
 - **Peak team** is the sum of requested people across roles.
 - Only projects explicitly added to the backlog are scheduled.
 - Add/remove existing estimates directly on Backlog Plan using **Add projects**.
@@ -97,6 +97,11 @@ but must be edited to whole numbers before they can be scheduled.
 - Daily available capacity is allocated by role and backlog priority.
 - Different roles and projects can overlap when capacity allows. If only one
   backend person is available for a two-person estimate, completion takes longer.
+- Design finishes before development starts. Backend and frontend then start
+  independently as their own role capacity becomes available. QA starts on a
+  later working day after design and both development roles finish.
+- A mixed project's calendar span can exceed its ideal duration when backend and
+  frontend start at different times, even without vacations or overbooking.
 - A person-week means five working days. Saved time off and Barcelona holidays
   extend dates; working-day overrides can restore a holiday or weekend.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,

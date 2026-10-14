@@ -27,7 +27,9 @@ export const roleWeeks = (p: ProjectInput, role: Role) => p[`${role}_weeks`];
 export const peakDevs = (p: ProjectInput) =>
   ROLES.reduce((sum, role) => sum + roleDevs(p, role), 0);
 export const durationWeeks = (p: ProjectInput) =>
-  Math.max(0, ...ROLES.map((role) => roleWeeks(p, role)));
+  roleWeeks(p, "design") +
+  Math.max(roleWeeks(p, "backend"), roleWeeks(p, "frontend")) +
+  roleWeeks(p, "qa");
 export const totalDevWeeks = (p: ProjectInput) =>
   ROLES.reduce((sum, role) => sum + roleDevs(p, role) * roleWeeks(p, role), 0);
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
@@ -86,6 +88,19 @@ export interface ScheduledProject {
   end: Date | null;
   reason: string | null;
   complete: boolean;
+  roles: ScheduledRole[];
+}
+export interface ScheduledRole {
+  role: Role;
+  start: Date | null;
+  end: Date | null;
+  complete: boolean;
+  allocations: {
+    weekIndex: number;
+    personDays: number;
+    start: Date;
+    end: Date;
+  }[];
 }
 export function squadVelocity(
   members: PlannerMember[],
@@ -140,6 +155,13 @@ export function computeSchedule(
       start: null,
       end: null,
       complete: false,
+      roles: ROLES.filter((role) => roleDevs(project, role) > 0).map((role) => ({
+        role,
+        start: null,
+        end: null,
+        complete: false,
+        allocations: [],
+      })),
       reason:
         totalDevWeeks(project) === 0
           ? "No estimates set"
@@ -170,7 +192,13 @@ export function computeSchedule(
       for (const item of schedule) {
         if (item.reason || item.complete) continue;
         const effort = remaining.get(item.project.id)!;
-        for (const role of ROLES) {
+        // Snapshot dependencies before today's work so successive phases start on later days.
+        const designDone = effort.design === 0;
+        const developmentDone = designDone && effort.backend === 0 && effort.frontend === 0;
+        for (const roleSchedule of item.roles) {
+          const { role } = roleSchedule;
+          if (role !== "design" && !designDone) continue;
+          if (role === "qa" && !developmentDone) continue;
           const allocated = Math.min(free[role], roleDevs(item.project, role), effort[role]);
           if (allocated <= 0) continue;
           effort[role] = Math.max(0, effort[role] - allocated);
@@ -179,6 +207,18 @@ export function computeSchedule(
           item.start ??= date;
           item.startIdx ??= weekIndex;
           item.endIdx = weekIndex;
+          roleSchedule.start ??= date;
+          let allocation = roleSchedule.allocations.at(-1);
+          if (!allocation || allocation.weekIndex !== weekIndex) {
+            allocation = { weekIndex, personDays: 0, start: date, end: date };
+            roleSchedule.allocations.push(allocation);
+          }
+          allocation.personDays += allocated;
+          allocation.end = date;
+          if (effort[role] === 0) {
+            roleSchedule.complete = true;
+            roleSchedule.end = date;
+          }
         }
         if (ROLES.every((role) => effort[role] < 1e-8)) {
           item.complete = true;
