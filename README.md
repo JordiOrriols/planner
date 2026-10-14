@@ -45,6 +45,9 @@ directives. Official Radix exports and the original UI Button are unchanged.
 
 ## Workspaces and access
 
+The workspace dropdown and **Share** sit opposite the page tabs in the tab bar.
+Choose an existing workspace or **New workspace** from the same dropdown.
+
 - A verified signed-in user creates a workspace and links one or more existing
   Ladders teams on **Vacations**. Linking a new team requires team edit access.
 - Workspace owners and explicitly shared editors manage feature estimates,

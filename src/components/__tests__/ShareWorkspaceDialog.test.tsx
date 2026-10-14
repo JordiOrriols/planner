@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nextProvider } from "react-i18next";
@@ -9,7 +9,9 @@ import i18n from "@/i18n";
 import { ShareWorkspaceDialog } from "@/components/molecules/ShareWorkspaceDialog";
 import AppLayout from "@/components/organisms/app-layout";
 
-const { repository, refresh, state } = vi.hoisted(() => ({
+const { repository, refresh, state, selectWorkspace, createWorkspace } = vi.hoisted(() => ({
+  selectWorkspace: vi.fn(),
+  createWorkspace: vi.fn(),
   state: { isOwner: true, canEdit: true },
   repository: {
     listWorkspaceShares: vi.fn(),
@@ -25,9 +27,12 @@ vi.mock("@/data/DataProvider", () => ({
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
     workspace: { id: "workspace", name: "Platform" },
-    workspaces: [{ id: "workspace", name: "Platform" }],
-    selectWorkspace: vi.fn(),
-    createWorkspace: vi.fn(),
+    workspaces: [
+      { id: "workspace", name: "Platform" },
+      { id: "second", name: "Product" },
+    ],
+    selectWorkspace,
+    createWorkspace,
     ...state,
     refresh,
   }),
@@ -56,6 +61,34 @@ beforeEach(async () => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Shared UI workspace sharing", () => {
+  it("keeps workspace switching, creation and sharing in the tab bar", async () => {
+    render(
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={new QueryClient()}>
+          <MemoryRouter>
+            <AppLayout />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nextProvider>
+    );
+    const tabs = screen.getByRole("navigation", { name: "Planner pages" });
+    expect(within(tabs).getByRole("link", { name: "Vacations" })).toBeVisible();
+    expect(within(tabs).getByRole("button", { name: "Share" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "New workspace" })).not.toBeInTheDocument();
+    await userEvent.click(within(tabs).getByRole("button", { name: "Workspace" }));
+    expect(screen.getByRole("menuitemradio", { name: "Platform" })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Product" }));
+    expect(selectWorkspace).toHaveBeenCalledExactlyOnceWith("second");
+    await userEvent.click(within(tabs).getByRole("button", { name: "Workspace" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "New workspace" }));
+    expect(createWorkspace).toHaveBeenCalledOnce();
+    await userEvent.click(within(tabs).getByRole("button", { name: "Share" }));
+    expect(await screen.findByRole("alertdialog", { name: "Share Platform" })).toBeVisible();
+  });
+
   it.each([true, false])("exposes workspace sharing only to the owner (owner=%s)", (isOwner) => {
     state.isOwner = isOwner;
     render(
