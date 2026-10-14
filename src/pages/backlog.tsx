@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, EmptyState, Modal } from "@jordiorriols/ui";
-import { ArrowUp, ArrowDown, GanttChartSquare, Plus, X } from "@jordiorriols/ui/icons";
+import { GanttChartSquare, Plus } from "@jordiorriols/ui/icons";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { format } from "date-fns";
@@ -32,13 +32,13 @@ export default function Backlog() {
     (latest, item) => (item.end && (!latest || item.end > latest) ? item.end : latest),
     null
   );
-  function move(index: number, direction: number) {
+  function move(fromId: string, toId: string) {
     const ids = backlog.map((project) => project.id);
-    const first = ids[index],
-      second = ids[index + direction];
-    if (!repository || !first || !second) return;
-    ids[index] = second;
-    ids[index + direction] = first;
+    const from = ids.indexOf(fromId),
+      to = ids.indexOf(toId);
+    if (!repository || action.busy || from < 0 || to < 0 || from === to) return;
+    ids.splice(from, 1);
+    ids.splice(to, 0, fromId);
     void action.run(async () => {
       await repository.reorder(workspace.id, ids);
       await refresh();
@@ -120,55 +120,29 @@ export default function Backlog() {
           action={isOwner && <Button onClick={() => setAdding(true)}>Add projects</Button>}
         />
       ) : (
-        <>
-          <ol className="space-y-2">
-            {backlog.map((project, index) => (
-              <li key={project.id} className="panel !p-3 flex items-center gap-3">
-                <span className="text-muted-foreground text-sm">{index + 1}</span>
-                <span className="flex-1 font-medium">{project.name}</span>
-                {isOwner && (
-                  <>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={`Move ${project.name} up`}
-                      disabled={action.busy || index === 0}
-                      onClick={() => move(index, -1)}
-                    >
-                      <ArrowUp size={16} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={`Move ${project.name} down`}
-                      disabled={action.busy || index === backlog.length - 1}
-                      onClick={() => move(index, 1)}
-                    >
-                      <ArrowDown size={16} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label={`Remove from backlog: ${project.name}`}
-                      disabled={action.busy}
-                      onClick={() => toggle(project.id, false)}
-                    >
-                      <X size={16} />
-                    </Button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ol>
-          {result && (
-            <section className="panel" aria-label="Project schedule">
-              <h2 className="font-semibold mb-4">
-                Schedule · {completed.length}/{backlog.length} completed in forecast
-              </h2>
-              <GanttChart weeks={result.weeks} schedule={result.schedule} />
-            </section>
-          )}
-        </>
+        <section className="panel" aria-label="Project schedule">
+          <h2 className="font-semibold mb-4">
+            Schedule · {completed.length}/{backlog.length} completed in forecast
+          </h2>
+          <GanttChart
+            weeks={result?.weeks ?? []}
+            schedule={
+              result?.schedule ??
+              backlog.map((project) => ({
+                project,
+                startIdx: null,
+                endIdx: null,
+                start: null,
+                end: null,
+                reason: error,
+                complete: false,
+                roles: [],
+              }))
+            }
+            {...(isOwner ? { onReorder: move, onRemove: (id: string) => toggle(id, false) } : {})}
+            disabled={action.busy}
+          />
+        </section>
       )}
       {isOwner && adding && (
         <Modal

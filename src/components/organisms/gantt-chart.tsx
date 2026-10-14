@@ -1,28 +1,28 @@
-import React from "react";
-import { format } from "date-fns";
-import { peakDevs, durationWeeks, fmtDate } from "@/lib/planning";
+import React, { useState } from "react";
+import { Button } from "@jordiorriols/ui";
+import { GripVertical, X } from "@jordiorriols/ui/icons";
+import { differenceInCalendarDays, format } from "date-fns";
+import { ROLES, ROLE_COLORS, ROLE_LABELS, fmtDate } from "@/lib/planning";
 import { cn } from "@/lib/utils";
 import type { CapacityWeek, ScheduledProject } from "@/lib/planning";
-
-const BAR_TONES = [
-  "bg-brand",
-  "bg-sky-600",
-  "bg-emerald-600",
-  "bg-amber-600",
-  "bg-rose-600",
-  "bg-slate-600",
-];
 
 export default function GanttChart({
   weeks,
   schedule,
+  onReorder,
+  onRemove,
+  disabled = false,
 }: {
   weeks: CapacityWeek[];
   schedule: ScheduledProject[];
+  onReorder?: (fromId: string, toId: string) => void;
+  onRemove?: (id: string) => void;
+  disabled?: boolean;
 }) {
-  if (!weeks.length) return null;
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dropId, setDropId] = useState<string | null>(null);
   const N = weeks.length;
-  const columns = `180px repeat(${N}, minmax(28px, 1fr))`;
+  const columns = `260px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
 
   const monthGroups: { label: string; start: number; span: number }[] = [];
   weeks.forEach((w, i) => {
@@ -33,111 +33,249 @@ export default function GanttChart({
   });
 
   return (
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: Math.max(860, N * 28 + 180) }}>
-        <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
-          <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
-            Project
-          </div>
-          {monthGroups.map((g) => (
-            <div
-              key={g.label + g.start}
-              className="text-[11px] font-medium text-muted-foreground px-2 py-1.5 border-l first:border-l-0 text-center"
-              style={{ gridColumn: `${g.start + 2} / ${g.start + g.span + 2}` }}
-            >
-              {g.label}
+    <div>
+      <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+        {ROLES.map((role) => (
+          <span key={role} className="inline-flex items-center gap-1.5">
+            <span className={cn("size-2 rounded-sm", ROLE_COLORS[role])} />
+            {ROLE_LABELS[role]}
+            {role === "backend" ? " (top)" : role === "frontend" ? " (bottom)" : " (full height)"}
+          </span>
+        ))}
+      </div>
+      {onReorder && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Drag project names to change priority, or focus a name and use Arrow Up / Arrow Down.
+        </p>
+      )}
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: Math.max(860, N * 28 + 260) }}>
+          <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+            <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
+              Project · priority
             </div>
-          ))}
-        </div>
-        <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
-          <div className="sticky left-0 bg-card z-10 text-xs px-2">Week of</div>
-          {weeks.map((w, i) => (
-            <div
-              key={i}
-              className="text-[10px] text-muted-foreground/60 px-1 py-1 border-l first:border-l-0 text-center"
-            >
-              {format(w.weekStart, "d")}
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-1.5 mt-2">
-          {schedule.map((s, idx) => {
-            const scheduled = s.startIdx != null && s.endIdx != null;
-            const peak = peakDevs(s.project);
-            const dur = durationWeeks(s.project);
-            return (
+            {monthGroups.map((g) => (
               <div
-                key={s.project.id}
-                className="grid items-stretch"
-                style={{ gridTemplateColumns: columns }}
+                key={g.label + g.start}
+                className="text-[11px] font-medium text-muted-foreground px-2 py-1.5 border-l first:border-l-0 text-center"
+                style={{ gridColumn: `${g.start + 2} / ${g.start + g.span + 2}` }}
               >
-                <div
-                  className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-medium truncate"
-                  title={s.project.name}
-                >
-                  {s.project.name}
-                </div>
-                {scheduled ? (
-                  <div
-                    className={cn(
-                      "rounded-md px-2.5 py-1.5 text-white text-xs font-medium flex items-center justify-between gap-2 shadow-sm",
-                      BAR_TONES[idx % BAR_TONES.length]
-                    )}
-                    style={{ gridColumn: `${(s.startIdx ?? 0) + 2} / ${(s.endIdx ?? 0) + 3}` }}
-                    title={`${s.project.name}: ${peak} people, ${dur} ideal weeks${s.complete ? "" : " (partial forecast)"}`}
-                    aria-label={`${s.project.name}: ${s.start ? fmtDate(s.start) : ""} to ${s.end ? fmtDate(s.end) : "not completed"}`}
-                  >
-                    <span className="sr-only">
-                      {s.project.name}
-                      {s.complete ? "" : " (partial)"}
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    style={{ gridColumn: "2 / -1" }}
-                    className="text-xs text-destructive px-2 py-1.5 rounded-md bg-destructive/5 border border-destructive/20"
-                  >
-                    ⚠ {s.project.name} — {s.reason}
-                  </div>
-                )}
+                {g.label}
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+          <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+            <div className="sticky left-0 bg-card z-10 text-xs px-2">Week of</div>
+            {weeks.map((w, i) => (
+              <div
+                key={i}
+                className="text-[10px] text-muted-foreground/60 px-1 py-1 border-l first:border-l-0 text-center"
+              >
+                {format(w.weekStart, "d")}
+              </div>
+            ))}
+          </div>
 
-        <div
-          className="grid mt-4 border-t text-[10px] tabular-nums"
-          style={{ gridTemplateColumns: columns }}
-        >
-          <div className="sticky left-0 bg-card z-10 p-2 font-medium">Available person-weeks</div>
-          {weeks.map((week, index) => (
-            <div key={index} className="text-center py-2 border-l">
-              {week.capacity.toFixed(1)}
-            </div>
-          ))}
-          <div className="sticky left-0 bg-card z-10 p-2 font-medium">Allocated person-weeks</div>
-          {weeks.map((week, index) => (
-            <div key={index} className="text-center py-2 border-l">
-              {week.allocated.toFixed(1)}
-            </div>
-          ))}
-        </div>
-        {schedule.some((s) => s.startIdx != null) && (
-          <div className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
-            {schedule
-              .filter((s) => s.startIdx != null)
-              .map((s) => (
-                <div key={s.project.id} className="flex justify-between">
-                  <span className="font-medium text-foreground">{s.project.name}</span>
-                  <span className="tabular-nums">
-                    {s.start ? fmtDate(s.start) : "Not started"} →{" "}
-                    {s.end ? fmtDate(s.end) : s.reason}
-                  </span>
+          <div className="mt-2">
+            {schedule.map((s, idx) => {
+              return (
+                <div
+                  key={s.project.id}
+                  className={cn(
+                    "grid items-stretch border-b border-border/60",
+                    dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"
+                  )}
+                  style={{ gridTemplateColumns: columns, gridTemplateRows: "28px 28px" }}
+                >
+                  <div
+                    className="sticky left-0 bg-card z-10 flex items-center gap-1 px-2 text-xs"
+                    style={{ gridRow: "1 / 3" }}
+                    onDragOver={(event) => {
+                      if (!onReorder || disabled || !draggedId || draggedId === s.project.id)
+                        return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      setDropId(s.project.id);
+                    }}
+                    onDragLeave={() => setDropId(null)}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (onReorder && !disabled && draggedId && draggedId !== s.project.id)
+                        onReorder(draggedId, s.project.id);
+                      setDraggedId(null);
+                      setDropId(null);
+                    }}
+                  >
+                    <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
+                      {idx + 1}
+                    </span>
+                    {onReorder ? (
+                      <button
+                        type="button"
+                        className="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 py-2 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
+                        aria-label={`Reorder ${s.project.name}`}
+                        title={`${s.project.name} — drag to reorder, or use Arrow Up / Arrow Down`}
+                        draggable={!disabled}
+                        disabled={disabled}
+                        onDragStart={(event) => {
+                          if (disabled) {
+                            event.preventDefault();
+                            return;
+                          }
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", s.project.id);
+                          setDraggedId(s.project.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedId(null);
+                          setDropId(null);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                          event.preventDefault();
+                          const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
+                          if (!disabled && target) onReorder(s.project.id, target.project.id);
+                        }}
+                      >
+                        <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{s.project.name}</span>
+                      </button>
+                    ) : (
+                      <span className="min-w-0 flex-1 truncate font-medium" title={s.project.name}>
+                        {s.project.name}
+                      </span>
+                    )}
+                    {onRemove && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 shrink-0"
+                        aria-label={`Remove from backlog: ${s.project.name}`}
+                        title="Remove from schedule (keep estimate)"
+                        disabled={disabled}
+                        onClick={() => onRemove(s.project.id)}
+                      >
+                        <X size={14} />
+                      </Button>
+                    )}
+                  </div>
+                  {weeks.map((_, index) => (
+                    <div
+                      key={index}
+                      className="border-l border-border/60 bg-muted/10"
+                      style={{ gridColumn: index + 2, gridRow: "1 / 3" }}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  {s.roles.flatMap((roleSchedule) =>
+                    roleSchedule.allocations.map((allocation) => {
+                      const role = roleSchedule.role;
+                      const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(allocation.start)} to ${fmtDate(allocation.end)} · ${(allocation.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
+                      const week = weeks[allocation.weekIndex]!;
+                      return (
+                        <div
+                          key={`${role}-${allocation.weekIndex}`}
+                          className="relative min-w-0"
+                          style={{
+                            gridColumn: allocation.weekIndex + 2,
+                            gridRow: role === "backend" ? "1" : role === "frontend" ? "2" : "1 / 3",
+                          }}
+                        >
+                          <div
+                            role="img"
+                            aria-label={label}
+                            title={label}
+                            className={cn(
+                              "absolute inset-y-0.5 rounded-sm text-white text-[10px] font-semibold flex items-center justify-center overflow-hidden",
+                              ROLE_COLORS[role]
+                            )}
+                            style={{
+                              left: `${(differenceInCalendarDays(allocation.start, week.weekStart) / 7) * 100}%`,
+                              width: `${((differenceInCalendarDays(allocation.end, allocation.start) + 1) / 7) * 100}%`,
+                            }}
+                          >
+                            <span aria-hidden="true">
+                              {role === "qa" ? "Q" : ROLE_LABELS[role][0]}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  {s.reason && (
+                    <div
+                      style={{
+                        gridColumn: `${s.endIdx != null && s.endIdx + 1 < N ? s.endIdx + 3 : 2} / -1`,
+                        gridRow: "1 / 3",
+                      }}
+                      className={cn(
+                        "z-[1] text-xs text-destructive px-2 py-1.5",
+                        s.startIdx != null ? "self-end bg-card/90" : "bg-destructive/5"
+                      )}
+                    >
+                      {s.reason}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {N > 0 && (
+            <div
+              className="grid mt-4 border-t text-[10px] tabular-nums"
+              style={{ gridTemplateColumns: columns }}
+            >
+              <div className="sticky left-0 bg-card z-10 p-2 font-medium">
+                Available person-weeks
+              </div>
+              {weeks.map((week, index) => (
+                <div key={index} className="text-center py-2 border-l">
+                  {week.capacity.toFixed(1)}
                 </div>
               ))}
-          </div>
-        )}
+              <div className="sticky left-0 bg-card z-10 p-2 font-medium">
+                Allocated person-weeks
+              </div>
+              {weeks.map((week, index) => (
+                <div key={index} className="text-center py-2 border-l">
+                  {week.allocated.toFixed(1)}
+                </div>
+              ))}
+            </div>
+          )}
+          {schedule.some((s) => s.startIdx != null) && (
+            <div className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
+              {schedule
+                .filter((s) => s.startIdx != null)
+                .map((s) => (
+                  <div key={s.project.id} className="flex justify-between">
+                    <span className="font-medium text-foreground">{s.project.name}</span>
+                    <span className="tabular-nums">
+                      {s.start ? fmtDate(s.start) : "Not started"} →{" "}
+                      {s.end ? fmtDate(s.end) : s.reason}
+                    </span>
+                  </div>
+                ))}
+              {schedule.flatMap((s) =>
+                s.roles.map((role) => (
+                  <div
+                    key={`${s.project.id}-${role.role}`}
+                    className="flex flex-wrap justify-between gap-2 pl-3"
+                  >
+                    <span>
+                      {s.project.name} · {ROLE_LABELS[role.role]}
+                    </span>
+                    <span className="tabular-nums">
+                      {role.start ? fmtDate(role.start) : "Not started"} →{" "}
+                      {role.end ? fmtDate(role.end) : "Not completed"}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

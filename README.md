@@ -94,6 +94,9 @@ but must be edited to whole numbers before they can be scheduled.
 - Only projects explicitly added to the backlog are scheduled.
 - Add/remove existing estimates directly on Backlog Plan using **Add projects**.
   The picker links to Estimation when a new estimate is needed.
+- Reorder by dragging the project names on the left of the schedule. Keyboard
+  users can focus a name and press Arrow Up / Arrow Down. The adjacent remove
+  button removes the project from the plan, without deleting its estimate.
 - Daily available capacity is allocated by role and backlog priority.
 - Different roles and projects can overlap when capacity allows. If only one
   backend person is available for a two-person estimate, completion takes longer.
@@ -102,6 +105,9 @@ but must be edited to whole numbers before they can be scheduled.
   later working day after design and both development roles finish.
 - A mixed project's calendar span can exceed its ideal duration when backend and
   frontend start at different times, even without vacations or overbooking.
+- Gantt bars show actual role allocations: backend on the top half, frontend on
+  the bottom, design and QA at full height. Hover a segment for its dates and
+  allocated person-weeks; role date ranges are also listed below the chart.
 - A person-week means five working days. Saved time off and Barcelona holidays
   extend dates; working-day overrides can restore a holiday or weekend.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,
