@@ -82,6 +82,7 @@ describe("Shared UI workspace sharing", () => {
     );
     await userEvent.click(screen.getByRole("menuitemradio", { name: "Product" }));
     expect(selectWorkspace).toHaveBeenCalledExactlyOnceWith("second");
+    expect(within(tabs).getByRole("button", { name: "Workspace" })).toHaveFocus();
     await userEvent.click(within(tabs).getByRole("button", { name: "Workspace" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "New workspace" }));
     expect(createWorkspace).toHaveBeenCalledOnce();

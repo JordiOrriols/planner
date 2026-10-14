@@ -10,7 +10,7 @@ import {
 } from "@jordiorriols/ui/icons";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { cn } from "@/lib/utils";
-import { AppHeader, Button, LanguageSelector } from "@jordiorriols/ui";
+import { AppHeader, Button, LanguageSelector, buttonVariants } from "@jordiorriols/ui";
 import { useTranslation } from "react-i18next";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
@@ -83,19 +83,16 @@ export default function AppLayout() {
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-2 py-2">
               <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label={t("planner.workspace")}
-                    title={workspace.name}
-                  >
-                    <span className="max-w-32 truncate sm:max-w-48">{workspace.name}</span>
-                    <span className="hidden sm:inline text-xs text-muted-foreground">
-                      {t(isOwner ? "planner.owner" : canEdit ? "teams.editor" : "teams.viewer")}
-                    </span>
-                    <ChevronDown className="size-4" />
-                  </Button>
+                <DropdownMenu.Trigger
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                  aria-label={t("planner.workspace")}
+                  title={workspace.name}
+                >
+                  <span className="max-w-32 truncate sm:max-w-48">{workspace.name}</span>
+                  <span className="hidden sm:inline text-xs text-muted-foreground">
+                    {t(isOwner ? "planner.owner" : canEdit ? "teams.editor" : "teams.viewer")}
+                  </span>
+                  <ChevronDown className="size-4" />
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content
