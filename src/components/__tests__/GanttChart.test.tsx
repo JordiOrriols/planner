@@ -1,6 +1,6 @@
 import React from "react";
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import { parseISO } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
 import { computeSchedule } from "@/lib/planning";
@@ -39,12 +39,14 @@ const mixed: Project = {
   workspace_id: "workspace",
   name: "Mixed",
   in_backlog: true,
+  delivered: false,
   priority: 1,
   backend_devs: 1,
   backend_weeks: 2,
   frontend_devs: 1,
   frontend_weeks: 2,
 };
+afterEach(() => vi.useRealTimers());
 
 function renderSchedule(projects: Project[], horizon = 6) {
   const result = computeSchedule(projects, members, [], parseISO("2026-02-02"), horizon);
@@ -53,6 +55,56 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("replaces all role halves and gray gaps with one fully green delivered bar", () => {
+    const pending = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
+    const delivered = computeSchedule(
+      [{ ...mixed, delivered: true }],
+      members,
+      [],
+      parseISO("2026-02-02"),
+      4
+    );
+    expect(delivered.weeks).toEqual(pending.weeks);
+    expect(delivered.schedule[0]!.start).toEqual(pending.schedule[0]!.start);
+    expect(delivered.schedule[0]!.end).toEqual(pending.schedule[0]!.end);
+    render(<GanttChart weeks={delivered.weeks} schedule={delivered.schedule} />);
+    const bar = screen.getByRole("group", { name: /Mixed:.*Delivered/ });
+    expect(bar).toHaveClass("bg-emerald-600");
+    expect(bar).not.toHaveClass("bg-slate-400/40");
+    expect(bar).toBeEmptyDOMElement();
+    expect(screen.queryByRole("img", { name: /^Mixed ·/ })).not.toBeInTheDocument();
+    expect(bar.parentElement).toHaveStyle({ gridColumn: "2 / 4" });
+  });
+
+  it("places the blue Today marker at the day center and spans the full chart", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 1, 4, 12));
+    renderSchedule([mixed], 2);
+    const marker = screen.getByRole("img", { name: "Today: Feb 4, 2026" });
+    expect(marker).toHaveClass("inset-y-0", "bg-blue-500");
+    expect(marker.parentElement).toHaveClass("inset-y-0", "left-[220px]", "pointer-events-none");
+    expect(parseFloat(marker.style.left)).toBeCloseTo((2.5 / 14) * 100);
+  });
+
+  it.each(["2026-02-01", "2026-02-16"])(
+    "omits Today when %s is outside the visible weeks",
+    (today) => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(parseISO(today));
+      renderSchedule([mixed], 2);
+      expect(screen.queryByRole("img", { name: /^Today:/ })).not.toBeInTheDocument();
+    }
+  );
+
+  it("updates the Today marker across local midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 1, 8, 23, 59, 30));
+    renderSchedule([mixed], 2);
+    expect(screen.getByRole("img", { name: "Today: Feb 8, 2026" })).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(60_000));
+    const marker = screen.getByRole("img", { name: "Today: Feb 9, 2026" });
+    expect(parseFloat(marker.style.left)).toBeCloseTo((7.5 / 14) * 100);
+  });
   it("stacks simultaneous two-week roles inside one 24px project bar without weekly breaks", () => {
     renderSchedule([mixed]);
     const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 13, 2026" });

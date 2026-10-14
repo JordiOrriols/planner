@@ -51,6 +51,15 @@ beforeAll(async () => {
       "utf8"
     )
   );
+  await db.exec(
+    await readFile(
+      new URL(
+        "../../../supabase/migrations/20261014224000_planner_project_delivery.sql",
+        import.meta.url
+      ),
+      "utf8"
+    )
+  );
 });
 beforeEach(async () => {
   await db.exec("reset role; delete from public.planner_workspaces");
@@ -65,6 +74,66 @@ afterAll(async () => {
 });
 
 describe("Planner migration and real PostgreSQL permissions", () => {
+  it("defaults delivery to false and allows only the owner to change it without changing estimates", async () => {
+    const project = (
+      await db.query<{ id: string; delivered: boolean }>(
+        "insert into public.planner_projects(workspace_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
+        [workspace]
+      )
+    ).rows[0]!;
+    expect(project.delivered).toBe(false);
+    await db.query("update public.planner_projects set delivered=true where id=$1", [project.id]);
+    expect(
+      (
+        await db.query(
+          "select delivered,backend_devs,backend_weeks,in_backlog,priority from public.planner_projects where id=$1",
+          [project.id]
+        )
+      ).rows[0]
+    ).toEqual({
+      delivered: true,
+      backend_devs: "2",
+      backend_weeks: "2",
+      in_backlog: true,
+      priority: 0,
+    });
+    await db.query(
+      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
+      [workspace]
+    );
+    await login(teammate);
+    const invitation = (
+      await db.query<{ member_id: string }>("select * from public.planner_list_invitations()")
+    ).rows[0]!;
+    await db.query("select public.planner_accept_invitation($1)", [invitation.member_id]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_projects set delivered=false where id=$1 returning id",
+          [project.id]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await login(stranger);
+    expect(
+      (
+        await db.query(
+          "update public.planner_projects set delivered=false where id=$1 returning id",
+          [project.id]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await login(owner);
+    expect(
+      (await db.query("select delivered from public.planner_projects where id=$1", [project.id]))
+        .rows
+    ).toEqual([{ delivered: true }]);
+    await db.query("update public.planner_projects set delivered=false where id=$1", [project.id]);
+    expect(
+      (await db.query("select delivered from public.planner_projects where id=$1", [project.id]))
+        .rows
+    ).toEqual([{ delivered: false }]);
+  });
   it("rejects decimal people and weeks for every role at the database boundary", async () => {
     for (const role of ["backend", "frontend", "design", "qa"]) {
       for (const [people, weeks] of [

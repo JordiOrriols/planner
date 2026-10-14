@@ -33,6 +33,32 @@ describe("Planner repository", () => {
     );
     await expect(repository.listWorkspaces()).rejects.toThrow("Only the owner can edit");
   });
+  it("persists delivery separately from estimates and scopes writes to both workspace and project", async () => {
+    const { fetch, response, repository } = setup();
+    const project = {
+      ...EMPTY_PROJECT,
+      id: workspace.owner_id,
+      workspace_id: workspace.id,
+      name: "Feature",
+      in_backlog: true,
+      priority: 0,
+      delivered: true,
+    };
+    fetch.mockResolvedValue(response(project));
+    expect(await repository.setDelivered(workspace.id, project.id, true)).toEqual(project);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
+    const url = String(fetch.mock.calls[0]?.[0]);
+    expect(url).toContain(`id=eq.${project.id}`);
+    expect(url).toContain(`workspace_id=eq.${workspace.id}`);
+    fetch.mockResolvedValue(response({ ...project, delivered: false }));
+    expect((await repository.setDelivered(workspace.id, project.id, false)).delivered).toBe(false);
+    fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
+    await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow(
+      "Only the owner can edit"
+    );
+    fetch.mockResolvedValue(response(null));
+    await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow();
+  });
   it("does not silently truncate more than one page of workspaces", async () => {
     const { fetch, response, repository } = setup();
     const rows = Array.from({ length: 500 }, (_, index) => ({

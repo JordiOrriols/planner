@@ -7,14 +7,15 @@ import Backlog from "@/pages/backlog";
 import ProjectForm from "@/components/organisms/project-form";
 import { EMPTY_PROJECT, type Project } from "@/types/planner";
 
-const { toggleBacklog, reorder, refresh, state } = vi.hoisted(() => ({
+const { toggleBacklog, reorder, setDelivered, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
   reorder: vi.fn(),
+  setDelivered: vi.fn(),
   refresh: vi.fn(),
   state: { isOwner: true, projects: [] as Project[] },
 }));
 vi.mock("@/data/DataProvider", () => ({
-  useData: () => ({ repository: { toggleBacklog, reorder } }),
+  useData: () => ({ repository: { toggleBacklog, reorder, setDelivered } }),
 }));
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
@@ -44,11 +45,13 @@ beforeEach(() => {
       backend_devs: 1,
       backend_weeks: 1,
       in_backlog: false,
+      delivered: false,
       priority: 0,
     },
   ];
   toggleBacklog.mockResolvedValue(undefined);
   reorder.mockResolvedValue(undefined);
+  setDelivered.mockResolvedValue(undefined);
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
@@ -132,6 +135,44 @@ function dragProject(from: string, to: string) {
 }
 
 describe("inline schedule priority controls", () => {
+  it("persists delivery, refreshes it, and allows undoing without changing backlog inclusion", async () => {
+    selectBacklog();
+    setDelivered.mockImplementation(async (_workspace: string, id: string, delivered: boolean) => {
+      state.projects = state.projects.map((p) => (p.id === id ? { ...p, delivered } : p));
+    });
+    const rendered = renderBacklog();
+    await userEvent.click(screen.getByRole("button", { name: "Mark delivered: Checkout" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(setDelivered).toHaveBeenCalledExactlyOnceWith("squad", "project", true);
+    rendered.rerender(
+      <MemoryRouter>
+        <Backlog />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("button", { name: "Undo delivery: Checkout" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Undo delivery: Checkout" }));
+    await waitFor(() => expect(setDelivered).toHaveBeenLastCalledWith("squad", "project", false));
+    expect(toggleBacklog).not.toHaveBeenCalled();
+    expect(reorder).not.toHaveBeenCalled();
+  });
+
+  it("surfaces delivery save failures instead of displaying successful delivery", async () => {
+    selectBacklog();
+    setDelivered.mockRejectedValueOnce(new Error("Delivery could not be saved"));
+    renderBacklog();
+    await userEvent.click(screen.getByRole("button", { name: "Mark delivered: Checkout" }));
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Delivery could not be saved")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Mark delivered: Checkout" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+  });
   it("moves a dragged project upward and saves all selected IDs in their new order", async () => {
     selectBacklog();
     renderBacklog();
@@ -229,6 +270,7 @@ describe("inline schedule priority controls", () => {
       "false"
     );
     expect(screen.getByRole("button", { name: "Remove from backlog: Checkout" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Mark delivered: Checkout" })).toBeDisabled();
     dragProject("Checkout", "Third");
     expect(reorder).toHaveBeenCalledOnce();
     finish();
@@ -243,6 +285,7 @@ describe("inline schedule priority controls", () => {
     expect(screen.getByRole("region", { name: "Project schedule" })).toHaveTextContent("Checkout");
     expect(screen.queryByRole("button", { name: /^Reorder / })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Remove from backlog:/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Mark delivered:/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Drag project names/)).not.toBeInTheDocument();
   });
 
