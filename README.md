@@ -133,9 +133,8 @@ Calendar values are date-only local calendar days, not UTC timestamps.
 
 ## Supabase setup
 
-The first four additive Planner migrations have been applied to the configured
-shared project with approval. The fifth migration must be applied before deploying
-the team vacation calendar:
+The additive Planner migrations have been applied to the configured shared
+project with approval:
 
 1. `20261003140000_planner_workspaces.sql`: workspace, member, project and daily
    availability tables, RLS, verified-email invitations and transactional actions.
@@ -147,8 +146,7 @@ the team vacation calendar:
    global member availability and anonymous, member-scoped vacation RPCs.
    Adds nullable `members.planning_role` and immutable `members.vacation_token`.
 5. `20261014223000_planner_vacation_team_calendar.sql`: read-only, token-scoped
-   current-team names and vacations. Apply this migration before deploying the
-   updated personal vacation page. Save/reset capabilities remain member-only.
+   current-team names and vacations. Save/reset capabilities remain member-only.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this
