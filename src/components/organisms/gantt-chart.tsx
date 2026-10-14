@@ -85,11 +85,15 @@ export default function GanttChart({
                     "grid items-stretch border-b border-border/60",
                     dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"
                   )}
-                  style={{ gridTemplateColumns: columns, gridTemplateRows: "28px 28px" }}
+                  style={{
+                    gridTemplateColumns: columns,
+                    gridTemplateRows:
+                      s.reason && s.startIdx != null ? "28px 28px auto" : "28px 28px",
+                  }}
                 >
                   <div
                     className="sticky left-0 bg-card z-10 flex items-center gap-1 px-2 text-xs"
-                    style={{ gridRow: "1 / 3" }}
+                    style={{ gridRow: "1 / -1" }}
                     onDragOver={(event) => {
                       if (!onReorder || disabled || !draggedId || draggedId === s.project.id)
                         return;
@@ -204,14 +208,8 @@ export default function GanttChart({
                   )}
                   {s.reason && (
                     <div
-                      style={{
-                        gridColumn: `${s.endIdx != null && s.endIdx + 1 < N ? s.endIdx + 3 : 2} / -1`,
-                        gridRow: "1 / 3",
-                      }}
-                      className={cn(
-                        "z-[1] text-xs text-destructive px-2 py-1.5",
-                        s.startIdx != null ? "self-end bg-card/90" : "bg-destructive/5"
-                      )}
+                      style={{ gridColumn: "2 / -1", gridRow: s.startIdx != null ? "3" : "1 / 3" }}
+                      className="text-xs text-destructive px-2 py-1.5 bg-destructive/5"
                     >
                       {s.reason}
                     </div>
