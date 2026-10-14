@@ -73,6 +73,12 @@ Choose an existing workspace or **New workspace** from the same dropdown.
 
 The team Vacations page shows squad velocity first, then the vacation calendar.
 Team linking and member planning roles are grouped under **Configuration** below them.
+Use **Group by** to choose **Areas** (Backend, Frontend, Design, QA) or linked
+**Teams**, then select which groups to show in the adjacent multi-select dropdown.
+Several selected groups stack into one bar per week; one selected group uses a
+single bar. Colors and the legend identify each group. Capacity still uses the
+same vacations, working-day overrides, Barcelona holidays and verified horizon
+as scheduling, and excludes members without planning roles.
 
 ### Personal vacation links
 

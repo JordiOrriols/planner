@@ -1,0 +1,222 @@
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { parseISO } from "date-fns";
+import SquadVelocity from "@/components/organisms/squad-velocity";
+import type { PlannerMember } from "@/types/planner";
+
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  BarChart: ({ children, data }: { children: React.ReactNode; data: unknown[] }) => (
+    <div data-testid="velocity-chart" data-weeks={JSON.stringify(data)}>
+      {children}
+    </div>
+  ),
+  Bar: ({
+    name,
+    stackId,
+    dataKey,
+    fill,
+  }: {
+    name: string;
+    stackId?: string;
+    dataKey: string;
+    fill: string;
+  }) => (
+    <div data-testid={`series-${name}`} data-stack={stackId} data-key={dataKey} data-color={fill} />
+  ),
+  XAxis: () => null,
+  YAxis: () => null,
+  Tooltip: () => null,
+  Legend: () => null,
+  CartesianGrid: () => null,
+}));
+const members: PlannerMember[] = [
+  {
+    id: "back1",
+    team_id: "product",
+    name: "Ada",
+    role: "backend",
+    can_edit: false,
+    vacation_token: null,
+  },
+  {
+    id: "back2",
+    team_id: "platform",
+    name: "Alan",
+    role: "backend",
+    can_edit: false,
+    vacation_token: null,
+  },
+  {
+    id: "front",
+    team_id: "product",
+    name: "Grace",
+    role: "frontend",
+    can_edit: false,
+    vacation_token: null,
+  },
+  {
+    id: "design",
+    team_id: "platform",
+    name: "Diana",
+    role: "design",
+    can_edit: false,
+    vacation_token: null,
+  },
+  {
+    id: "qa",
+    team_id: "platform",
+    name: "Quinn",
+    role: "qa",
+    can_edit: false,
+    vacation_token: null,
+  },
+  {
+    id: "unassigned",
+    team_id: "product",
+    name: "Unassigned",
+    role: null,
+    can_edit: false,
+    vacation_token: null,
+  },
+];
+const linkedTeams = [
+  { id: "product", name: "Product" },
+  { id: "platform", name: "Platform" },
+];
+const availability = [
+  { member_id: "front", date: "2026-02-02", is_working: false },
+  { member_id: "front", date: "2026-02-07", is_working: true },
+  ...["2026-02-02", "2026-02-03", "2026-02-04"].map((date) => ({
+    member_id: "back2",
+    date,
+    is_working: false,
+  })),
+];
+function renderVelocity(startDate = "2026-02-02") {
+  return render(
+    <SquadVelocity
+      members={members}
+      linkedTeams={linkedTeams}
+      availability={availability}
+      startDate={parseISO(startDate)}
+    />
+  );
+}
+function firstWeek() {
+  const rows = within(
+    screen.getByRole("table", { name: "Weekly available person-weeks" })
+  ).getAllByRole("row");
+  return within(rows[1]!)
+    .getAllByRole("cell")
+    .map((cell) => Number(cell.textContent));
+}
+describe("Squad velocity area and team series", () => {
+  it("stacks all areas by default and preserves vacation/working-day capacity without counting unassigned members", () => {
+    renderVelocity();
+    expect(firstWeek()).toEqual([1.4, 1, 1, 1]);
+    expect(JSON.parse(screen.getByTestId("velocity-chart").getAttribute("data-weeks")!)[0]).toEqual(
+      {
+        date: "2026-02-02",
+        label: "Feb 2",
+        series0: 1.4,
+        series1: 1,
+        series2: 1,
+        series3: 1,
+      }
+    );
+    expect(firstWeek().reduce((sum, value) => sum + value, 0)).toBeCloseTo(4.4);
+    for (const name of ["Backend", "Frontend", "Design", "QA"]) {
+      expect(screen.getByTestId(`series-${name}`)).toHaveAttribute("data-stack", "capacity");
+      expect(screen.getByRole("columnheader", { name })).toBeInTheDocument();
+    }
+    expect(screen.getByTestId("series-Backend")).toHaveAttribute("data-color", "#0369a1");
+  });
+
+  it("renders one selected area as a single bar and multiple selected areas as a stack", async () => {
+    renderVelocity();
+    await userEvent.click(screen.getByRole("button", { name: "Select velocity areas" }));
+    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "All areas" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Select at least one");
+    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "Backend", exact: true }));
+    expect(firstWeek()).toEqual([1.4]);
+    expect(screen.getByTestId("series-Backend")).not.toHaveAttribute("data-stack");
+    expect(screen.queryByTestId("series-Frontend")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "Frontend", exact: true }));
+    expect(firstWeek()).toEqual([1.4, 1]);
+    expect(screen.getByTestId("series-Backend")).toHaveAttribute("data-stack", "capacity");
+    expect(screen.getByTestId("series-Frontend")).toHaveAttribute("data-stack", "capacity");
+    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "All areas" }));
+    expect(firstWeek()).toEqual([1.4, 1, 1, 1]);
+  });
+
+  it("switches the second dropdown to linked teams and filters them independently of areas", async () => {
+    renderVelocity();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Velocity grouping" }),
+      "teams"
+    );
+    expect(firstWeek()).toEqual([2, 2.4]);
+    expect(screen.getByTestId("series-Product")).toHaveAttribute("data-stack", "capacity");
+    await userEvent.click(screen.getByRole("button", { name: "Select velocity teams" }));
+    expect(screen.queryByRole("menuitemcheckbox", { name: "Backend" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "Platform", exact: true }));
+    expect(firstWeek()).toEqual([2]);
+    expect(screen.getByTestId("series-Product")).not.toHaveAttribute("data-stack");
+    await userEvent.keyboard("{Escape}");
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Velocity grouping" }),
+      "areas"
+    );
+    expect(firstWeek()).toEqual([1.4, 1, 1, 1]);
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Velocity grouping" }),
+      "teams"
+    );
+    expect(firstWeek()).toEqual([2]);
+  });
+
+  it("uses the selected calendar month and respects holidays and the verified calendar horizon", () => {
+    const rendered = renderVelocity("2026-12-21");
+    expect(firstWeek()).toEqual([1.6, 0.8, 0.8, 0.8]);
+    rendered.rerender(
+      <SquadVelocity
+        members={members}
+        linkedTeams={linkedTeams}
+        availability={availability}
+        startDate={parseISO("2027-12-27")}
+      />
+    );
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(screen.getByRole("rowheader", { name: "2027-12-27" })).toBeInTheDocument();
+  });
+
+  it("handles empty teams explicitly and picks up newly linked teams", async () => {
+    const rendered = render(
+      <SquadVelocity
+        members={[]}
+        linkedTeams={[]}
+        availability={[]}
+        startDate={parseISO("2026-02-02")}
+      />
+    );
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Velocity grouping" }),
+      "teams"
+    );
+    expect(screen.getByRole("button", { name: "Select velocity teams" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Link a team in Configuration");
+    rendered.rerender(
+      <SquadVelocity
+        members={members}
+        linkedTeams={linkedTeams}
+        availability={availability}
+        startDate={parseISO("2026-02-02")}
+      />
+    );
+    expect(screen.getByRole("button", { name: "Select velocity teams" })).toBeEnabled();
+    expect(firstWeek()).toEqual([2, 2.4]);
+  });
+});

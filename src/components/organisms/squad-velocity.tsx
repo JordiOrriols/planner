@@ -1,0 +1,232 @@
+import React, { useState } from "react";
+import { format } from "date-fns";
+import { buttonVariants } from "@jordiorriols/ui";
+import { DropdownMenu } from "@jordiorriols/ui/radix";
+import { Check, ChevronDown } from "@jordiorriols/ui/icons";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { ROLES, ROLE_LABELS, squadVelocity } from "@/lib/planning";
+import type { Availability, LinkedTeam, PlannerMember } from "@/types/planner";
+
+const AREA_COLORS = { backend: "#0369a1", frontend: "#38bdf8", design: "#d97706", qa: "#059669" };
+const TEAM_COLORS = [
+  "#0369a1",
+  "#38bdf8",
+  "#059669",
+  "#d97706",
+  "#64748b",
+  "#be185d",
+  "#0d9488",
+  "#7c3aed",
+];
+const MENU_ITEM =
+  "relative flex items-center gap-2 rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted";
+
+export default function SquadVelocity({
+  members,
+  linkedTeams,
+  availability,
+  startDate,
+}: {
+  members: PlannerMember[];
+  linkedTeams: LinkedTeam[];
+  availability: Availability[];
+  startDate: Date;
+}) {
+  const [groupBy, setGroupBy] = useState<"areas" | "teams">("areas");
+  const [excluded, setExcluded] = useState<{ areas: string[]; teams: string[] }>({
+    areas: [],
+    teams: [],
+  });
+  const options =
+    groupBy === "areas"
+      ? ROLES.map((role) => ({
+          id: role,
+          name: ROLE_LABELS[role],
+          color: AREA_COLORS[role],
+          members: members.filter((member) => member.role === role),
+        }))
+      : linkedTeams.map((team, index) => ({
+          id: team.id,
+          name: team.name,
+          color: TEAM_COLORS[index % TEAM_COLORS.length]!,
+          members: members.filter((member) => member.team_id === team.id && member.role !== null),
+        }));
+  const selected = options.filter((option) => !excluded[groupBy].includes(option.id));
+  const allSelected = options.length > 0 && selected.length === options.length;
+  const weeks = squadVelocity([], availability, startDate, 16);
+  const series = selected.map((option) => ({
+    ...option,
+    weeks: squadVelocity(option.members, availability, startDate, 16),
+  }));
+  const chartData = weeks.map((week, index) => ({
+    date: format(week.weekStart, "yyyy-MM-dd"),
+    label: format(week.weekStart, "MMM d"),
+    ...Object.fromEntries(
+      series.map((item, seriesIndex) => [
+        `series${seriesIndex}`,
+        Number(item.weeks[index]!.capacity.toFixed(2)),
+      ])
+    ),
+  }));
+  const selectionLabel = allSelected
+    ? `All ${groupBy}`
+    : selected.length === 1
+      ? selected[0]!.name
+      : `${selected.length} ${groupBy} selected`;
+  return (
+    <section className="panel p-5" aria-label="Squad velocity">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div>
+          <h2 className="font-semibold">Squad velocity</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Available person-weeks (five working days per person), next {weeks.length} verified
+            weeks.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="grid gap-1 text-xs text-muted-foreground">
+            Group by
+            <select
+              className="field w-auto"
+              aria-label="Velocity grouping"
+              value={groupBy}
+              onChange={(event) => {
+                if (event.target.value === "areas" || event.target.value === "teams")
+                  setGroupBy(event.target.value);
+              }}
+            >
+              <option value="areas">Areas</option>
+              <option value="teams">Teams</option>
+            </select>
+          </label>
+          <div className="grid gap-1 text-xs text-muted-foreground">
+            <span>{groupBy === "areas" ? "Areas" : "Teams"} to show</span>
+            <DropdownMenu.Root modal={false}>
+              <DropdownMenu.Trigger
+                className={buttonVariants({ variant: "outline" })}
+                aria-label={`Select velocity ${groupBy}`}
+                disabled={!options.length}
+              >
+                <span className="max-w-48 truncate">{selectionLabel}</span>
+                <ChevronDown className="size-4" />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  align="end"
+                  sideOffset={4}
+                  className="z-50 min-w-48 max-h-72 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-lg"
+                >
+                  <DropdownMenu.CheckboxItem
+                    className={MENU_ITEM}
+                    checked={allSelected}
+                    onSelect={(event) => event.preventDefault()}
+                    onCheckedChange={(checked) =>
+                      setExcluded((current) => ({
+                        ...current,
+                        [groupBy]: checked ? [] : options.map((option) => option.id),
+                      }))
+                    }
+                  >
+                    <span className="size-4">
+                      <DropdownMenu.ItemIndicator>
+                        <Check className="size-4" />
+                      </DropdownMenu.ItemIndicator>
+                    </span>
+                    All {groupBy}
+                  </DropdownMenu.CheckboxItem>
+                  <DropdownMenu.Separator className="my-1 h-px bg-border" />
+                  {options.map((option) => (
+                    <DropdownMenu.CheckboxItem
+                      key={option.id}
+                      className={MENU_ITEM}
+                      checked={!excluded[groupBy].includes(option.id)}
+                      onSelect={(event) => event.preventDefault()}
+                      onCheckedChange={(checked) =>
+                        setExcluded((current) => ({
+                          ...current,
+                          [groupBy]: checked
+                            ? current[groupBy].filter((id) => id !== option.id)
+                            : [...current[groupBy], option.id],
+                        }))
+                      }
+                    >
+                      <span className="size-4">
+                        <DropdownMenu.ItemIndicator>
+                          <Check className="size-4" />
+                        </DropdownMenu.ItemIndicator>
+                      </span>
+                      <span
+                        className="size-2 rounded-sm"
+                        style={{ backgroundColor: option.color }}
+                      />
+                      {option.name}
+                    </DropdownMenu.CheckboxItem>
+                  ))}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          </div>
+        </div>
+      </div>
+      {!series.length ? (
+        <p role="status" className="py-10 text-center text-sm text-muted-foreground">
+          {options.length
+            ? "Select at least one area or team to show velocity."
+            : "Link a team in Configuration to show team velocity."}
+        </p>
+      ) : (
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+            <YAxis allowDecimals />
+            <Tooltip />
+            <Legend />
+            {series.map((item, index) => (
+              <Bar
+                key={item.id}
+                dataKey={`series${index}`}
+                name={item.name}
+                fill={item.color}
+                {...(series.length > 1 ? { stackId: "capacity" } : {})}
+                radius={index === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+      <table className="sr-only">
+        <caption>Weekly available person-weeks</caption>
+        <thead>
+          <tr>
+            <th scope="col">Week of</th>
+            {series.map((item) => (
+              <th key={item.id} scope="col">
+                {item.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {chartData.map((week, index) => (
+            <tr key={week.date}>
+              <th scope="row">{week.date}</th>
+              {series.map((item) => (
+                <td key={item.id}>{Number(item.weeks[index]!.capacity.toFixed(2))}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}

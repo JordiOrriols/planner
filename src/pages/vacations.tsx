@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { format } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Button } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +6,8 @@ import VacationCalendar from "@/components/organisms/vacation-calendar";
 import { AvailabilityEditor } from "@/components/organisms/availability-editor";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
-import { squadVelocity, ROLE_LABELS } from "@/lib/planning";
+import { ROLE_LABELS } from "@/lib/planning";
+import SquadVelocity from "@/components/organisms/squad-velocity";
 import { ROLES, type LinkedTeam } from "@/types/planner";
 
 function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
@@ -83,11 +82,6 @@ export default function Vacations() {
   if (!repository) throw new Error("Sign in before opening vacations");
   const assignable = members.filter((member) => member.role !== null);
   const unassigned = members.length - assignable.length;
-  const velocity = squadVelocity(assignable, availability, month, 16);
-  const chartData = velocity.map((week) => ({
-    label: format(week.weekStart, "MMM d"),
-    capacity: Number(week.capacity.toFixed(2)),
-  }));
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
       <h1 className="text-3xl font-bold">Team Vacations</h1>
@@ -100,38 +94,12 @@ export default function Vacations() {
           {unassigned} members have no planning role and are excluded from squad capacity.
         </p>
       )}
-      <section className="panel p-5" aria-label="Squad velocity">
-        <h2 className="font-semibold mb-4">Squad velocity</h2>
-        <p className="text-xs text-muted-foreground mb-4">
-          Available person-weeks (five working days per person), next {velocity.length} verified
-          weeks.
-        </p>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals />
-            <Tooltip />
-            <Bar
-              dataKey="capacity"
-              name="Available person-weeks"
-              fill="#6366f1"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-        <table className="sr-only">
-          <caption>Weekly available person-weeks</caption>
-          <tbody>
-            {chartData.map((week) => (
-              <tr key={week.label}>
-                <th>{week.label}</th>
-                <td>{week.capacity}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <SquadVelocity
+        members={assignable}
+        linkedTeams={linkedTeams}
+        availability={availability}
+        startDate={month}
+      />
       <section className="panel p-5 space-y-4" aria-label="Vacation calendar">
         <h2 className="font-semibold">Vacation calendar</h2>
         {selectedMember ? (
