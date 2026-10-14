@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@jordiorriols/ui";
 import { GripVertical, X } from "@jordiorriols/ui/icons";
 import { differenceInCalendarDays, format } from "date-fns";
-import { ROLES, ROLE_COLORS, ROLE_LABELS, fmtDate } from "@/lib/planning";
+import { ROLES, ROLE_COLORS, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
 import { cn } from "@/lib/utils";
 import type { CapacityWeek, ScheduledProject } from "@/lib/planning";
 
@@ -43,6 +43,9 @@ export default function GanttChart({
           </span>
         ))}
       </div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Bar numbers show requested people. Hover for dates and allocated person-weeks.
+      </p>
       {onReorder && (
         <p className="mb-3 text-xs text-muted-foreground">
           Drag project names to change priority, or focus a name and use Arrow Up / Arrow Down.
@@ -174,7 +177,8 @@ export default function GanttChart({
                   {s.roles.flatMap((roleSchedule) =>
                     roleSchedule.allocations.map((allocation) => {
                       const role = roleSchedule.role;
-                      const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(allocation.start)} to ${fmtDate(allocation.end)} · ${(allocation.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
+                      const people = roleDevs(s.project, role);
+                      const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(allocation.start)} to ${fmtDate(allocation.end)} · ${people} ${people === 1 ? "person" : "people"} requested · ${(allocation.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
                       const week = weeks[allocation.weekIndex]!;
                       return (
                         <div
@@ -200,6 +204,7 @@ export default function GanttChart({
                           >
                             <span aria-hidden="true">
                               {role === "qa" ? "Q" : ROLE_LABELS[role][0]}
+                              {people}
                             </span>
                           </div>
                         </div>

@@ -108,6 +108,8 @@ but must be edited to whole numbers before they can be scheduled.
 - Gantt bars show actual role allocations: backend on the top half, frontend on
   the bottom, design and QA at full height. Hover a segment for its dates and
   allocated person-weeks; role date ranges are also listed below the chart.
+  Bar numbers show requested people (for example, B2 means two backend people),
+  not a guarantee that all requested people are available each day.
 - A person-week means five working days. Saved time off and Barcelona holidays
   extend dates; working-day overrides can restore a holiday or weekend.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,

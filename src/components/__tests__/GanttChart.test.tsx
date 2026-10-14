@@ -74,10 +74,10 @@ describe("role-aware Gantt allocations", () => {
     for (const bar of backend) expect(bar.parentElement).toHaveStyle({ gridRow: "1" });
     for (const bar of frontend) expect(bar.parentElement).toHaveStyle({ gridRow: "2" });
     expect(backend[0]).toHaveAccessibleName(
-      "Mixed · Backend: Feb 16, 2026 to Feb 20, 2026 · 1.0 person-weeks"
+      "Mixed · Backend: Feb 16, 2026 to Feb 20, 2026 · 1 person requested · 1.0 person-weeks"
     );
     expect(frontend[0]).toHaveAccessibleName(
-      "Mixed · Frontend: Feb 2, 2026 to Feb 6, 2026 · 1.0 person-weeks"
+      "Mixed · Frontend: Feb 2, 2026 to Feb 6, 2026 · 1 person requested · 1.0 person-weeks"
     );
     expect(screen.getByText("Backend (top)")).toBeInTheDocument();
     expect(screen.getByText("Frontend (bottom)")).toBeInTheDocument();
