@@ -53,6 +53,89 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("stacks simultaneous two-week roles inside one 24px project bar without weekly breaks", () => {
+    renderSchedule([mixed]);
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 13, 2026" });
+    const backend = screen.getByRole("img", { name: /^Mixed · Backend:/ });
+    const frontend = screen.getByRole("img", { name: /^Mixed · Frontend:/ });
+    for (const bar of [backend, frontend]) {
+      expect(bar.parentElement).toBe(container);
+      expect(bar).toHaveStyle({ left: "0%", width: "100%", height: "50%" });
+      expect(bar).toBeEmptyDOMElement();
+    }
+    expect(container.parentElement!.parentElement).toHaveStyle({ gridTemplateRows: "32px" });
+    expect(backend).toHaveStyle({ top: "0" });
+    expect(frontend).toHaveStyle({ top: "50%" });
+    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 4" });
+    expect(parseFloat(container.style.width)).toBeCloseTo((12 / 14) * 100);
+    const details = screen.getByText("Project and role dates").parentElement!;
+    expect(details.tagName).toBe("DETAILS");
+    expect(details).not.toHaveAttribute("open");
+  });
+
+  it("exposes a vacation pause inside a week as gray space, preserving exact work and effort", () => {
+    const result = computeSchedule(
+      [{ ...mixed, backend_weeks: 1, frontend_devs: 0, frontend_weeks: 0 }],
+      members,
+      [{ member_id: "back", date: "2026-02-04", is_working: false }],
+      parseISO("2026-02-02"),
+      3
+    );
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 9, 2026" });
+    const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
+    expect(bars).toHaveLength(2);
+    expect(container).toHaveClass("bg-slate-400/40");
+    expect(bars[0]).toHaveStyle({ left: "0%", width: "25%" });
+    expect(bars[1]).toHaveStyle({ left: "37.5%", width: "62.5%" });
+    expect(bars[0]).toHaveAccessibleName(/Feb 2, 2026 to Feb 3, 2026.*0.4 person-weeks/);
+    expect(bars[1]).toHaveAccessibleName(/Feb 5, 2026 to Feb 9, 2026.*0.6 person-weeks/);
+    expect(
+      result.schedule[0]!.roles[0]!.allocations.flatMap((a) => a.days).map((day) =>
+        day.date.getDate()
+      )
+    ).toEqual([2, 3, 5, 6, 9]);
+    expect(screen.getByText("Gray · waiting / paused")).toBeInTheDocument();
+  });
+
+  it("leaves an entirely paused week gray within the same project envelope", () => {
+    const result = computeSchedule(
+      [{ ...mixed, frontend_devs: 0, frontend_weeks: 0 }],
+      members,
+      [9, 10, 11, 12, 13].map((day) => ({
+        member_id: "back",
+        date: `2026-02-${day.toString().padStart(2, "0")}`,
+        is_working: false,
+      })),
+      parseISO("2026-02-02"),
+      4
+    );
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 20, 2026" });
+    const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
+    expect(bars).toHaveLength(2);
+    expect(bars.every((bar) => bar.parentElement === container)).toBe(true);
+    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 5" });
+    expect(parseFloat(bars[0]!.style.width)).toBeCloseTo((5 / 19) * 100);
+    expect(parseFloat(bars[1]!.style.left)).toBeCloseTo((14 / 19) * 100);
+    expect(result.weeks[1]!.allocated).toBe(0);
+  });
+
+  it("connects work over a normal holiday without marking the role as stopped", () => {
+    const result = computeSchedule(
+      [{ ...mixed, backend_weeks: 1, frontend_devs: 0, frontend_weeks: 0 }],
+      members,
+      [],
+      parseISO("2026-05-22"),
+      3
+    );
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
+    expect(screen.getAllByRole("img", { name: /^Mixed · Backend:/ })).toHaveLength(1);
+    expect(screen.getByRole("img", { name: /^Mixed · Backend:/ })).toHaveAccessibleName(
+      /May 22, 2026 to May 29, 2026.*1.0 person-weeks/
+    );
+  });
+
   it("shows requested people without misrepresenting reduced available capacity", () => {
     renderSchedule([{ ...mixed, backend_devs: 2, backend_weeks: 1 }]);
     const backend = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
