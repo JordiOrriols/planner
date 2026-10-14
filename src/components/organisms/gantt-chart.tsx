@@ -295,38 +295,6 @@ export default function GanttChart({
               ))}
             </div>
           )}
-          {schedule.some((s) => s.startIdx != null) && (
-            <details className="mt-2 border-t border-border text-xs text-muted-foreground space-y-1">
-              <summary className="cursor-pointer py-2">Project and role dates</summary>
-              {schedule
-                .filter((s) => s.startIdx != null)
-                .map((s) => (
-                  <div key={s.project.id} className="flex justify-between">
-                    <span className="font-medium text-foreground">{s.project.name}</span>
-                    <span className="tabular-nums">
-                      {s.start ? fmtDate(s.start) : "Not started"} →{" "}
-                      {s.end ? fmtDate(s.end) : s.reason}
-                    </span>
-                  </div>
-                ))}
-              {schedule.flatMap((s) =>
-                s.roles.map((role) => (
-                  <div
-                    key={`${s.project.id}-${role.role}`}
-                    className="flex flex-wrap justify-between gap-2 pl-3"
-                  >
-                    <span>
-                      {s.project.name} · {ROLE_LABELS[role.role]}
-                    </span>
-                    <span className="tabular-nums">
-                      {role.start ? fmtDate(role.start) : "Not started"} →{" "}
-                      {role.end ? fmtDate(role.end) : "Not completed"}
-                    </span>
-                  </div>
-                ))
-              )}
-            </details>
-          )}
         </div>
       </div>
     </div>

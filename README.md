@@ -109,8 +109,7 @@ but must be edited to whole numbers before they can be scheduled.
   work. Inside it, backend uses the top half, frontend the bottom, and design/QA
   use full height. Subtle role shades connect across weeks and normal weekends
   or holidays. Missed working days appear as gray waiting/paused gaps, including
-  pauses within a week. Hover for role dates, requested people and allocated effort;
-  expand **Project and role dates** for the full date breakdown.
+  pauses within a week. Hover for role dates, requested people and allocated effort.
 - A person-week means five working days. Saved time off and Barcelona holidays
   extend dates; working-day overrides can restore a holiday or weekend.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,

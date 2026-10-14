@@ -68,9 +68,7 @@ describe("role-aware Gantt allocations", () => {
     expect(frontend).toHaveStyle({ top: "50%" });
     expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 4" });
     expect(parseFloat(container.style.width)).toBeCloseTo((12 / 14) * 100);
-    const details = screen.getByText("Project and role dates").parentElement!;
-    expect(details.tagName).toBe("DETAILS");
-    expect(details).not.toHaveAttribute("open");
+    expect(screen.queryByText("Project and role dates")).not.toBeInTheDocument();
   });
 
   it("exposes a vacation pause inside a week as gray space, preserving exact work and effort", () => {
@@ -249,8 +247,7 @@ describe("role-aware Gantt allocations", () => {
     expect(screen.getByText("Not completed within the verified planning horizon")).toHaveStyle({
       gridRow: "2",
     });
-    expect(screen.getAllByText(/Not completed/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("Mixed · Backend").parentElement).toHaveTextContent("Not completed");
+    expect(screen.getByRole("group", { name: /not completed/ })).toBeInTheDocument();
   });
 
   it("renders missing capacity explicitly, without any allocated bars", () => {
