@@ -100,6 +100,7 @@ export interface ScheduledRole {
     personDays: number;
     start: Date;
     end: Date;
+    days: { date: Date; personDays: number }[];
   }[];
 }
 export function squadVelocity(
@@ -210,11 +211,12 @@ export function computeSchedule(
           roleSchedule.start ??= date;
           let allocation = roleSchedule.allocations.at(-1);
           if (!allocation || allocation.weekIndex !== weekIndex) {
-            allocation = { weekIndex, personDays: 0, start: date, end: date };
+            allocation = { weekIndex, personDays: 0, start: date, end: date, days: [] };
             roleSchedule.allocations.push(allocation);
           }
           allocation.personDays += allocated;
           allocation.end = date;
+          allocation.days.push({ date, personDays: allocated });
           if (effort[role] === 0) {
             roleSchedule.complete = true;
             roleSchedule.end = date;
