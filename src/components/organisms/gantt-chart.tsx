@@ -1,10 +1,41 @@
 import React, { useState } from "react";
 import { Button } from "@jordiorriols/ui";
 import { GripVertical, X } from "@jordiorriols/ui/icons";
-import { differenceInCalendarDays, format } from "date-fns";
-import { ROLES, ROLE_COLORS, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
+import { addDays, differenceInCalendarDays, format, isWeekend } from "date-fns";
+import { ROLES, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
+import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
-import type { CapacityWeek, ScheduledProject } from "@/lib/planning";
+import type { CapacityWeek, ScheduledProject, ScheduledRole } from "@/lib/planning";
+
+const ROLE_TONES = {
+  backend: "bg-sky-700/70",
+  frontend: "bg-sky-400/60",
+  design: "bg-amber-500/50",
+  qa: "bg-emerald-600/50",
+};
+
+function workRuns(role: ScheduledRole) {
+  const runs: { start: Date; end: Date; personDays: number }[] = [];
+  for (const day of role.allocations.flatMap((allocation) => allocation.days)) {
+    const previous = runs.at(-1);
+    let paused = false;
+    if (previous) {
+      for (let date = addDays(previous.end, 1); date < day.date; date = addDays(date, 1)) {
+        if (!isWeekend(date) && !isHoliday(format(date, "yyyy-MM-dd"))) {
+          paused = true;
+          break;
+        }
+      }
+    }
+    if (previous && !paused) {
+      previous.end = day.date;
+      previous.personDays += day.personDays;
+    } else {
+      runs.push({ start: day.date, end: day.date, personDays: day.personDays });
+    }
+  }
+  return runs;
+}
 
 export default function GanttChart({
   weeks,
@@ -22,7 +53,7 @@ export default function GanttChart({
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | null>(null);
   const N = weeks.length;
-  const columns = `260px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
+  const columns = `220px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
 
   const monthGroups: { label: string; start: number; span: number }[] = [];
   weeks.forEach((w, i) => {
@@ -34,25 +65,26 @@ export default function GanttChart({
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+      <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         {ROLES.map((role) => (
           <span key={role} className="inline-flex items-center gap-1.5">
-            <span className={cn("size-2 rounded-sm", ROLE_COLORS[role])} />
+            <span className={cn("size-2 rounded-sm", ROLE_TONES[role])} />
             {ROLE_LABELS[role]}
             {role === "backend" ? " (top)" : role === "frontend" ? " (bottom)" : " (full height)"}
           </span>
         ))}
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-sm bg-slate-400/40" />
+          Gray · waiting / paused
+        </span>
       </div>
-      <p className="mb-3 text-xs text-muted-foreground">
-        Bar numbers show requested people. Hover for dates and allocated person-weeks.
-      </p>
       {onReorder && (
-        <p className="mb-3 text-xs text-muted-foreground">
-          Drag project names to change priority, or focus a name and use Arrow Up / Arrow Down.
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          Drag project names to reorder, or use Arrow Up / Arrow Down. Hover bars for details.
         </p>
       )}
       <div className="overflow-x-auto">
-        <div style={{ minWidth: Math.max(860, N * 28 + 260) }}>
+        <div style={{ minWidth: Math.max(720, N * 28 + 220) }}>
           <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
             <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
               Project · priority
@@ -81,6 +113,16 @@ export default function GanttChart({
 
           <div className="mt-2">
             {schedule.map((s, idx) => {
+              const lastWork = s.roles
+                .flatMap((role) => role.allocations)
+                .reduce<Date | null>(
+                  (last, allocation) => (!last || allocation.end > last ? allocation.end : last),
+                  null
+                );
+              const spanDays =
+                s.start && lastWork ? differenceInCalendarDays(lastWork, s.start) + 1 : 0;
+              const spanWeeks =
+                s.startIdx != null && s.endIdx != null ? (s.endIdx - s.startIdx + 1) * 7 : 0;
               return (
                 <div
                   key={s.project.id}
@@ -90,8 +132,7 @@ export default function GanttChart({
                   )}
                   style={{
                     gridTemplateColumns: columns,
-                    gridTemplateRows:
-                      s.reason && s.startIdx != null ? "28px 28px auto" : "28px 28px",
+                    gridTemplateRows: s.reason && s.startIdx != null ? "32px auto" : "32px",
                   }}
                 >
                   <div
@@ -119,7 +160,7 @@ export default function GanttChart({
                     {onReorder ? (
                       <button
                         type="button"
-                        className="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 py-2 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
+                        className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
                         aria-label={`Reorder ${s.project.name}`}
                         title={`${s.project.name} — drag to reorder, or use Arrow Up / Arrow Down`}
                         draggable={!disabled}
@@ -170,50 +211,57 @@ export default function GanttChart({
                     <div
                       key={index}
                       className="border-l border-border/60 bg-muted/10"
-                      style={{ gridColumn: index + 2, gridRow: "1 / 3" }}
+                      style={{ gridColumn: index + 2, gridRow: "1" }}
                       aria-hidden="true"
                     />
                   ))}
-                  {s.roles.flatMap((roleSchedule) =>
-                    roleSchedule.allocations.map((allocation) => {
-                      const role = roleSchedule.role;
-                      const people = roleDevs(s.project, role);
-                      const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(allocation.start)} to ${fmtDate(allocation.end)} · ${people} ${people === 1 ? "person" : "people"} requested · ${(allocation.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
-                      const week = weeks[allocation.weekIndex]!;
-                      return (
-                        <div
-                          key={`${role}-${allocation.weekIndex}`}
-                          className="relative min-w-0"
-                          style={{
-                            gridColumn: allocation.weekIndex + 2,
-                            gridRow: role === "backend" ? "1" : role === "frontend" ? "2" : "1 / 3",
-                          }}
-                        >
-                          <div
-                            role="img"
-                            aria-label={label}
-                            title={label}
-                            className={cn(
-                              "absolute inset-y-0.5 rounded-sm text-white text-[10px] font-semibold flex items-center justify-center overflow-hidden",
-                              ROLE_COLORS[role]
-                            )}
-                            style={{
-                              left: `${(differenceInCalendarDays(allocation.start, week.weekStart) / 7) * 100}%`,
-                              width: `${((differenceInCalendarDays(allocation.end, allocation.start) + 1) / 7) * 100}%`,
-                            }}
-                          >
-                            <span aria-hidden="true">
-                              {role === "qa" ? "Q" : ROLE_LABELS[role][0]}
-                              {people}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })
+                  {s.start && lastWork && s.startIdx != null && s.endIdx != null && (
+                    <div
+                      className="relative min-w-0"
+                      style={{
+                        gridColumn: `${s.startIdx + 2} / ${s.endIdx + 3}`,
+                        gridRow: "1",
+                      }}
+                    >
+                      <div
+                        role="group"
+                        aria-label={`${s.project.name}: ${fmtDate(s.start)} to ${s.end ? fmtDate(s.end) : "not completed"}`}
+                        title={`${s.project.name}: ${fmtDate(s.start)} → ${s.end ? fmtDate(s.end) : "Not completed"}`}
+                        className="absolute inset-y-1 overflow-hidden rounded bg-slate-400/40 ring-1 ring-inset ring-slate-500/15"
+                        style={{
+                          left: `${(differenceInCalendarDays(s.start, weeks[s.startIdx]!.weekStart) / spanWeeks) * 100}%`,
+                          width: `${(spanDays / spanWeeks) * 100}%`,
+                        }}
+                      >
+                        {s.roles.flatMap((roleSchedule) =>
+                          workRuns(roleSchedule).map((run) => {
+                            const { role } = roleSchedule;
+                            const people = roleDevs(s.project, role);
+                            const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(run.start)} to ${fmtDate(run.end)} · ${people} ${people === 1 ? "person" : "people"} requested · ${(run.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
+                            return (
+                              <div
+                                key={`${role}-${run.start.getTime()}`}
+                                role="img"
+                                aria-label={label}
+                                title={label}
+                                className={cn("absolute shadow-inner", ROLE_TONES[role])}
+                                style={{
+                                  left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
+                                  width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,
+                                  top: role === "frontend" ? "50%" : "0",
+                                  height:
+                                    role === "backend" || role === "frontend" ? "50%" : "100%",
+                                }}
+                              />
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   )}
                   {s.reason && (
                     <div
-                      style={{ gridColumn: "2 / -1", gridRow: s.startIdx != null ? "3" : "1 / 3" }}
+                      style={{ gridColumn: "2 / -1", gridRow: s.startIdx != null ? "2" : "1" }}
                       className="text-xs text-destructive px-2 py-1.5 bg-destructive/5"
                     >
                       {s.reason}
@@ -226,29 +274,30 @@ export default function GanttChart({
 
           {N > 0 && (
             <div
-              className="grid mt-4 border-t text-[10px] tabular-nums"
+              className="grid mt-2 border-t text-[10px] tabular-nums"
               style={{ gridTemplateColumns: columns }}
             >
-              <div className="sticky left-0 bg-card z-10 p-2 font-medium">
+              <div className="sticky left-0 bg-card z-10 px-2 py-1 font-medium">
                 Available person-weeks
               </div>
               {weeks.map((week, index) => (
-                <div key={index} className="text-center py-2 border-l">
+                <div key={index} className="text-center py-1 border-l">
                   {week.capacity.toFixed(1)}
                 </div>
               ))}
-              <div className="sticky left-0 bg-card z-10 p-2 font-medium">
+              <div className="sticky left-0 bg-card z-10 px-2 py-1 font-medium">
                 Allocated person-weeks
               </div>
               {weeks.map((week, index) => (
-                <div key={index} className="text-center py-2 border-l">
+                <div key={index} className="text-center py-1 border-l">
                   {week.allocated.toFixed(1)}
                 </div>
               ))}
             </div>
           )}
           {schedule.some((s) => s.startIdx != null) && (
-            <div className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
+            <details className="mt-2 border-t border-border text-xs text-muted-foreground space-y-1">
+              <summary className="cursor-pointer py-2">Project and role dates</summary>
               {schedule
                 .filter((s) => s.startIdx != null)
                 .map((s) => (
@@ -276,7 +325,7 @@ export default function GanttChart({
                   </div>
                 ))
               )}
-            </div>
+            </details>
           )}
         </div>
       </div>

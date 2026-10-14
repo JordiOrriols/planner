@@ -105,11 +105,12 @@ but must be edited to whole numbers before they can be scheduled.
   later working day after design and both development roles finish.
 - A mixed project's calendar span can exceed its ideal duration when backend and
   frontend start at different times, even without vacations or overbooking.
-- Gantt bars show actual role allocations: backend on the top half, frontend on
-  the bottom, design and QA at full height. Hover a segment for its dates and
-  allocated person-weeks; role date ranges are also listed below the chart.
-  Bar numbers show requested people (for example, B2 means two backend people),
-  not a guarantee that all requested people are available each day.
+- Each compact Gantt row has one continuous project bar from first work to last
+  work. Inside it, backend uses the top half, frontend the bottom, and design/QA
+  use full height. Subtle role shades connect across weeks and normal weekends
+  or holidays. Missed working days appear as gray waiting/paused gaps, including
+  pauses within a week. Hover for role dates, requested people and allocated effort;
+  expand **Project and role dates** for the full date breakdown.
 - A person-week means five working days. Saved time off and Barcelona holidays
   extend dates; working-day overrides can restore a holiday or weekend.
 - A missing role, zero effort or an unfinished forecast is shown explicitly,
