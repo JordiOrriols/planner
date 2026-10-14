@@ -153,8 +153,7 @@ project with approval:
 5. `20261014223000_planner_vacation_team_calendar.sql`: read-only, token-scoped
    current-team names and vacations. Save/reset capabilities remain member-only.
 6. `20261014224000_planner_project_delivery.sql`: persistent project delivery
-   status, protected by the existing owner-only project write policy. Apply
-   this migration before deploying the delivery controls.
+   status, protected by the existing owner-only project write policy.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this
