@@ -30,6 +30,7 @@ const project = (id = "one", weeks = 1): Project => ({
   workspace_id: "workspace",
   name: id,
   in_backlog: true,
+  delivered: false,
   priority: 0,
   backend_devs: 1,
   backend_weeks: weeks,

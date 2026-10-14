@@ -104,6 +104,11 @@ but must be edited to whole numbers before they can be scheduled.
 - Reorder by dragging the project names on the left of the schedule. Keyboard
   users can focus a name and press Arrow Up / Arrow Down. The adjacent remove
   button removes the project from the plan, without deleting its estimate.
+- Workspace owners can mark a project **Delivered** (or undo it) beside its name.
+  This persists a delivery status and turns its entire existing bar green;
+  it does not release capacity or change forecast dates or backlog priority.
+- A blue **Today** line spans the chart at the current local calendar day, when
+  that day is inside the displayed forecast. It updates automatically across midnight.
 - Daily available capacity is allocated by role and backlog priority.
 - Different roles and projects can overlap when capacity allows. If only one
   backend person is available for a two-person estimate, completion takes longer.
@@ -147,6 +152,9 @@ project with approval:
    Adds nullable `members.planning_role` and immutable `members.vacation_token`.
 5. `20261014223000_planner_vacation_team_calendar.sql`: read-only, token-scoped
    current-team names and vacations. Save/reset capabilities remain member-only.
+6. `20261014224000_planner_project_delivery.sql`: persistent project delivery
+   status, protected by the existing owner-only project write policy. Apply
+   this migration before deploying the delivery controls.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

@@ -51,6 +51,13 @@ export default function Backlog() {
       await refresh();
     });
   }
+  function deliver(id: string, delivered: boolean) {
+    if (!repository) throw new Error("Sign in to manage the backlog");
+    void action.run(async () => {
+      await repository.setDelivered(workspace.id, id, delivered);
+      await refresh();
+    });
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
@@ -139,7 +146,13 @@ export default function Backlog() {
                 roles: [],
               }))
             }
-            {...(isOwner ? { onReorder: move, onRemove: (id: string) => toggle(id, false) } : {})}
+            {...(isOwner
+              ? {
+                  onReorder: move,
+                  onRemove: (id: string) => toggle(id, false),
+                  onDeliveredChange: deliver,
+                }
+              : {})}
             disabled={action.busy}
           />
         </section>

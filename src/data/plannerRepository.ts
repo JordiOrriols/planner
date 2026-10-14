@@ -22,6 +22,7 @@ const projectSchema = z.object({
   name: z.string(),
   description: z.string(),
   in_backlog: z.boolean(),
+  delivered: z.boolean(),
   priority: z.number(),
   backend_devs: z.number(),
   backend_weeks: z.number(),
@@ -133,6 +134,17 @@ export function createPlannerRepository(client: SupabaseClient) {
         .single();
       if (error) throw new Error(error.message, { cause: error });
       if (!data) throw new Error("Project was not deleted.");
+    },
+    async setDelivered(workspace: string, id: string, delivered: boolean) {
+      const { data, error } = await client
+        .from("planner_projects")
+        .update({ delivered })
+        .eq("id", id)
+        .eq("workspace_id", workspace)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return projectSchema.parse(data);
     },
     reorder: (workspace: string, ids: string[]) =>
       rpc("planner_reorder_projects", { workspace, project_ids: ids }),

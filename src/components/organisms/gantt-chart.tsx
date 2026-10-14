@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@jordiorriols/ui";
-import { GripVertical, X } from "@jordiorriols/ui/icons";
+import { Check, GripVertical, X } from "@jordiorriols/ui/icons";
 import { addDays, differenceInCalendarDays, format, isWeekend } from "date-fns";
 import { ROLES, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
 import { isHoliday } from "@/lib/barcelonaHolidays";
@@ -42,18 +42,27 @@ export default function GanttChart({
   schedule,
   onReorder,
   onRemove,
+  onDeliveredChange,
   disabled = false,
 }: {
   weeks: CapacityWeek[];
   schedule: ScheduledProject[];
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
+  onDeliveredChange?: (id: string, delivered: boolean) => void;
   disabled?: boolean;
 }) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropId, setDropId] = useState<string | null>(null);
+  const [today, setToday] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setToday(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
   const N = weeks.length;
   const columns = `220px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
+  const todayOffset = weeks[0] ? differenceInCalendarDays(today, weeks[0].weekStart) : -1;
+  const showToday = todayOffset >= 0 && todayOffset < N * 7;
 
   const monthGroups: { label: string; start: number; span: number }[] = [];
   weeks.forEach((w, i) => {
@@ -77,6 +86,10 @@ export default function GanttChart({
           <span className="size-2 rounded-sm bg-slate-400/40" />
           Gray · waiting / paused
         </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-sm bg-emerald-600" />
+          Delivered
+        </span>
       </div>
       {onReorder && (
         <p className="mb-2 text-[11px] text-muted-foreground">
@@ -84,7 +97,22 @@ export default function GanttChart({
         </p>
       )}
       <div className="overflow-x-auto">
-        <div style={{ minWidth: Math.max(720, N * 28 + 220) }}>
+        <div className="relative" style={{ minWidth: Math.max(720, N * 28 + 220) }}>
+          {showToday && (
+            <div className="absolute inset-y-0 left-[220px] right-0 pointer-events-none z-[5]">
+              <div
+                role="img"
+                aria-label={`Today: ${fmtDate(today)}`}
+                title={`Today: ${fmtDate(today)}`}
+                className="absolute inset-y-0 w-0.5 bg-blue-500"
+                style={{ left: `${((todayOffset + 0.5) / (N * 7)) * 100}%` }}
+              >
+                <span className="absolute top-0 -translate-x-1/2 rounded bg-blue-500 px-1 text-[9px] font-medium text-white">
+                  Today
+                </span>
+              </div>
+            </div>
+          )}
           <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
             <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
               Project · priority
@@ -193,6 +221,20 @@ export default function GanttChart({
                         {s.project.name}
                       </span>
                     )}
+                    {onDeliveredChange && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={cn("size-7 shrink-0", s.project.delivered && "text-emerald-600")}
+                        aria-label={`${s.project.delivered ? "Undo delivery" : "Mark delivered"}: ${s.project.name}`}
+                        aria-pressed={s.project.delivered}
+                        title={s.project.delivered ? "Delivered — click to undo" : "Mark delivered"}
+                        disabled={disabled}
+                        onClick={() => onDeliveredChange(s.project.id, !s.project.delivered)}
+                      >
+                        <Check size={14} />
+                      </Button>
+                    )}
                     {onRemove && (
                       <Button
                         size="icon"
@@ -225,37 +267,43 @@ export default function GanttChart({
                     >
                       <div
                         role="group"
-                        aria-label={`${s.project.name}: ${fmtDate(s.start)} to ${s.end ? fmtDate(s.end) : "not completed"}`}
-                        title={`${s.project.name}: ${fmtDate(s.start)} → ${s.end ? fmtDate(s.end) : "Not completed"}`}
-                        className="absolute inset-y-1 overflow-hidden rounded bg-slate-400/40 ring-1 ring-inset ring-slate-500/15"
+                        aria-label={`${s.project.name}: ${fmtDate(s.start)} to ${s.end ? fmtDate(s.end) : "not completed"}${s.project.delivered ? " · Delivered" : ""}`}
+                        title={`${s.project.name}: ${fmtDate(s.start)} → ${s.end ? fmtDate(s.end) : "Not completed"}${s.project.delivered ? " · Delivered" : ""}`}
+                        className={cn(
+                          "absolute inset-y-1 overflow-hidden rounded ring-1 ring-inset",
+                          s.project.delivered
+                            ? "bg-emerald-600 ring-emerald-700/30"
+                            : "bg-slate-400/40 ring-slate-500/15"
+                        )}
                         style={{
                           left: `${(differenceInCalendarDays(s.start, weeks[s.startIdx]!.weekStart) / spanWeeks) * 100}%`,
                           width: `${(spanDays / spanWeeks) * 100}%`,
                         }}
                       >
-                        {s.roles.flatMap((roleSchedule) =>
-                          workRuns(roleSchedule).map((run) => {
-                            const { role } = roleSchedule;
-                            const people = roleDevs(s.project, role);
-                            const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(run.start)} to ${fmtDate(run.end)} · ${people} ${people === 1 ? "person" : "people"} requested · ${(run.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
-                            return (
-                              <div
-                                key={`${role}-${run.start.getTime()}`}
-                                role="img"
-                                aria-label={label}
-                                title={label}
-                                className={cn("absolute shadow-inner", ROLE_TONES[role])}
-                                style={{
-                                  left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
-                                  width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,
-                                  top: role === "frontend" ? "50%" : "0",
-                                  height:
-                                    role === "backend" || role === "frontend" ? "50%" : "100%",
-                                }}
-                              />
-                            );
-                          })
-                        )}
+                        {!s.project.delivered &&
+                          s.roles.flatMap((roleSchedule) =>
+                            workRuns(roleSchedule).map((run) => {
+                              const { role } = roleSchedule;
+                              const people = roleDevs(s.project, role);
+                              const label = `${s.project.name} · ${ROLE_LABELS[role]}: ${fmtDate(run.start)} to ${fmtDate(run.end)} · ${people} ${people === 1 ? "person" : "people"} requested · ${(run.personDays / 5).toFixed(1)} person-weeks${roleSchedule.complete ? "" : " (partial forecast)"}`;
+                              return (
+                                <div
+                                  key={`${role}-${run.start.getTime()}`}
+                                  role="img"
+                                  aria-label={label}
+                                  title={label}
+                                  className={cn("absolute shadow-inner", ROLE_TONES[role])}
+                                  style={{
+                                    left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
+                                    width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,
+                                    top: role === "frontend" ? "50%" : "0",
+                                    height:
+                                      role === "backend" || role === "frontend" ? "50%" : "100%",
+                                  }}
+                                />
+                              );
+                            })
+                          )}
                       </div>
                     </div>
                   )}

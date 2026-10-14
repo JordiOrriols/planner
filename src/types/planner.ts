@@ -6,6 +6,7 @@ export type Project = ProjectInput & {
   id: string;
   workspace_id: string;
   in_backlog: boolean;
+  delivered: boolean;
   priority: number;
 };
 export interface Workspace {
