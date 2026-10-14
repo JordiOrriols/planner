@@ -8,10 +8,12 @@
     "owner": "Owner",
     "member": "Member",
     "newWorkspace": "New workspace",
+    "noShares": "This workspace has not been shared yet.",
+    "retry": "Retry",
     "tabs": { "estimation": "Estimation", "backlog": "Backlog Plan", "vacations": "Vacations" },
     "welcome": {
       "title": "Make room for the work ahead.",
-      "description": "Estimate microprojects, plan around real squad capacity, and keep everyone's time off in view.",
+      "description": "Estimate features, plan around real squad capacity, and keep everyone's time off in view.",
       "estimates": "Role-based estimates",
       "backlog": "A realistic backlog",
       "calendar": "Barcelona calendar",

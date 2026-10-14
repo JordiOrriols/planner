@@ -29,6 +29,7 @@ export interface LaddersTeam {
   access_level: "owner" | "editor" | "viewer";
 }
 export type LinkedTeam = Pick<LaddersTeam, "id" | "name">;
+export type WorkspaceAccess = "viewer" | "editor";
 export interface Availability {
   member_id: string;
   date: string;

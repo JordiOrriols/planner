@@ -8,6 +8,8 @@
     "owner": "Propriétaire",
     "member": "Membre",
     "newWorkspace": "Nouvel espace de travail",
+    "noShares": "Cet espace de travail n'a pas encore été partagé.",
+    "retry": "Réessayer",
     "tabs": {
       "estimation": "Estimation",
       "backlog": "Plan du backlog",
@@ -15,7 +17,7 @@
     },
     "welcome": {
       "title": "Faites de la place pour le travail à venir.",
-      "description": "Estimez les microprojets, planifiez selon la capacité réelle de la squad et gardez les congés de chacun en vue.",
+      "description": "Estimez les fonctionnalités, planifiez selon la capacité réelle de la squad et gardez les congés de chacun en vue.",
       "estimates": "Estimations par rôle",
       "backlog": "Un backlog réaliste",
       "calendar": "Calendrier de Barcelone",

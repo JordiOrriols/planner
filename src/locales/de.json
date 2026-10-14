@@ -8,6 +8,8 @@
     "owner": "Besitzer",
     "member": "Mitglied",
     "newWorkspace": "Neuer Arbeitsbereich",
+    "noShares": "Dieser Arbeitsbereich wurde noch nicht geteilt.",
+    "retry": "Erneut versuchen",
     "tabs": {
       "estimation": "Schätzung",
       "backlog": "Backlog-Plan",
@@ -15,7 +17,7 @@
     },
     "welcome": {
       "title": "Schaffen Sie Raum für die kommende Arbeit.",
-      "description": "Schätzen Sie Mikroprojekte, planen Sie mit realer Squad-Kapazität und behalten Sie die Abwesenheiten aller im Blick.",
+      "description": "Schätzen Sie Features, planen Sie mit realer Squad-Kapazität und behalten Sie die Abwesenheiten aller im Blick.",
       "estimates": "Rollenspezifische Schätzungen",
       "backlog": "Ein realistisches Backlog",
       "calendar": "Barcelona-Kalender",

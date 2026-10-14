@@ -9,7 +9,7 @@ import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 
 export default function Backlog() {
-  const { projects, members, availability, workspace, isOwner, refresh } = useWorkspace();
+  const { projects, members, availability, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
@@ -61,8 +61,8 @@ export default function Backlog() {
   function changeStart(date: string) {
     setDraftStart(date);
     void action.run(async () => {
-      if (!repository || !isOwner)
-        throw new Error("Only the workspace owner can change the plan start.");
+      if (!repository || !canEdit)
+        throw new Error("Workspace edit access is required to change the plan start.");
       try {
         await repository.setPlanStart(workspace.id, date);
         await refresh();
@@ -81,7 +81,7 @@ export default function Backlog() {
             capacity allows.
           </p>
         </div>
-        {isOwner && (
+        {canEdit && (
           <Button onClick={() => setAdding(true)}>
             <Plus className="size-4" />
             Add projects
@@ -104,7 +104,7 @@ export default function Backlog() {
             min="2026-01-01"
             max="2027-12-31"
             value={startDate}
-            disabled={!isOwner || action.busy}
+            disabled={!canEdit || action.busy}
             onChange={(event) => changeStart(event.target.value)}
           />
         </div>
@@ -134,11 +134,11 @@ export default function Backlog() {
           icon={<GanttChartSquare />}
           title="No projects in the backlog"
           description={
-            isOwner
+            canEdit
               ? "Choose which estimates to include in this plan."
-              : "The workspace owner selects projects for this plan."
+              : "Workspace owners and editors select projects for this plan."
           }
-          action={isOwner && <Button onClick={() => setAdding(true)}>Add projects</Button>}
+          action={canEdit && <Button onClick={() => setAdding(true)}>Add projects</Button>}
         />
       ) : (
         <section className="panel" aria-label="Project schedule">
@@ -160,7 +160,7 @@ export default function Backlog() {
                 roles: [],
               }))
             }
-            {...(isOwner
+            {...(canEdit
               ? {
                   onReorder: move,
                   onRemove: (id: string) => toggle(id, false),
@@ -171,7 +171,7 @@ export default function Backlog() {
           />
         </section>
       )}
-      {isOwner && adding && (
+      {canEdit && adding && (
         <Modal
           isOpen
           title="Add projects to backlog"

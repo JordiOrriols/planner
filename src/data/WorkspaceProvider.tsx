@@ -19,6 +19,7 @@ interface WorkspaceContextValue {
   availability: Availability[];
   linkedTeams: LinkedTeam[];
   isOwner: boolean;
+  canEdit: boolean;
   userId: string;
   selectWorkspace: (id: string) => void;
   createWorkspace: () => void;

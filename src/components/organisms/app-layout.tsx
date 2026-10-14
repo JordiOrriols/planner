@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays } from "@jordiorriols/ui/icons";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
+import { ShareWorkspaceDialog } from "@/components/molecules/ShareWorkspaceDialog";
 
 const NAV = [
   { to: "/", key: "estimation", icon: Calculator, end: true },
@@ -17,7 +18,9 @@ const NAV = [
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
   const { signOut, user } = useData();
-  const { workspace, workspaces, selectWorkspace, isOwner, createWorkspace } = useWorkspace();
+  const { workspace, workspaces, selectWorkspace, isOwner, canEdit, createWorkspace } =
+    useWorkspace();
+  const [sharing, setSharing] = useState(false);
   const action = useAsyncAction();
   return (
     <div className="min-h-screen bg-background">
@@ -83,8 +86,13 @@ export default function AppLayout() {
             ))}
           </select>
           <span className="text-xs text-muted-foreground">
-            {t(isOwner ? "planner.owner" : "planner.member")}
+            {t(isOwner ? "planner.owner" : canEdit ? "teams.editor" : "teams.viewer")}
           </span>
+          {isOwner && (
+            <Button variant="outline" size="sm" onClick={() => setSharing(true)}>
+              {t("teams.share")}
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={createWorkspace}>
             {t("planner.newWorkspace")}
           </Button>
@@ -95,6 +103,7 @@ export default function AppLayout() {
           </p>
         )}
         <Outlet />
+        {isOwner && sharing && <ShareWorkspaceDialog onClose={() => setSharing(false)} />}
       </main>
     </div>
   );

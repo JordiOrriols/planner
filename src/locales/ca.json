@@ -8,10 +8,12 @@
     "owner": "Propietari",
     "member": "Membre",
     "newWorkspace": "Nou espai",
+    "noShares": "Aquest espai de treball encara no s'ha compartit.",
+    "retry": "Torna-ho a provar",
     "tabs": { "estimation": "Estimació", "backlog": "Pla del backlog", "vacations": "Vacances" },
     "welcome": {
       "title": "Fes espai per a la feina que ve.",
-      "description": "Estima microprojectes, planifica segons la capacitat real de l'equip i tingues en compte els seus dies lliures.",
+      "description": "Estima funcionalitats, planifica segons la capacitat real de l'equip i tingues en compte els seus dies lliures.",
       "estimates": "Estimacions per rol",
       "backlog": "Un backlog realista",
       "calendar": "Calendari de Barcelona",

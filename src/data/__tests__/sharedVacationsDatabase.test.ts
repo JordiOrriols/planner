@@ -60,6 +60,9 @@ beforeAll(async () => {
     "20261003170000_planner_whole_estimates.sql",
     "20261003183000_planner_ladders_teams.sql",
     "20261014223000_planner_vacation_team_calendar.sql",
+    "20261014224000_planner_project_delivery.sql",
+    "20261014225000_planner_workspace_plan_start.sql",
+    "20261014230000_planner_workspace_sharing.sql",
   ]) {
     await db.exec(
       await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
@@ -95,6 +98,226 @@ beforeEach(async () => {
 });
 afterAll(async () => {
   await db?.close();
+});
+
+describe("Registered-account workspace sharing", () => {
+  it("preserves existing linked-team viewing after revoking an explicit editor share", async () => {
+    await link();
+    await db.query("select public.share_team_by_email($1,'viewer@example.com','viewer')", [team]);
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+      workspace,
+    ]);
+    await db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer]);
+    await login(viewer);
+    expect(
+      (
+        await db.query(
+          "select public.planner_has_access($1) as viewing,public.planner_can_edit_workspace($1) as editing",
+          [workspace]
+        )
+      ).rows
+    ).toEqual([{ viewing: true, editing: false }]);
+  });
+
+  it("shares by normalized email, changes permissions, and revokes workspace discovery", async () => {
+    await link();
+    await db.query("select public.planner_share_workspace($1,' VIEWER@example.com ','viewer')", [
+      workspace,
+    ]);
+    expect(
+      (await db.query("select * from public.planner_list_workspace_shares($1)", [workspace])).rows
+    ).toEqual([{ user_id: viewer, email: "viewer@example.com", access_level: "viewer" }]);
+    await login(viewer);
+    expect((await db.exec("select id from public.planner_workspaces"))[0]!.rows).toEqual([
+      { id: workspace },
+    ]);
+    expect(
+      (await db.query("select * from public.planner_workspace_roster($1)", [workspace])).rows
+    ).toEqual([expect.objectContaining({ id: member.id, can_edit: false, vacation_token: null })]);
+    expect(
+      (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
+    ).toEqual([{ allowed: false }]);
+    await login(owner);
+    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+      workspace,
+      viewer,
+    ]);
+    await login(viewer);
+    expect(
+      (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
+    ).toEqual([{ allowed: true }]);
+    await login(owner);
+    await db.query("select public.planner_update_workspace_share($1,$2,'viewer')", [
+      workspace,
+      viewer,
+    ]);
+    await login(viewer);
+    expect(
+      (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
+    ).toEqual([{ allowed: false }]);
+    await login(owner);
+    await db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer]);
+    await login(viewer);
+    expect((await db.exec("select id from public.planner_workspaces"))[0]!.rows).toEqual([]);
+    await expect(
+      db.query("select * from public.planner_workspace_roster($1)", [workspace])
+    ).rejects.toThrow(/access required/);
+  });
+
+  it("allows editors to manage features, schedule and start, not ownership, sharing or team data", async () => {
+    await link();
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+      workspace,
+    ]);
+    await login(viewer);
+    const project = (
+      await db.query<{ id: string }>(
+        "insert into public.planner_projects(workspace_id,name) values($1,'Feature') returning id",
+        [workspace]
+      )
+    ).rows[0]!.id;
+    await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project]);
+    await db.query("select public.planner_reorder_projects($1,$2)", [workspace, [project]]);
+    await db.query(
+      "update public.planner_projects set delivered=true,description='Updated' where id=$1",
+      [project]
+    );
+    expect(
+      (
+        await db.query(
+          "select delivered,priority,description from public.planner_projects where id=$1",
+          [project]
+        )
+      ).rows
+    ).toEqual([{ delivered: true, priority: 1, description: "Updated" }]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set plan_start_date='2026-02-02' where id=$1 returning plan_start_date::text",
+          [workspace]
+        )
+      ).rows
+    ).toEqual([{ plan_start_date: "2026-02-02" }]);
+    await expect(
+      db.query("update public.planner_workspaces set owner_id=$2 where id=$1", [workspace, viewer])
+    ).rejects.toThrow(/identity is immutable/);
+    await expect(
+      db.query("select public.planner_list_workspace_shares($1)", [workspace])
+    ).rejects.toThrow(/owner access required/);
+    await expect(
+      db.query("select public.planner_share_workspace($1,'stranger@example.com','editor')", [
+        workspace,
+      ])
+    ).rejects.toThrow(/owner access required/);
+    await expect(
+      db.query("select public.planner_set_workspace_teams($1,$2)", [workspace, []])
+    ).rejects.toThrow(/owner/);
+    await expect(
+      db.query("select public.planner_update_planning_role($1,'frontend')", [member.id])
+    ).rejects.toThrow(/Team edit access/);
+    await expect(
+      db.query("select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',false)", [
+        member.id,
+      ])
+    ).rejects.toThrow(/Team edit access/);
+    expect(
+      (
+        await db.query("delete from public.planner_workspaces where id=$1 returning id", [
+          workspace,
+        ])
+      ).rows
+    ).toEqual([]);
+    expect(
+      (await db.query("delete from public.planner_projects where id=$1 returning id", [project]))
+        .rows
+    ).toEqual([{ id: project }]);
+  });
+
+  it("denies viewer writes, outsider reads and anonymous sharing", async () => {
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+      workspace,
+    ]);
+    const project = (
+      await db.query<{ id: string }>(
+        "insert into public.planner_projects(workspace_id,name) values($1,'Feature') returning id",
+        [workspace]
+      )
+    ).rows[0]!.id;
+    await login(viewer);
+    await expect(
+      db.query("insert into public.planner_projects(workspace_id,name) values($1,'Forbidden')", [
+        workspace,
+      ])
+    ).rejects.toThrow(/row-level security/);
+    expect(
+      (
+        await db.query(
+          "update public.planner_projects set delivered=true where id=$1 returning id",
+          [project]
+        )
+      ).rows
+    ).toEqual([]);
+    expect(
+      (await db.query("delete from public.planner_projects where id=$1 returning id", [project]))
+        .rows
+    ).toEqual([]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set plan_start_date='2026-02-02' where id=$1 returning id",
+          [workspace]
+        )
+      ).rows
+    ).toEqual([]);
+    await expect(
+      db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project])
+    ).rejects.toThrow(/edit access required/);
+    await expect(
+      db.query("select public.planner_reorder_projects($1,$2)", [workspace, []])
+    ).rejects.toThrow(/edit access required/);
+    await login(stranger);
+    expect((await db.exec("select id from public.planner_projects"))[0]!.rows).toEqual([]);
+    expect((await db.exec("select id from public.planner_workspaces"))[0]!.rows).toEqual([]);
+    await login(null, "anon");
+    await expect(
+      db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+        workspace,
+      ])
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("rejects unknown/self accounts, invalid permissions, and non-owner share changes", async () => {
+    for (const email of ["missing@example.com", "owner@example.com"])
+      await expect(
+        db.query("select public.planner_share_workspace($1,$2,'viewer')", [workspace, email])
+      ).rejects.toThrow(/User not found/);
+    for (const access of ["owner", null])
+      await expect(
+        db.query("select public.planner_share_workspace($1,'viewer@example.com',$2)", [
+          workspace,
+          access,
+        ])
+      ).rejects.toThrow(/Invalid access/);
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+      workspace,
+    ]);
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+      workspace,
+    ]);
+    expect(
+      (await db.query("select * from public.planner_list_workspace_shares($1)", [workspace])).rows
+    ).toHaveLength(1);
+    await login(viewer);
+    await expect(
+      db.query("select public.planner_update_workspace_share($1,$2,'editor')", [workspace, viewer])
+    ).rejects.toThrow(/owner access required/);
+    await expect(
+      db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer])
+    ).rejects.toThrow(/owner access required/);
+    await expect(db.exec("select * from public.planner_workspace_collaborators")).rejects.toThrow(
+      /permission denied/
+    );
+  });
 });
 
 describe("Shared Ladders roster and independent vacation token permissions", () => {

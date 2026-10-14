@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { ROLES, type ProjectInput, type Role } from "@/types/planner";
+import { ROLES, type ProjectInput, type Role, type WorkspaceAccess } from "@/types/planner";
 import { parseDate, validateProject } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 
@@ -47,6 +47,11 @@ const teamSchema = z.object({
 });
 const linkedTeamSchema = teamSchema.pick({ id: true, name: true });
 const vacationMemberSchema = memberSchema.pick({ id: true, name: true, role: true });
+const workspaceShareSchema = z.object({
+  user_id: z.string().uuid(),
+  email: z.string().email(),
+  access_level: z.enum(["viewer", "editor"]),
+});
 
 export function createPlannerRepository(client: SupabaseClient) {
   async function rpc(name: string, args?: Record<string, unknown>) {
@@ -88,6 +93,14 @@ export function createPlannerRepository(client: SupabaseClient) {
   }
   return {
     listWorkspaces: () => list("planner_workspaces", workspaceSchema),
+    listWorkspaceShares: (workspace: string) =>
+      rpcList("planner_list_workspace_shares", workspaceShareSchema, { workspace }),
+    shareWorkspace: (workspace: string, email: string, access: WorkspaceAccess) =>
+      rpc("planner_share_workspace", { workspace, account_email: email, access }),
+    updateWorkspaceShare: (workspace: string, account: string, access: WorkspaceAccess) =>
+      rpc("planner_update_workspace_share", { workspace, account, access }),
+    removeWorkspaceShare: (workspace: string, account: string) =>
+      rpc("planner_remove_workspace_share", { workspace, account }),
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
       if (!hasHolidayCalendar(date))
@@ -113,16 +126,17 @@ export function createPlannerRepository(client: SupabaseClient) {
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [projects, members, linkedTeams] = await Promise.all([
+      const [projects, members, linkedTeams, canEdit] = await Promise.all([
         list("planner_projects", projectSchema, workspace),
         rpcList("planner_workspace_roster", memberSchema, { workspace }),
         rpcList("planner_linked_teams", linkedTeamSchema, { workspace }),
+        rpc("planner_can_edit_workspace", { workspace }).then((value) => z.boolean().parse(value)),
       ]);
       const ids = new Set(members.map((member) => member.id));
       const availability = (await list("planner_team_availability", availabilitySchema)).filter(
         (item) => ids.has(item.member_id)
       );
-      return { projects, members, availability, linkedTeams };
+      return { projects, members, availability, linkedTeams, canEdit };
     },
     async saveProject(workspace: string, input: ProjectInput, id?: string) {
       validateProject(input);

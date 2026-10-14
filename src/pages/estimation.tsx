@@ -10,7 +10,7 @@ import { useData } from "@/data/DataProvider";
 import type { Project } from "@/types/planner";
 
 export default function Estimation() {
-  const { projects, workspace, isOwner, refresh } = useWorkspace();
+  const { projects, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [formOpen, setFormOpen] = useState(false);
@@ -21,14 +21,12 @@ export default function Estimation() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Feature estimation
-          </h1>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">Feature estimation</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Estimate people and weeks per role. Add features to your plan on the Schedule page.
           </p>
         </div>
-        {isOwner && (
+        {canEdit && (
           <Button
             onClick={() => {
               setEditing(null);
@@ -56,9 +54,9 @@ export default function Estimation() {
           {action.error}
         </p>
       )}
-      {!isOwner && (
+      {!canEdit && (
         <p className="text-sm text-muted-foreground">
-          The workspace owner manages project estimates and priorities.
+          Workspace owners and editors manage feature estimates and priorities.
         </p>
       )}
       {!projects.length ? (
@@ -74,7 +72,7 @@ export default function Estimation() {
               key={project.id}
               project={project}
               disabled={action.busy}
-              readOnly={!isOwner}
+              readOnly={!canEdit}
               onEdit={() => {
                 setEditing(project);
                 setFormOpen(true);

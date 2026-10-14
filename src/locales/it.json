@@ -8,6 +8,8 @@
     "owner": "Proprietario",
     "member": "Membro",
     "newWorkspace": "Nuovo spazio",
+    "noShares": "Questo spazio di lavoro non è ancora stato condiviso.",
+    "retry": "Riprova",
     "tabs": {
       "estimation": "Stima",
       "backlog": "Piano backlog",
@@ -15,7 +17,7 @@
     },
     "welcome": {
       "title": "Fai spazio al lavoro che verrà.",
-      "description": "Stima microprogetti, pianifica in base alla capacità reale dello squad e tieni visibili le ferie di tutti.",
+      "description": "Stima funzionalità, pianifica in base alla capacità reale dello squad e tieni visibili le ferie di tutti.",
       "estimates": "Stime per ruolo",
       "backlog": "Un backlog realistico",
       "calendar": "Calendario di Barcellona",

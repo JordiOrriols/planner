@@ -24,6 +24,31 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("uses registered-account sharing RPCs and validates returned permissions", async () => {
+    const { fetch, response, repository } = setup();
+    fetch.mockImplementation(async () => response(null));
+    await repository.shareWorkspace(workspace.id, "ada@example.com", "editor");
+    await repository.updateWorkspaceShare(workspace.id, workspace.owner_id, "viewer");
+    await repository.removeWorkspaceShare(workspace.id, workspace.owner_id);
+    expect(fetch.mock.calls.map((call) => JSON.parse(String(call[1]?.body)))).toEqual([
+      { workspace: workspace.id, account_email: "ada@example.com", access: "editor" },
+      { workspace: workspace.id, account: workspace.owner_id, access: "viewer" },
+      { workspace: workspace.id, account: workspace.owner_id },
+    ]);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_share_workspace");
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("/rpc/planner_update_workspace_share");
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/planner_remove_workspace_share");
+    const share = { user_id: workspace.owner_id, email: "ada@example.com", access_level: "viewer" };
+    fetch.mockResolvedValue(response([share]));
+    expect(await repository.listWorkspaceShares(workspace.id)).toEqual([share]);
+    fetch.mockResolvedValue(response([{ ...share, access_level: "owner" }]));
+    await expect(repository.listWorkspaceShares(workspace.id)).rejects.toThrow();
+    fetch.mockResolvedValue(response({ message: "Workspace owner access required" }, 403));
+    await expect(
+      repository.shareWorkspace(workspace.id, "ada@example.com", "viewer")
+    ).rejects.toThrow("Workspace owner access required");
+  });
+
   it("saves the plan start on the workspace and validates dates before requesting", async () => {
     const { fetch, response, repository } = setup();
     for (const date of ["", "2026-02-30", "2028-01-01"])

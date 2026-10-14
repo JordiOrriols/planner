@@ -14,7 +14,12 @@ const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = v
   setDelivered: vi.fn(),
   setPlanStart: vi.fn(),
   refresh: vi.fn(),
-  state: { isOwner: true, projects: [] as Project[], planStart: "2026-10-15" },
+  state: {
+    isOwner: true,
+    canEditOverride: null as boolean | null,
+    projects: [] as Project[],
+    planStart: "2026-10-15",
+  },
 }));
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({ repository: { toggleBacklog, reorder, setDelivered, setPlanStart } }),
@@ -22,6 +27,7 @@ vi.mock("@/data/DataProvider", () => ({
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
     ...state,
+    canEdit: state.canEditOverride ?? state.isOwner,
     workspace: { id: "squad", plan_start_date: state.planStart },
     members: [],
     availability: [],
@@ -38,6 +44,7 @@ function renderBacklog() {
 beforeEach(() => {
   vi.clearAllMocks();
   state.isOwner = true;
+  state.canEditOverride = null;
   state.planStart = "2026-10-15";
   setPlanStart.mockImplementation(async (_id: string, date: string) => {
     state.planStart = date;
@@ -61,6 +68,22 @@ beforeEach(() => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
+  it("allows shared editors to manage features and schedule without being owners", async () => {
+    state.isOwner = false;
+    state.canEditOverride = true;
+    const rendered = render(<Estimation />);
+    expect(screen.getByRole("button", { name: "New feature" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Edit Checkout" })).toBeVisible();
+    rendered.unmount();
+    state.projects[0]!.in_backlog = true;
+    renderBacklog();
+    expect(screen.getByLabelText("Plan starts")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Add projects" })).toBeVisible();
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
+    await waitFor(() => expect(setDelivered).toHaveBeenCalledWith("squad", "project", true));
+  });
+
   it("calls estimates features and keeps backlog actions off the estimation page", () => {
     render(<Estimation />);
     expect(screen.getByRole("heading", { name: "Feature estimation" })).toBeVisible();

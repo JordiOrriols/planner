@@ -1,6 +1,6 @@
 # Cadence / Planner
 
-Workspace-based microproject estimation, rough backlog scheduling and team
+Workspace-based feature estimation, rough backlog scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 
 ## Start locally
@@ -47,7 +47,14 @@ directives. Official Radix exports and the original UI Button are unchanged.
 
 - A verified signed-in user creates a workspace and links one or more existing
   Ladders teams on **Vacations**. Linking a new team requires team edit access.
-- Workspace owners manage estimates, backlog priorities and linked teams.
+- Workspace owners and explicitly shared editors manage feature estimates,
+  backlog priorities, delivery status and the plan start date.
+- Owners use **Share** beside the workspace selector to add a registered account
+  by email with **View** or **Edit** access, change permissions or remove a share.
+  This reuses the same UI package dialog and form hook as Ladders team sharing.
+  Shared workspaces appear when collaborators sign in using their platform account.
+  Only owners manage sharing, team links and workspace deletion.
+  Removing a workspace share does not revoke any existing linked-team viewing access.
 - Linked team collaborators can view plans. Existing Planner collaborators
   retain their workspace access, but new independent Planner invitations are
   no longer created.
@@ -92,7 +99,7 @@ or arrange an explicit UUID mapping before migrating old overrides.
 
 ## Estimates and scheduling
 
-For each microproject, enter people and weeks for backend, frontend, design and
+For each feature, enter people and weeks for backend, frontend, design and
 QA. People and weeks must be whole numbers. Both values must be positive for an
 active role (or both zero). Decimal input is rejected by the form, repository and
 database, never silently rounded. Existing fractional estimates are preserved
@@ -102,12 +109,15 @@ but must be edited to whole numbers before they can be scheduled.
 - **Ideal duration** is design weeks + the longer backend/frontend estimate + QA weeks.
 - **Peak team** is the sum of requested people across roles.
 - Only projects explicitly added to the backlog are scheduled.
-- Add/remove existing estimates directly on Backlog Plan using **Add projects**.
-  The picker links to Estimation when a new estimate is needed.
+- Add existing estimates on Backlog Plan using **Add projects**.
+  Estimation has no backlog toggle; the picker links there when a new feature is needed.
 - Reorder by dragging the project names on the left of the schedule. Keyboard
-  users can focus a name and press Arrow Up / Arrow Down. The adjacent remove
-  button removes the project from the plan, without deleting its estimate.
-- Workspace owners can mark a project **Delivered** (or undo it) beside its name.
+  users can focus a name and press Arrow Up / Arrow Down.
+- Right-click anywhere on a schedule row, including its name or bar, for
+  **Mark delivered** / **Undo delivery** and **Remove from schedule**.
+  Keyboard users can focus the row and press Shift+F10 or the context menu key.
+  Removal keeps the feature estimate. These menus use the UI package's Radix exports.
+- Workspace owners and editors can mark a project **Delivered** (or undo it).
   This persists a delivery status and turns its entire existing bar green;
   it does not release capacity or change forecast dates or backlog priority.
 - A blue **Today** line spans the chart at the current local calendar day, when
@@ -131,7 +141,7 @@ but must be edited to whole numbers before they can be scheduled.
   not presented as a successful completion date.
 - The Gantt forecast covers up to 52 weeks and stops at the last verified
   calendar day, including partial boundary weeks. **Plan starts** is saved on
-  the workspace whenever its owner changes it, so refreshes and other workspace
+  the workspace whenever its owner or an editor changes it, so refreshes and other workspace
   viewers use the same date. Existing and new workspaces initially use the
   database's current date; this saved date is not a delivery commitment.
 
@@ -161,6 +171,10 @@ project with approval:
    status, protected by the existing owner-only project write policy.
 7. `20261014225000_planner_workspace_plan_start.sql`: saved workspace plan start
    date, protected by existing owner-only workspace update permissions.
+8. `20261014230000_planner_workspace_sharing.sql`: owner-managed registered-account
+   View/Edit shares, editor project/start-date permissions and immutable workspace
+   identity. Supersedes owner-only project/start-date writes without changing
+   linked-team editing permissions.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this
