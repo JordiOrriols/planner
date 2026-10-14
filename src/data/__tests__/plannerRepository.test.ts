@@ -86,6 +86,55 @@ describe("Planner repository", () => {
     fetch.mockImplementation(async () => response([]));
     await expect(repository.loadVacation("token")).rejects.toThrow("Invalid vacation link");
   });
+  it("loads token identity, team names and scoped availability through separate validated RPCs", async () => {
+    const { fetch, response, repository } = setup();
+    const member = { id: workspace.owner_id, name: "Ada", role: "backend" };
+    const colleague = { id: workspace.id, name: "Grace", role: null };
+    const availability = [{ member_id: colleague.id, date: "2026-11-02", is_working: false }];
+    fetch.mockImplementation(async (url) => {
+      if (String(url).includes("planner_vacation_team_members"))
+        return response([member, colleague]);
+      if (String(url).includes("planner_vacation_team_list")) return response(availability);
+      return response([member]);
+    });
+    expect(await repository.loadVacation("token")).toEqual({
+      member,
+      members: [member, colleague],
+      availability,
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    for (const call of fetch.mock.calls)
+      expect(JSON.parse(String(call[1]?.body))).toEqual({ token: "token" });
+  });
+
+  it("paginates the team vacation list rather than hiding leave after the first page", async () => {
+    const { fetch, response, repository } = setup();
+    const member = { id: workspace.owner_id, name: "Ada", role: "backend" };
+    const availability = { member_id: member.id, date: "2026-11-02", is_working: false };
+    fetch.mockImplementation(async (url) => {
+      if (String(url).includes("planner_vacation_team_list"))
+        return response(
+          String(url).includes("offset=500") ? [availability] : Array(500).fill(availability)
+        );
+      return response([member]);
+    });
+    expect((await repository.loadVacation("token")).availability).toHaveLength(501);
+  });
+
+  it("surfaces team read errors and rejects inconsistent roster data", async () => {
+    const { fetch, response, repository } = setup();
+    const member = { id: workspace.owner_id, name: "Ada", role: "backend" };
+    fetch.mockImplementation(async (url) => {
+      if (String(url).includes("planner_vacation_team_members"))
+        return response({ message: "Team calendar unavailable" }, 500);
+      return response([member]);
+    });
+    await expect(repository.loadVacation("token")).rejects.toThrow("Team calendar unavailable");
+    fetch.mockImplementation(async (url) =>
+      response(String(url).includes("planner_vacation_member") ? [member] : [])
+    );
+    await expect(repository.loadVacation("token")).rejects.toThrow(/did not include its member/);
+  });
   it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
     const { fetch, response, repository } = setup();
     await expect(

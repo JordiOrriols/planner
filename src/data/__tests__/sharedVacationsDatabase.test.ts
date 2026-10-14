@@ -59,6 +59,7 @@ beforeAll(async () => {
     "20261003150000_planner_team_and_priority.sql",
     "20261003170000_planner_whole_estimates.sql",
     "20261003183000_planner_ladders_teams.sql",
+    "20261014223000_planner_vacation_team_calendar.sql",
   ]) {
     await db.exec(
       await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
@@ -97,6 +98,135 @@ afterAll(async () => {
 });
 
 describe("Shared Ladders roster and independent vacation token permissions", () => {
+  it("exposes only current-team names and vacations, while keeping writes and tokens member-only", async () => {
+    const grace = (
+      await db.query<{ id: string; vacation_token: string }>(
+        "insert into public.members(team_id,name,planning_role) values($1,'Grace','frontend') returning id,vacation_token",
+        [team]
+      )
+    ).rows[0]!;
+    const secondTeam = (
+      await db.query<{ id: string }>("select id from public.create_team('Separate')")
+    ).rows[0]!.id;
+    const outsider = (
+      await db.query<{ id: string }>(
+        "insert into public.members(team_id,name) values($1,'Outside') returning id",
+        [secondTeam]
+      )
+    ).rows[0]!;
+    await link(workspace, [team, secondTeam]);
+    await db.exec(`insert into public.planner_team_availability values
+      ('${member.id}','2026-11-02',true),
+      ('${grace.id}','2026-11-02',false),
+      ('${grace.id}','2026-11-03',true),
+      ('${outsider.id}','2026-11-02',false)`);
+    await login(null, "anon");
+    expect(
+      (
+        await db.query("select * from public.planner_vacation_team_members($1)", [
+          member.vacation_token,
+        ])
+      ).rows
+    ).toEqual([
+      { id: member.id, name: "Ada", role: "backend" },
+      { id: grace.id, name: "Grace", role: "frontend" },
+    ]);
+    expect(
+      (
+        await db.query("select * from public.planner_vacation_team_list($1)", [
+          member.vacation_token,
+        ])
+      ).rows
+    ).toEqual(
+      expect.arrayContaining([
+        { member_id: member.id, date: new Date("2026-11-02T00:00:00Z"), is_working: true },
+        { member_id: grace.id, date: new Date("2026-11-02T00:00:00Z"), is_working: false },
+      ])
+    );
+    expect(
+      (
+        await db.query("select * from public.planner_vacation_team_list($1)", [
+          member.vacation_token,
+        ])
+      ).rows
+    ).toHaveLength(2);
+    await db.query("select public.planner_vacation_save($1,'2026-11-02','2026-11-02',false)", [
+      member.vacation_token,
+    ]);
+    await db.query("select public.planner_vacation_clear($1,'2026-11-02')", [
+      member.vacation_token,
+    ]);
+    await expect(
+      db.query("select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',true)", [
+        grace.id,
+      ])
+    ).rejects.toThrow(/permission denied/);
+    await expect(db.exec("select * from public.members")).rejects.toThrow(/permission denied/);
+    await login(owner);
+    expect(
+      (
+        await db.query("select * from public.planner_team_availability where member_id=$1", [
+          grace.id,
+        ])
+      ).rows
+    ).toHaveLength(2);
+  });
+
+  it("follows the token member's current team after a move and rejects invalid read capabilities", async () => {
+    const grace = (
+      await db.query<{ id: string }>(
+        "insert into public.members(team_id,name) values($1,'Grace') returning id",
+        [team]
+      )
+    ).rows[0]!.id;
+    const secondTeam = (
+      await db.query<{ id: string }>("select id from public.create_team('New team')")
+    ).rows[0]!.id;
+    const newColleague = (
+      await db.query<{ id: string }>(
+        "insert into public.members(team_id,name) values($1,'New colleague') returning id",
+        [secondTeam]
+      )
+    ).rows[0]!.id;
+    await db.exec(`insert into public.planner_team_availability values
+      ('${grace}','2026-11-02',false), ('${newColleague}','2026-11-03',false)`);
+    await db.query("update public.members set team_id=$1 where id=$2", [secondTeam, member.id]);
+    await login(null, "anon");
+    const roster = (
+      await db.query<{ id: string }>("select * from public.planner_vacation_team_members($1)", [
+        member.vacation_token,
+      ])
+    ).rows;
+    expect(roster.map((row) => row.id)).toEqual([member.id, newColleague]);
+    expect(
+      (
+        await db.query<{ member_id: string }>(
+          "select * from public.planner_vacation_team_list($1)",
+          [member.vacation_token]
+        )
+      ).rows.map((row) => row.member_id)
+    ).toEqual([newColleague]);
+    for (const token of [
+      member.self_token,
+      member.peer_token,
+      member.view_token,
+      crypto.randomUUID(),
+      null,
+    ]) {
+      for (const fn of ["planner_vacation_team_members", "planner_vacation_team_list"]) {
+        await expect(db.query(`select * from public.${fn}($1)`, [token])).rejects.toThrow(
+          /Invalid vacation link/
+        );
+      }
+    }
+    await login(owner);
+    await db.query("delete from public.members where id=$1", [member.id]);
+    await login(null, "anon");
+    await expect(
+      db.query("select * from public.planner_vacation_team_members($1)", [member.vacation_token])
+    ).rejects.toThrow(/Invalid vacation link/);
+  });
+
   it("uses several live Ladders teams and shares role without changing job title", async () => {
     const second = (await db.query<{ id: string }>("select id from public.create_team('Second')"))
       .rows[0]!.id;

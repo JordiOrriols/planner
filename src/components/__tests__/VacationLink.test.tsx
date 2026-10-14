@@ -108,4 +108,31 @@ describe("Anonymous member vacation route", () => {
     expect(screen.getByRole("status")).toBeInTheDocument();
     expect(loadVacation).not.toHaveBeenCalled();
   });
+  it("shows teammates' vacation names and initials but never exposes their edit controls", async () => {
+    const grace = { id: "grace", name: "Grace", role: "frontend" };
+    loadVacation.mockResolvedValue({
+      member,
+      members: [member, grace],
+      availability: [
+        { member_id: "grace", date: "2026-11-02", is_working: false },
+        { member_id: "member", date: "2026-11-03", is_working: false },
+      ],
+    });
+    open();
+    await screen.findByRole("heading", { name: "Ada" });
+    expect(screen.getByLabelText("Team vacation legend")).toHaveTextContent("Grace");
+    expect(screen.getByLabelText("Grace: vacation")).toHaveTextContent("GGrace");
+    expect(screen.queryByRole("combobox", { name: "Member" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Restore calendar default for 2026-11-02" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Restore calendar default for 2026-11-03" })
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
+    await userEvent.click(screen.getByRole("button", { name: "Working Day" }));
+    await waitFor(() =>
+      expect(saveVacation).toHaveBeenCalledExactlyOnceWith(token, "2026-11-02", "2026-11-02", true)
+    );
+  });
 });
