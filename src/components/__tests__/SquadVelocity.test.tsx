@@ -116,6 +116,18 @@ function firstWeek() {
 describe("Squad velocity area and team series", () => {
   it("stacks all areas by default and preserves vacation/working-day capacity without counting unassigned members", () => {
     renderVelocity();
+    for (const selector of [
+      screen.getByRole("combobox", { name: "Velocity grouping" }),
+      screen.getByRole("button", { name: "Select velocity areas" }),
+    ])
+      expect(selector).toHaveClass("h-9", "w-36");
+    const legend = screen.getByRole("list", { name: "Velocity legend" });
+    expect(legend).toHaveClass("text-[11px]");
+    expect(
+      within(legend)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent)
+    ).toEqual(["Backend", "Frontend", "Design", "QA"]);
     expect(firstWeek()).toEqual([1.4, 1, 1, 1]);
     expect(JSON.parse(screen.getByTestId("velocity-chart").getAttribute("data-weeks")!)[0]).toEqual(
       {
@@ -144,6 +156,10 @@ describe("Squad velocity area and team series", () => {
     expect(firstWeek()).toEqual([1.4]);
     expect(screen.getByTestId("series-Backend")).not.toHaveAttribute("data-stack");
     expect(screen.queryByTestId("series-Frontend")).not.toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Velocity legend" })).toHaveTextContent("Backend");
+    expect(
+      within(screen.getByRole("list", { name: "Velocity legend" })).queryByText("Frontend")
+    ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "Frontend", exact: true }));
     expect(firstWeek()).toEqual([1.4, 1]);
     expect(screen.getByTestId("series-Backend")).toHaveAttribute("data-stack", "capacity");

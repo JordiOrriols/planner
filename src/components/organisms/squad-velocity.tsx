@@ -3,16 +3,7 @@ import { format } from "date-fns";
 import { buttonVariants } from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { Check, ChevronDown } from "@jordiorriols/ui/icons";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ROLES, ROLE_LABELS, squadVelocity } from "@/lib/planning";
 import type { Availability, LinkedTeam, PlannerMember } from "@/types/planner";
 
@@ -29,6 +20,10 @@ const TEAM_COLORS = [
 ];
 const MENU_ITEM =
   "relative flex items-center gap-2 rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted";
+const SELECTOR = buttonVariants({
+  variant: "outline",
+  className: "h-9 w-36 justify-between text-sm",
+});
 
 export default function SquadVelocity({
   members,
@@ -95,29 +90,32 @@ export default function SquadVelocity({
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid gap-1 text-xs text-muted-foreground">
             Group by
-            <select
-              className="field w-auto"
-              aria-label="Velocity grouping"
-              value={groupBy}
-              onChange={(event) => {
-                if (event.target.value === "areas" || event.target.value === "teams")
-                  setGroupBy(event.target.value);
-              }}
-            >
-              <option value="areas">Areas</option>
-              <option value="teams">Teams</option>
-            </select>
+            <span className="relative">
+              <select
+                className={`${SELECTOR} appearance-none pr-8`}
+                aria-label="Velocity grouping"
+                value={groupBy}
+                onChange={(event) => {
+                  if (event.target.value === "areas" || event.target.value === "teams")
+                    setGroupBy(event.target.value);
+                }}
+              >
+                <option value="areas">Areas</option>
+                <option value="teams">Teams</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
+            </span>
           </label>
           <div className="grid gap-1 text-xs text-muted-foreground">
             <span>{groupBy === "areas" ? "Areas" : "Teams"} to show</span>
             <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger
-                className={buttonVariants({ variant: "outline" })}
+                className={SELECTOR}
                 aria-label={`Select velocity ${groupBy}`}
                 disabled={!options.length}
               >
-                <span className="max-w-48 truncate">{selectionLabel}</span>
-                <ChevronDown className="size-4" />
+                <span className="min-w-0 truncate">{selectionLabel}</span>
+                <ChevronDown className="size-4 shrink-0" />
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
@@ -190,7 +188,6 @@ export default function SquadVelocity({
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals />
             <Tooltip />
-            <Legend />
             {series.map((item, index) => (
               <Bar
                 key={item.id}
@@ -203,6 +200,23 @@ export default function SquadVelocity({
             ))}
           </BarChart>
         </ResponsiveContainer>
+      )}
+      {series.length > 0 && (
+        <ul
+          aria-label="Velocity legend"
+          className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground"
+        >
+          {series.map((item) => (
+            <li key={item.id} className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-sm"
+                style={{ backgroundColor: item.color }}
+              />
+              {item.name}
+            </li>
+          ))}
+        </ul>
       )}
       <table className="sr-only">
         <caption>Weekly available person-weeks</caption>
