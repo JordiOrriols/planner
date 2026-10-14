@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { format, parseISO } from "date-fns";
-import { computeSchedule, squadVelocity, validateProject, parseDate } from "../planning";
+import {
+  computeSchedule,
+  squadVelocity,
+  validateProject,
+  parseDate,
+  durationWeeks,
+  totalDevWeeks,
+} from "../planning";
 import { BARCELONA_HOLIDAYS, isHoliday } from "../barcelonaHolidays";
 import {
   EMPTY_PROJECT,
@@ -30,6 +37,226 @@ const project = (id = "one", weeks = 1): Project => ({
 const date = (value: string) => parseISO(value);
 const end = (result: ReturnType<typeof computeSchedule>, index = 0) =>
   format(result.schedule[index]!.end!, "yyyy-MM-dd");
+
+const squad: PlannerMember[] = [
+  member,
+  { ...member, id: "backend-2" },
+  { ...member, id: "frontend", role: "frontend" },
+];
+const exampleProjects: Project[] = [
+  { ...project("Back Task", 2), backend_devs: 2, priority: 0 },
+  { ...project("1 Back Task Second", 2), priority: 1 },
+  { ...project("1 Back Task", 2), priority: 2 },
+  {
+    ...project("Front", 2),
+    backend_devs: 0,
+    backend_weeks: 0,
+    frontend_devs: 1,
+    frontend_weeks: 2,
+    priority: 3,
+  },
+  {
+    ...project("Mixed Project", 2),
+    backend_devs: 2,
+    frontend_devs: 1,
+    frontend_weeks: 2,
+    priority: 4,
+  },
+];
+
+describe("the two-backend / one-frontend backlog", () => {
+  it("fills weeks 1–2, overlaps single-backend tasks in weeks 3–4, and separates mixed roles", () => {
+    const result = computeSchedule(exampleProjects, squad, [], date("2026-02-02"), 6);
+    expect(
+      result.schedule.map((item) => ({
+        name: item.project.name,
+        complete: item.complete,
+        start: format(item.start!, "yyyy-MM-dd"),
+        end: format(item.end!, "yyyy-MM-dd"),
+        roles: item.roles.map((role) => ({
+          role: role.role,
+          start: format(role.start!, "yyyy-MM-dd"),
+          end: format(role.end!, "yyyy-MM-dd"),
+          weeks: role.allocations.map((allocation) => allocation.weekIndex),
+          effort: role.allocations.reduce((sum, allocation) => sum + allocation.personDays, 0),
+        })),
+      }))
+    ).toEqual([
+      {
+        name: "Back Task",
+        complete: true,
+        start: "2026-02-02",
+        end: "2026-02-13",
+        roles: [
+          { role: "backend", start: "2026-02-02", end: "2026-02-13", weeks: [0, 1], effort: 20 },
+        ],
+      },
+      {
+        name: "1 Back Task Second",
+        complete: true,
+        start: "2026-02-16",
+        end: "2026-02-27",
+        roles: [
+          { role: "backend", start: "2026-02-16", end: "2026-02-27", weeks: [2, 3], effort: 10 },
+        ],
+      },
+      {
+        name: "1 Back Task",
+        complete: true,
+        start: "2026-02-16",
+        end: "2026-02-27",
+        roles: [
+          { role: "backend", start: "2026-02-16", end: "2026-02-27", weeks: [2, 3], effort: 10 },
+        ],
+      },
+      {
+        name: "Front",
+        complete: true,
+        start: "2026-02-02",
+        end: "2026-02-13",
+        roles: [
+          { role: "frontend", start: "2026-02-02", end: "2026-02-13", weeks: [0, 1], effort: 10 },
+        ],
+      },
+      {
+        name: "Mixed Project",
+        complete: true,
+        start: "2026-02-16",
+        end: "2026-03-13",
+        roles: [
+          { role: "backend", start: "2026-03-02", end: "2026-03-13", weeks: [4, 5], effort: 20 },
+          { role: "frontend", start: "2026-02-16", end: "2026-02-27", weeks: [2, 3], effort: 10 },
+        ],
+      },
+    ]);
+    result.weeks.forEach((week, index) => {
+      expect(week.allocated).toBeCloseTo(index < 4 ? 3 : 2);
+      expect(week.allocated).toBeLessThanOrEqual(week.capacity + 1e-8);
+    });
+    for (const item of result.schedule) {
+      expect(
+        item.roles.flatMap((role) => role.allocations).reduce((sum, a) => sum + a.personDays / 5, 0)
+      ).toBe(totalDevWeeks(item.project));
+    }
+  });
+
+  it("uses backlog priority, not input order, when the mixed project precedes Front", () => {
+    const reordered = exampleProjects.map((item) => ({
+      ...item,
+      priority: item.name === "Mixed Project" ? 3 : item.name === "Front" ? 4 : item.priority,
+    }));
+    const result = computeSchedule(reordered.reverse(), squad, [], date("2026-02-02"), 6);
+    const mixed = result.schedule.find((item) => item.project.name === "Mixed Project")!;
+    const front = result.schedule.find((item) => item.project.name === "Front")!;
+    expect(format(mixed.roles.find((role) => role.role === "frontend")!.start!, "yyyy-MM-dd")).toBe(
+      "2026-02-02"
+    );
+    expect(format(front.start!, "yyyy-MM-dd")).toBe("2026-02-16");
+    expect(exampleProjects[4]!.priority).toBe(4);
+  });
+
+  it("records partial-week vacation work without allocating effort to an idle role", () => {
+    const result = computeSchedule(
+      exampleProjects,
+      squad,
+      [{ member_id: "frontend", date: "2026-02-03", is_working: false }],
+      date("2026-02-02"),
+      7
+    );
+    const front = result.schedule[3]!.roles[0]!;
+    expect(front.allocations.map((a) => a.personDays)).toEqual([4, 5, 1]);
+    const mixedFrontend = result.schedule[4]!.roles.find((role) => role.role === "frontend")!;
+    expect(format(mixedFrontend.start!, "yyyy-MM-dd")).toBe("2026-02-17");
+    expect(mixedFrontend.allocations.map((a) => a.personDays)).toEqual([4, 5, 1]);
+    for (const week of result.weeks)
+      expect(week.allocated).toBeLessThanOrEqual(week.capacity + 1e-8);
+  });
+});
+
+describe("design and QA phase dependencies", () => {
+  const phased = {
+    ...project("phased"),
+    design_devs: 1,
+    design_weeks: 1,
+    frontend_devs: 1,
+    frontend_weeks: 2,
+    qa_devs: 1,
+    qa_weeks: 1,
+  };
+  const fullSquad: PlannerMember[] = [
+    ...squad,
+    { ...member, id: "designer", role: "design" },
+    { ...member, id: "qa", role: "qa" },
+  ];
+
+  it("finishes design before development and waits for both development roles before QA", () => {
+    const result = computeSchedule([phased], fullSquad, [], date("2026-02-02"), 4);
+    expect(durationWeeks(phased)).toBe(4);
+    expect(
+      result.schedule[0]!.roles.map((role) => [
+        role.role,
+        format(role.start!, "yyyy-MM-dd"),
+        format(role.end!, "yyyy-MM-dd"),
+        role.complete,
+      ])
+    ).toEqual([
+      ["backend", "2026-02-09", "2026-02-13", true],
+      ["frontend", "2026-02-09", "2026-02-20", true],
+      ["design", "2026-02-02", "2026-02-06", true],
+      ["qa", "2026-02-23", "2026-02-27", true],
+    ]);
+    expect(end(result)).toBe("2026-02-27");
+  });
+
+  it("keeps QA pending when backend is blocked even after frontend completes", () => {
+    const vacations = Array.from({ length: 14 }, (_, i) => ({
+      member_id: member.id,
+      date: format(new Date(2026, 1, 9 + i), "yyyy-MM-dd"),
+      is_working: false,
+    }));
+    const result = computeSchedule(
+      [phased],
+      fullSquad.filter((m) => m.id !== "backend-2"),
+      vacations,
+      date("2026-02-02"),
+      4
+    );
+    const item = result.schedule[0]!;
+    expect(item.complete).toBe(false);
+    expect(item.end).toBeNull();
+    expect(item.reason).toMatch(/Not completed/);
+    expect(item.roles.find((role) => role.role === "qa")).toMatchObject({
+      start: null,
+      end: null,
+      complete: false,
+      allocations: [],
+    });
+    expect(item.roles.find((role) => role.role === "backend")!.complete).toBe(true);
+  });
+
+  it("allows design-only and QA-only projects without nonexistent dependencies", () => {
+    for (const role of ["design", "qa"] as const) {
+      const only = {
+        ...project(),
+        backend_devs: 0,
+        backend_weeks: 0,
+        [`${role}_devs`]: 1,
+        [`${role}_weeks`]: 1,
+      };
+      const result = computeSchedule([only], fullSquad, [], date("2026-02-02"), 1);
+      expect(end(result)).toBe("2026-02-06");
+      expect(result.schedule[0]!.roles).toHaveLength(1);
+      expect(result.schedule[0]!.roles[0]!.complete).toBe(true);
+    }
+  });
+
+  it("does not allocate any phase of a project that is missing a required role", () => {
+    const result = computeSchedule([phased], squad, [], date("2026-02-02"), 4);
+    expect(result.schedule[0]!.reason).toBe("No Design, QA capacity");
+    expect(result.schedule[0]!.roles.every((role) => role.allocations.length === 0)).toBe(true);
+    expect(result.weeks.every((week) => week.allocated === 0)).toBe(true);
+  });
+});
 
 describe("daily role-based capacity", () => {
   it("excludes unassigned Ladders members instead of silently assuming a role", () => {
