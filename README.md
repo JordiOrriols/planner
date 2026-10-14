@@ -61,6 +61,9 @@ directives. Official Radix exports and the original UI Button are unchanged.
   member's shared availability.
 - Workspace data is isolated by Row Level Security, including direct API calls.
 
+The team Vacations page shows squad velocity first, then the vacation calendar.
+Team linking and member planning roles are grouped under **Configuration** below them.
+
 ### Personal vacation links
 
 Copy **Vacations** from a Ladders member's share menu, or **Copy vacation link**
