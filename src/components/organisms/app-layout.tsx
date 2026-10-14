@@ -24,7 +24,7 @@ export default function AppLayout() {
       <AppHeader
         title={t("planner.name")}
         subtitle={t("planner.subtitle")}
-        icon={<GanttChartSquare />}
+        icon={<GanttChartSquare className="cadence-icon" />}
         actions={
           <LanguageSelector
             value={i18n.language}

@@ -13,7 +13,7 @@ export function WelcomePage() {
   return (
     <WelcomeScreen
       brand={t("planner.brand")}
-      icon={<GanttChartSquare />}
+      icon={<GanttChartSquare className="cadence-icon" />}
       title={t("planner.welcome.title")}
       description={t("planner.welcome.description")}
       features={[
