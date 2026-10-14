@@ -145,11 +145,9 @@ describe("Planner estimate and backlog controls", () => {
   it("removes a selected estimate without deleting it", async () => {
     state.projects[0]!.in_backlog = true;
     renderBacklog();
-    const schedule = screen.getByRole("region", { name: "Project schedule" });
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
-    await userEvent.click(
-      within(schedule).getByRole("button", { name: "Remove from backlog: Checkout" })
-    );
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
   });
@@ -199,7 +197,8 @@ describe("inline schedule priority controls", () => {
       state.projects = state.projects.map((p) => (p.id === id ? { ...p, delivered } : p));
     });
     const rendered = renderBacklog();
-    await userEvent.click(screen.getByRole("button", { name: "Mark delivered: Checkout" }));
+    fireEvent.contextMenu(screen.getByRole("button", { name: "Reorder Checkout" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(setDelivered).toHaveBeenCalledExactlyOnceWith("squad", "project", true);
     rendered.rerender(
@@ -207,11 +206,8 @@ describe("inline schedule priority controls", () => {
         <Backlog />
       </MemoryRouter>
     );
-    expect(screen.getByRole("button", { name: "Undo delivery: Checkout" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Undo delivery: Checkout" }));
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Undo delivery" }));
     await waitFor(() => expect(setDelivered).toHaveBeenLastCalledWith("squad", "project", false));
     expect(toggleBacklog).not.toHaveBeenCalled();
     expect(reorder).not.toHaveBeenCalled();
@@ -221,15 +217,14 @@ describe("inline schedule priority controls", () => {
     selectBacklog();
     setDelivered.mockRejectedValueOnce(new Error("Delivery could not be saved"));
     renderBacklog();
-    await userEvent.click(screen.getByRole("button", { name: "Mark delivered: Checkout" }));
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Delivery could not be saved")
     );
     expect(refresh).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Mark delivered: Checkout" })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toBeVisible();
   });
   it("moves a dragged project upward and saves all selected IDs in their new order", async () => {
     selectBacklog();
@@ -327,8 +322,16 @@ describe("inline schedule priority controls", () => {
       "draggable",
       "false"
     );
-    expect(screen.getByRole("button", { name: "Remove from backlog: Checkout" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Mark delivered: Checkout" })).toBeDisabled();
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    expect(screen.getByRole("menuitem", { name: "Remove from schedule" })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
+    await userEvent.keyboard("{Escape}");
     dragProject("Checkout", "Third");
     expect(reorder).toHaveBeenCalledOnce();
     finish();
@@ -345,6 +348,8 @@ describe("inline schedule priority controls", () => {
     expect(screen.queryByRole("button", { name: /^Remove from backlog:/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Mark delivered:/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Drag project names/)).not.toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("preserves removal controls when invalid estimates prevent computing the forecast", async () => {
@@ -352,7 +357,8 @@ describe("inline schedule priority controls", () => {
     state.projects[0]!.backend_weeks = 1.5;
     renderBacklog();
     expect(screen.getByRole("alert")).toHaveTextContent("whole numbers");
-    await userEvent.click(screen.getByRole("button", { name: "Remove from backlog: Checkout" }));
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
   });
@@ -361,7 +367,8 @@ describe("inline schedule priority controls", () => {
     selectBacklog();
     toggleBacklog.mockRejectedValue(new Error("Could not remove project"));
     renderBacklog();
-    await userEvent.click(screen.getByRole("button", { name: "Remove from backlog: Checkout" }));
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Could not remove project")
     );

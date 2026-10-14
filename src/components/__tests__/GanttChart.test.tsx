@@ -1,6 +1,7 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { parseISO } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
 import { computeSchedule } from "@/lib/planning";
@@ -55,6 +56,16 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("opens row actions from the project bar without inline action buttons", async () => {
+    const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
+    const remove = vi.fn();
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} onRemove={remove} />);
+    expect(screen.queryByRole("button", { name: /Remove/ })).not.toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByRole("group", { name: /^Mixed:/ }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
+    expect(remove).toHaveBeenCalledExactlyOnceWith("mixed");
+  });
+
   it("replaces all role halves and gray gaps with one fully green delivered bar", () => {
     const pending = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
     const delivered = computeSchedule(
