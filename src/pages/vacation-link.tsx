@@ -47,10 +47,6 @@ export default function VacationLink() {
               await repository.saveVacation(token, start, end, working);
               await client.invalidateQueries({ queryKey });
             }}
-            clear={async (date) => {
-              await repository.clearVacation(token, date);
-              await client.invalidateQueries({ queryKey });
-            }}
           />
         </section>
       )}

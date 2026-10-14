@@ -71,7 +71,9 @@ describe("Anonymous member vacation route", () => {
     await waitFor(() =>
       expect(saveVacation).toHaveBeenCalledWith(token, "2026-11-02", "2026-11-03", false)
     );
-    expect(await screen.findByText("2026-11-02: Not working")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Ada: vacation")).toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(screen.queryByText("2026-11-02: Not working")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "2026-11-02" })).toHaveAttribute(
       "aria-pressed",
       "true"
@@ -80,10 +82,7 @@ describe("Anonymous member vacation route", () => {
       "aria-pressed",
       "true"
     );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Restore calendar default for 2026-11-02" })
-    );
-    await waitFor(() => expect(clearVacation).toHaveBeenCalledWith(token, "2026-11-02"));
+    expect(clearVacation).not.toHaveBeenCalled();
   });
   it("rejects malformed routes and invalid capabilities explicitly instead of showing login", async () => {
     open("/vacations/not-a-token");
@@ -127,8 +126,8 @@ describe("Anonymous member vacation route", () => {
       screen.queryByRole("button", { name: "Restore calendar default for 2026-11-02" })
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Restore calendar default for 2026-11-03" })
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Restore calendar default for 2026-11-03" })
+    ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
     await userEvent.click(screen.getByRole("button", { name: "Working Day" }));
     await waitFor(() =>

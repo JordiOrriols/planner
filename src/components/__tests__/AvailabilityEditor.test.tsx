@@ -11,7 +11,6 @@ const grace = { id: "grace", name: "Grace", role: "frontend" as const };
 function open({
   canEdit = true,
   save = vi.fn().mockResolvedValue(undefined),
-  clear = vi.fn().mockResolvedValue(undefined),
   availability = [] as Availability[],
   initialMonth = new Date(2026, 10, 1),
 } = {}) {
@@ -26,12 +25,11 @@ function open({
         onMonthChange={setMonth}
         canEdit={canEdit}
         save={save}
-        clear={clear}
       />
     );
   }
   render(<Editor />);
-  return { save, clear };
+  return { save };
 }
 const day = (date: string) => screen.getByRole("button", { name: new RegExp(`^${date}( |$)`) });
 
@@ -127,6 +125,8 @@ describe("Shared vacation calendar editor", () => {
       ],
     });
     const adaMarker = within(day("2026-11-02")).getByLabelText("Ada: vacation");
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(screen.queryByText("2026-11-02: Not working")).not.toBeInTheDocument();
     const graceMarker = within(day("2026-11-02")).getByLabelText("Grace: vacation");
     expect(adaMarker).toHaveTextContent("AAda");
     expect(graceMarker).toHaveTextContent("GGrace");
@@ -145,7 +145,7 @@ describe("Shared vacation calendar editor", () => {
   });
 
   it("keeps read-only calendars visible without permitting selection or writes", () => {
-    const { save, clear } = open({
+    const { save } = open({
       canEdit: false,
       availability: [{ member_id: "ada", date: "2026-11-02", is_working: false }],
     });
@@ -153,11 +153,10 @@ describe("Shared vacation calendar editor", () => {
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Restore calendar default for 2026-11-02" })
-    ).toBeDisabled();
+      screen.queryByRole("button", { name: /Restore calendar default/ })
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText("Ada: vacation")).toBeInTheDocument();
     expect(save).not.toHaveBeenCalled();
-    expect(clear).not.toHaveBeenCalled();
   });
 
   it("rejects an overlong cross-year range before saving and disables unverified dates", async () => {

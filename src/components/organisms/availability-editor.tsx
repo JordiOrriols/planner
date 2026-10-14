@@ -15,7 +15,6 @@ export function AvailabilityEditor({
   onMonthChange,
   canEdit,
   save,
-  clear,
 }: {
   member: Pick<PlannerMember, "id" | "name" | "role">;
   members: Pick<PlannerMember, "id" | "name" | "role">[];
@@ -24,11 +23,9 @@ export function AvailabilityEditor({
   onMonthChange: (month: Date) => void;
   canEdit: boolean;
   save: (start: string, end: string, working: boolean) => Promise<void>;
-  clear: (date: string) => Promise<void>;
 }) {
   const [range, setRange] = useState<{ start: string; end: string | null } | null>(null);
   const action = useAsyncAction();
-  const overrides = availability.filter((item) => item.member_id === member.id);
   function apply(working: boolean) {
     void action.run(async () => {
       if (!canEdit) throw new Error("You cannot edit this member's availability.");
@@ -78,23 +75,6 @@ export function AvailabilityEditor({
         </p>
       )}
       {action.error && <p role="alert">{action.error}</p>}
-      <ul className="space-y-2">
-        {overrides.map((override) => (
-          <li key={override.date} className="flex flex-wrap items-center gap-3">
-            <span>
-              {override.date}: {override.is_working ? "Working" : "Not working"}
-            </span>
-            <Button
-              aria-label={`Restore calendar default for ${override.date}`}
-              variant="outline"
-              disabled={!canEdit || action.busy}
-              onClick={() => void action.run(() => clear(override.date))}
-            >
-              Restore default {override.date}
-            </Button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

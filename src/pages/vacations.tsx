@@ -186,10 +186,6 @@ export default function Vacations() {
               await repository.setAvailability(selectedMember.id, start, end, working);
               await refresh();
             }}
-            clear={async (date) => {
-              await repository.clearAvailability(selectedMember.id, date);
-              await refresh();
-            }}
           />
         </section>
       )}
