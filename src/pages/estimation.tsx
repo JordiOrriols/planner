@@ -22,10 +22,10 @@ export default function Estimation() {
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Microproject estimation
+            Feature estimation
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Estimate people and weeks per role. Select only the projects you want to plan.
+            Estimate people and weeks per role. Add features to your plan on the Schedule page.
           </p>
         </div>
         {isOwner && (
@@ -36,12 +36,12 @@ export default function Estimation() {
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            New microproject
+            New feature
           </Button>
         )}
       </div>
       <div className="grid grid-cols-3 gap-3 max-w-lg">
-        <Metric label="Microprojects" value={projects.length} />
+        <Metric label="Features" value={projects.length} />
         <Metric
           label="In backlog"
           value={projects.filter((project) => project.in_backlog).length}
@@ -64,7 +64,7 @@ export default function Estimation() {
       {!projects.length ? (
         <EmptyState
           icon={<Calculator />}
-          title="No microprojects yet"
+          title="No features yet"
           description="Create your first estimate to start planning."
         />
       ) : (
@@ -80,12 +80,6 @@ export default function Estimation() {
                 setFormOpen(true);
               }}
               onDelete={() => setDeleting(project)}
-              onToggleBacklog={() =>
-                void action.run(async () => {
-                  await repository.toggleBacklog(workspace.id, project.id, !project.in_backlog);
-                  await refresh();
-                })
-              }
             />
           ))}
         </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil, Trash2, Plus, Check } from "@jordiorriols/ui/icons";
+import { Pencil, Trash2 } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/types/planner";
 import {
@@ -16,14 +16,12 @@ export default function ProjectEstimateCard({
   project,
   onEdit,
   onDelete,
-  onToggleBacklog,
   disabled,
   readOnly,
 }: {
   project: Project;
   onEdit: () => void;
   onDelete: () => void;
-  onToggleBacklog: () => void;
   disabled: boolean;
   readOnly: boolean;
 }) {
@@ -47,21 +45,6 @@ export default function ProjectEstimateCard({
         </div>
         {!readOnly && (
           <div className="flex items-center gap-1 shrink-0">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={onToggleBacklog}
-              title={project.in_backlog ? "Remove from backlog" : "Add to backlog"}
-              aria-label={`${project.in_backlog ? "Remove from backlog" : "Add to backlog"}: ${project.name}`}
-              disabled={disabled}
-            >
-              {project.in_backlog ? (
-                <Check className="h-4 w-4 text-brand" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-            </Button>
             <Button
               size="icon"
               variant="ghost"

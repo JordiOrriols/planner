@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Backlog from "@/pages/backlog";
+import Estimation from "@/pages/estimation";
 import ProjectForm from "@/components/organisms/project-form";
 import { EMPTY_PROJECT, type Project } from "@/types/planner";
 
@@ -60,6 +61,15 @@ beforeEach(() => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
+  it("calls estimates features and keeps backlog actions off the estimation page", () => {
+    render(<Estimation />);
+    expect(screen.getByRole("heading", { name: "Feature estimation" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "New feature" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Edit Checkout" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /backlog/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/microproject/i)).not.toBeInTheDocument();
+  });
+
   it("uses the saved workspace date and retains a changed start after page remount", async () => {
     state.planStart = "2026-02-02";
     const rendered = renderBacklog();

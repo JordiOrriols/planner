@@ -31,7 +31,7 @@ export default function ProjectForm({
       onOpenChange={(value) => {
         if (!value && !action.busy) onClose();
       }}
-      title={initial ? "Edit microproject" : "New microproject"}
+      title={initial ? "Edit feature" : "New feature"}
       description="Roles run concurrently. Use whole numbers for people and weeks."
       closeLabel="Close"
     >
@@ -119,7 +119,7 @@ export default function ProjectForm({
           </p>
         )}
         <Button type="submit" disabled={action.busy}>
-          {action.busy ? "Saving..." : initial ? "Save changes" : "Create microproject"}
+          {action.busy ? "Saving..." : initial ? "Save changes" : "Create feature"}
         </Button>
       </form>
     </Modal>
