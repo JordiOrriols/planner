@@ -70,10 +70,17 @@ including any GitHub Pages subpath. Local Ladders development can use Planner
 on `http://127.0.0.1:5176`; production has no guessed-host fallback.
 
 These permanent, private bearer links let members update only their own
-availability without signing in. They do not grant access to teams, workspaces
-or evaluations. Self, peer and view evaluation tokens cannot be used for
+availability without signing in. They also show read-only names and vacation
+dates for the member's current Ladders team, not other linked teams or workspaces.
+Other members' working-day overrides and vacation tokens are not exposed.
+They do not grant team management, workspace or evaluation access. Self, peer and view evaluation tokens cannot be used for
 vacations. Keep links private: anyone possessing a vacation link can use it.
 Saved vacations immediately affect all workspaces containing that member.
+On both vacation pages, select the first and last calendar day (or select a
+single day), then click **Vacations** or **Working Day** to save immediately.
+The highlighted selection stays visible after saving and across month navigation.
+The calendar legend matches each member's name and initial to their vacation markers;
+normal weekends and holidays are not shown as saved vacations.
 
 Old `planner_members` and `planner_availability` rows are preserved as legacy
 data, not used as the current capacity roster. No automatic matching by email
@@ -126,8 +133,9 @@ Calendar values are date-only local calendar days, not UTC timestamps.
 
 ## Supabase setup
 
-The additive Planner migrations have been applied to the configured shared
-project with approval:
+The first four additive Planner migrations have been applied to the configured
+shared project with approval. The fifth migration must be applied before deploying
+the team vacation calendar:
 
 1. `20261003140000_planner_workspaces.sql`: workspace, member, project and daily
    availability tables, RLS, verified-email invitations and transactional actions.
@@ -138,6 +146,9 @@ project with approval:
 4. `20261003183000_planner_ladders_teams.sql`: workspace-to-Ladders-team links,
    global member availability and anonymous, member-scoped vacation RPCs.
    Adds nullable `members.planning_role` and immutable `members.vacation_token`.
+5. `20261014223000_planner_vacation_team_calendar.sql`: read-only, token-scoped
+   current-team names and vacations. Apply this migration before deploying the
+   updated personal vacation page. Save/reset capabilities remain member-only.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

@@ -147,13 +147,16 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
     },
     async loadVacation(token: string) {
-      const [members, availability] = await Promise.all([
+      const [identity, members, availability] = await Promise.all([
         rpc("planner_vacation_member", { token }),
-        rpcList("planner_vacation_list", availabilitySchema, { token }),
+        rpcList("planner_vacation_team_members", vacationMemberSchema, { token }),
+        rpcList("planner_vacation_team_list", availabilitySchema, { token }),
       ]);
-      const member = z.array(vacationMemberSchema).parse(members)[0];
+      const member = z.array(vacationMemberSchema).parse(identity)[0];
       if (!member) throw new Error("Invalid vacation link");
-      return { member, availability: z.array(availabilitySchema).parse(availability) };
+      if (!members.some((item) => item.id === member.id))
+        throw new Error("The vacation calendar did not include its member. Reload the page.");
+      return { member, members, availability };
     },
     saveVacation: (token: string, start: string, end: string, working: boolean) =>
       rpc("planner_vacation_save", { token, start_date: start, end_date: end, working }),

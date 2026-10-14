@@ -27,7 +27,8 @@ export default function VacationLink() {
       <h1 className="text-3xl font-bold">Your planned vacations</h1>
       <p className="text-muted-foreground">
         This personal link lets you update only your availability. Changes apply to every linked
-        planning workspace. Keep this link private.
+        planning workspace. You can also see vacations for your current team, but cannot edit them.
+        Keep this link private.
       </p>
       {query.isPending && <p role="status">Loading vacation calendar...</p>}
       {query.error && <p role="alert">{query.error.message}</p>}
@@ -37,7 +38,7 @@ export default function VacationLink() {
           <AvailabilityEditor
             key={token}
             member={query.data.member}
-            members={[query.data.member]}
+            members={query.data.members}
             availability={query.data.availability}
             month={month}
             onMonthChange={setMonth}
