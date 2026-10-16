@@ -8,6 +8,7 @@ const teammate = "22222222-2222-4222-8222-222222222222";
 const stranger = "33333333-3333-4333-8333-333333333333";
 let db: PGlite;
 let workspace: string;
+let project: string;
 async function login(id: string) {
   await db.exec("reset role");
   await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
@@ -31,6 +32,12 @@ beforeEach(async () => {
   await login(owner);
   const created = await db.query<{ id: string }>("select id from public.create_workspace('Squad')");
   workspace = created.rows[0]!.id;
+  project = (
+    await db.query<{ id: string }>(
+      "insert into public.projects(workspace_id,name) values($1,'Launch') returning id",
+      [workspace]
+    )
+  ).rows[0]!.id;
 });
 afterAll(async () => {
   await db?.close();
@@ -90,8 +97,8 @@ describe("Planner migration and real PostgreSQL permissions", () => {
   it("defaults delivery to false and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
     const feature = (
       await db.query<{ id: string; delivered: boolean }>(
-        "insert into public.features(workspace_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
-        [workspace]
+        "insert into public.features(project_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
+        [project]
       )
     ).rows[0]!;
     expect(feature.delivered).toBe(false);
@@ -144,32 +151,30 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       ]) {
         await expect(
           db.query(
-            `insert into public.features(workspace_id,name,${role}_devs,${role}_weeks)
+            `insert into public.features(project_id,name,${role}_devs,${role}_weeks)
            values($1,'Fractional',$2,$3)`,
-            [workspace, people, weeks]
+            [project, people, weeks]
           )
         ).rejects.toThrow(/features_whole_estimates/);
       }
     }
     const saved = await db.query<{ id: string }>(
-      "insert into public.features(workspace_id,name,backend_devs,backend_weeks) values($1,'Whole',1,2) returning id",
-      [workspace]
+      "insert into public.features(project_id,name,backend_devs,backend_weeks) values($1,'Whole',1,2) returning id",
+      [project]
     );
     await expect(
       db.query("update public.features set backend_weeks = 2.5 where id=$1", [saved.rows[0]!.id])
     ).rejects.toThrow(/features_whole_estimates/);
   });
   it("keeps outsiders out of both workspaces and data", async () => {
-    await db.query("insert into public.features(workspace_id,name) values($1,'Private')", [
-      workspace,
-    ]);
+    await db.query("insert into public.features(project_id,name) values($1,'Private')", [project]);
     await login(stranger);
     expect(
       (await db.query("select * from public.workspaces where id=$1", [workspace])).rows
     ).toHaveLength(0);
     expect((await db.query("select * from public.features")).rows).toHaveLength(0);
     await expect(
-      db.query("insert into public.features(workspace_id,name) values($1,'Bad')", [workspace])
+      db.query("insert into public.features(project_id,name) values($1,'Bad')", [project])
     ).rejects.toThrow(/row-level security/);
   });
   it("denies anonymous access and refuses unverified workspace creation", async () => {
@@ -189,14 +194,13 @@ describe("Planner migration and real PostgreSQL permissions", () => {
   });
   it("rejects inconsistent estimates and performs complete backlog reorder atomically", async () => {
     await expect(
-      db.query(
-        "insert into public.features(workspace_id,name,backend_devs) values($1,'Invalid',1)",
-        [workspace]
-      )
+      db.query("insert into public.features(project_id,name,backend_devs) values($1,'Invalid',1)", [
+        project,
+      ])
     ).rejects.toThrow(/check constraint/);
     const result = await db.query<{ id: string }>(
-      "insert into public.features(workspace_id,name,in_backlog) values($1,'A',true),($1,'B',true) returning id",
-      [workspace]
+      "insert into public.features(project_id,name,in_backlog) values($1,'A',true),($1,'B',true) returning id",
+      [project]
     );
     const ids = result.rows.map((row) => row.id).reverse();
     await db.query("select public.planner_reorder_features($1,$2::uuid[])", [workspace, ids]);
@@ -217,8 +221,8 @@ describe("Planner migration and real PostgreSQL permissions", () => {
   });
   it("appends projects with deterministic priorities and denies outsiders backlog changes", async () => {
     const features = await db.query<{ id: string }>(
-      "insert into public.features(workspace_id,name) values($1,'A'),($1,'B') returning id",
-      [workspace]
+      "insert into public.features(project_id,name) values($1,'A'),($1,'B') returning id",
+      [project]
     );
     for (const feature of features.rows)
       await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature.id]);

@@ -5,6 +5,11 @@ import userEvent from "@testing-library/user-event";
 import FeatureForm from "@/components/organisms/feature-form";
 import { EMPTY_FEATURE } from "@/types/planner";
 
+const projects = [
+  { id: "payments", workspace_id: "workspace", name: "Payments" },
+  { id: "growth", workspace_id: "workspace", name: "Growth" },
+];
+
 describe("Feature form footer actions", () => {
   it("places primary save beside discard and submits the associated form", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
@@ -12,8 +17,10 @@ describe("Feature form footer actions", () => {
     render(
       <FeatureForm
         open
-        initial={{ ...EMPTY_FEATURE, name: "Checkout" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "payments" }}
+        projects={projects}
         onSave={onSave}
+        onCreateProject={vi.fn()}
         onClose={onClose}
       />
     );
@@ -29,32 +36,34 @@ describe("Feature form footer actions", () => {
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
         ...EMPTY_FEATURE,
         name: "Checkout",
+        project_id: "payments",
       })
     );
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("assigns or clears the feature's project from the workspace list", async () => {
+  it("assigns the feature to a project from the workspace list", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <FeatureForm
         open
         initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "growth" }}
-        projects={[
-          { id: "payments", workspace_id: "workspace", name: "Payments" },
-          { id: "growth", workspace_id: "workspace", name: "Growth" },
-        ]}
+        projects={projects}
         onSave={onSave}
+        onCreateProject={vi.fn()}
         onClose={vi.fn()}
       />
     );
     const select = screen.getByLabelText("Project");
+    expect(select).toBeRequired();
     expect(select).toHaveValue("growth");
     expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
-      "No project",
+      "Choose a project",
       "Payments",
       "Growth",
+      "+ New project",
     ]);
+    expect(screen.getByRole("option", { name: "Choose a project" })).toBeDisabled();
     await userEvent.selectOptions(select, "Payments");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>
@@ -62,28 +71,86 @@ describe("Feature form footer actions", () => {
     );
   });
 
-  it("saves features without a project as null", async () => {
-    const onSave = vi.fn().mockResolvedValue(undefined);
+  it("requires choosing a project before saving a new feature", async () => {
+    const onSave = vi.fn();
     render(
       <FeatureForm
         open
-        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "payments" }}
-        projects={[{ id: "payments", workspace_id: "workspace", name: "Payments" }]}
+        initial={null}
+        projects={projects}
         onSave={onSave}
+        onCreateProject={vi.fn()}
         onClose={vi.fn()}
       />
     );
-    await userEvent.selectOptions(screen.getByLabelText("Project"), "No project");
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    await waitFor(() =>
-      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ project_id: null }))
+    await userEvent.type(screen.getByLabelText("Name"), "Checkout");
+    expect(screen.getByLabelText("Project")).toHaveValue("");
+    expect(screen.getByLabelText("Project")).toBeInvalid();
+    await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("creates a new project inline and saves the feature into it", async () => {
+    const onSave = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Save failed"))
+      .mockResolvedValue(undefined);
+    const onCreateProject = vi
+      .fn()
+      .mockResolvedValue({ id: "platform", workspace_id: "workspace", name: "Platform" });
+    const onClose = vi.fn();
+    render(
+      <FeatureForm
+        open
+        initial={null}
+        projects={projects}
+        onSave={onSave}
+        onCreateProject={onCreateProject}
+        onClose={onClose}
+      />
     );
+    await userEvent.type(screen.getByLabelText("Name"), "Checkout");
+    await userEvent.selectOptions(screen.getByLabelText("Project"), "+ New project");
+    await userEvent.type(screen.getByLabelText("New project name"), "Platform");
+    await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Save failed");
+    expect(onCreateProject).toHaveBeenCalledExactlyOnceWith("Platform");
+    expect(screen.getByLabelText("Project")).toHaveValue("platform");
+    expect(screen.queryByLabelText("New project name")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(onCreateProject).toHaveBeenCalledOnce();
+    expect(onSave).toHaveBeenLastCalledWith(
+      expect.objectContaining({ name: "Checkout", project_id: "platform" })
+    );
+  });
+
+  it("starts with a new project when the workspace has none", () => {
+    render(
+      <FeatureForm
+        open
+        initial={null}
+        onSave={vi.fn()}
+        onCreateProject={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    expect(screen.getByLabelText("Project")).toHaveValue("__new_project__");
+    expect(screen.getByLabelText("New project name")).toBeRequired();
   });
 
   it("discards changes without saving", async () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
-    render(<FeatureForm open initial={null} onSave={onSave} onClose={onClose} />);
+    render(
+      <FeatureForm
+        open
+        initial={null}
+        onSave={onSave}
+        onCreateProject={vi.fn()}
+        onClose={onClose}
+      />
+    );
     await userEvent.type(screen.getByLabelText("Name"), "Draft");
     await userEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(onSave).not.toHaveBeenCalled();
@@ -95,8 +162,10 @@ describe("Feature form footer actions", () => {
     render(
       <FeatureForm
         open
-        initial={{ ...EMPTY_FEATURE, name: "Checkout" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "payments" }}
+        projects={projects}
         onSave={vi.fn().mockRejectedValue(new Error("Save failed"))}
+        onCreateProject={vi.fn()}
         onClose={onClose}
       />
     );

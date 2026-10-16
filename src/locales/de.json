@@ -557,7 +557,11 @@
       "roleWeeks": "{{role}} Wochen",
       "project": "Projekt"
     },
-    "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen"
+    "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen",
+    "project": {
+      "choose": "Projekt auswählen",
+      "new": "+ Neues Projekt"
+    }
   },
   "featureCard": {
     "showDetails": "Bereichsdetails anzeigen",
@@ -812,7 +816,8 @@
       "rolePairRequired": "Lege für {{role}} sowohl Personen als auch Wochen fest oder lasse beide Angaben auf null.",
       "unverifiedStart": "Wähle ein Startdatum in einem Jahr mit bestätigten Feiertagen (2026 oder 2027).",
       "unverifiedWorkingYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt.",
-      "unverifiedYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt"
+      "unverifiedYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt",
+      "projectRequired": "Wähle ein Projekt für dieses Feature."
     }
   },
   "holidays": {
@@ -839,7 +844,7 @@
   "projects": {
     "title": "Projekte",
     "manage": "Projekte verwalten",
-    "description": "Ordne Features ihrem Hauptprojekt zu. Beim Löschen eines Projekts bleiben seine Features erhalten und landen unter Kein Projekt.",
+    "description": "Gruppiere Features unter dem Hauptprojekt, zu dem sie gehören. Ein Projekt kann gelöscht werden, sobald es keine Features mehr hat.",
     "none": "Kein Projekt",
     "empty": "Noch keine Projekte.",
     "fields": {
@@ -853,7 +858,9 @@
       "done": "Fertig"
     },
     "errors": {
-      "invalidName": "Projektnamen müssen zwischen 1 und 80 Zeichen lang sein."
-    }
+      "invalidName": "Projektnamen müssen zwischen 1 und 80 Zeichen lang sein.",
+      "hasFeatures": "Verschiebe oder lösche zuerst die Features dieses Projekts."
+    },
+    "inUse": "Lösche oder verschiebe zuerst die Features dieses Projekts."
   }
 }

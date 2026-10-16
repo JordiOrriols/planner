@@ -155,12 +155,12 @@ describe("Planner repository", () => {
     );
     await expect(repository.listWorkspaces()).rejects.toThrow("Only the owner can edit");
   });
-  it("persists delivery separately from estimates and scopes writes to both workspace and project", async () => {
+  it("persists delivery separately from estimates and scopes the write to the feature", async () => {
     const { fetch, response, repository } = setup();
     const feature = {
       ...EMPTY_FEATURE,
       id: workspace.owner_id,
-      workspace_id: workspace.id,
+      project_id: "33333333-3333-4333-8333-333333333333",
       name: "Feature",
       in_backlog: true,
       priority: 0,
@@ -168,20 +168,20 @@ describe("Planner repository", () => {
     };
     const row = feature;
     fetch.mockResolvedValue(response(row));
-    expect(await repository.setDelivered(workspace.id, feature.id, true)).toEqual(feature);
+    expect(await repository.setDelivered(feature.id, true)).toEqual(feature);
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
     const url = String(fetch.mock.calls[0]?.[0]);
     expect(url).toContain(`id=eq.${feature.id}`);
-    expect(url).toContain(`workspace_id=eq.${workspace.id}`);
+    expect(url).not.toContain("workspace_id");
     fetch.mockResolvedValue(response({ ...row, delivered: false }));
-    expect((await repository.setDelivered(workspace.id, feature.id, false)).delivered).toBe(false);
+    expect((await repository.setDelivered(feature.id, false)).delivered).toBe(false);
     fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
-    await expect(repository.setDelivered(workspace.id, feature.id, true)).rejects.toThrow(
+    await expect(repository.setDelivered(feature.id, true)).rejects.toThrow(
       "Only the owner can edit"
     );
     fetch.mockResolvedValue(response(null));
-    await expect(repository.setDelivered(workspace.id, feature.id, true)).rejects.toThrow();
+    await expect(repository.setDelivered(feature.id, true)).rejects.toThrow();
   });
   it("does not silently truncate more than one page of workspaces", async () => {
     const { fetch, response, repository } = setup();
@@ -298,15 +298,18 @@ describe("Planner repository", () => {
   it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
     const { fetch, response, repository } = setup();
     await expect(
-      repository.saveFeature(workspace.id, { ...EMPTY_FEATURE, name: "Invalid", backend_devs: 1 })
+      repository.saveFeature({ ...EMPTY_FEATURE, name: "Invalid", backend_devs: 1 })
     ).rejects.toThrow(/both/);
+    await expect(repository.saveFeature({ ...EMPTY_FEATURE, name: "Orphan" })).rejects.toThrow(
+      "Choose a project for this feature."
+    );
     for (const role of ["backend", "frontend", "design", "qa"] as const) {
       for (const [people, weeks] of [
         [1.5, 1],
         [1, 1.5],
       ]) {
         await expect(
-          repository.saveFeature(workspace.id, {
+          repository.saveFeature({
             ...EMPTY_FEATURE,
             name: "Fractional",
             [`${role}_devs`]: people,
@@ -334,20 +337,45 @@ describe("Planner repository", () => {
         name: "Checkout",
         project_id: project,
         id: workspace.owner_id,
-        workspace_id: workspace.id,
         in_backlog: false,
         delivered: false,
         priority: 0,
       })
     );
-    const saved = await repository.saveFeature(workspace.id, input);
+    const saved = await repository.saveFeature(input);
     expect(saved).toMatchObject({ name: "Checkout", project_id: project });
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
-    expect(body).toMatchObject({
+    expect(body).toMatchObject({ name: "Checkout", project_id: project });
+    expect(body).not.toHaveProperty("workspace_id");
+  });
+  it("loads a workspace's features through their project", async () => {
+    const { fetch, response, repository } = setup();
+    const project = "33333333-3333-4333-8333-333333333333";
+    const feature = {
+      ...EMPTY_FEATURE,
+      id: workspace.owner_id,
       name: "Checkout",
       project_id: project,
-      workspace_id: workspace.id,
+      in_backlog: false,
+      delivered: false,
+      priority: 0,
+      projects: { workspace_id: workspace.id },
+    };
+    fetch.mockImplementation(async (url) => {
+      const path = String(url);
+      if (path.includes("/rest/v1/features?")) return response([feature]);
+      if (path.includes("planner_can_edit_workspace")) return response(true);
+      return response([]);
     });
+    const { features } = await repository.loadWorkspace(workspace.id);
+    const { projects: _join, ...expected } = feature;
+    expect(features).toEqual([expected]);
+    const url = decodeURIComponent(
+      String(fetch.mock.calls.find(([path]) => String(path).includes("/features?"))?.[0])
+    );
+    expect(url).toContain("select=*,projects!inner(workspace_id)");
+    expect(url).toContain(`projects.workspace_id=eq.${workspace.id}`);
+    expect(url).not.toMatch(/[?&]workspace_id=/);
   });
 });

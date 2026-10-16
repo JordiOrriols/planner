@@ -108,9 +108,7 @@ export default function Estimation() {
                   <FeatureEstimateCard
                     key={feature.id}
                     feature={feature}
-                    projectName={
-                      feature.project_id ? projectNames.get(feature.project_id) : undefined
-                    }
+                    projectName={projectNames.get(feature.project_id)}
                     disabled={action.busy}
                     readOnly={!canEdit}
                     onEdit={() => {
@@ -131,8 +129,9 @@ export default function Estimation() {
           onClose={() => setFormOpen(false)}
           initial={editing}
           projects={projects}
+          onCreateProject={(name) => repository.createProject(workspace.id, name)}
           onSave={async (input) => {
-            await repository.saveFeature(workspace.id, input, editing?.id);
+            await repository.saveFeature(input, editing?.id);
             await refresh();
           }}
         />
@@ -142,6 +141,7 @@ export default function Estimation() {
           open
           onClose={() => setManagingProjects(false)}
           projects={projects}
+          projectsInUse={new Set(features.map((feature) => feature.project_id))}
           onCreate={async (name) => {
             await repository.createProject(workspace.id, name);
             await refresh();
@@ -166,7 +166,7 @@ export default function Estimation() {
         onConfirm={() => {
           if (!deleting || action.busy) return;
           void action.run(async () => {
-            await repository.deleteFeature(workspace.id, deleting.id);
+            await repository.deleteFeature(deleting.id);
             setDeleting(null);
             await refresh();
           });

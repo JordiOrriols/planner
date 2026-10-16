@@ -9,6 +9,7 @@ export default function ProjectsManager({
   open,
   onClose,
   projects,
+  projectsInUse,
   onCreate,
   onRename,
   onDelete,
@@ -16,6 +17,7 @@ export default function ProjectsManager({
   open: boolean;
   onClose: () => void;
   projects: Project[];
+  projectsInUse: ReadonlySet<string>;
   onCreate: (name: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -65,6 +67,7 @@ export default function ProjectsManager({
                 key={`${project.id}-${project.name}`}
                 project={project}
                 busy={action.busy}
+                inUse={projectsInUse.has(project.id)}
                 onRename={(value) => void action.run(() => onRename(project.id, value))}
                 onDelete={() => void action.run(() => onDelete(project.id))}
               />
@@ -86,11 +89,13 @@ export default function ProjectsManager({
 function ProjectRow({
   project,
   busy,
+  inUse,
   onRename,
   onDelete,
 }: {
   project: Project;
   busy: boolean;
+  inUse: boolean;
   onRename: (name: string) => void;
   onDelete: () => void;
 }) {
@@ -128,7 +133,8 @@ function ProjectRow({
           size="icon"
           variant="ghost"
           className="size-8 shrink-0 text-destructive hover:text-destructive"
-          disabled={busy}
+          disabled={busy || inUse}
+          title={inUse ? t("projects.inUse") : undefined}
           aria-label={t("projects.actions.delete", { projectName: project.name })}
           onClick={onDelete}
         >

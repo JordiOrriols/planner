@@ -219,14 +219,14 @@ Role colors live in `src/config/roleColors.ts`, which uses the roadmap palette.
 Estimation's role-colored effort titles, the feature form, the roadmap legend and
 bars, and velocity charts all read from it.
 
-Features can optionally belong to a **main project**. Owners/editors use
-**Manage projects** on Estimation to add, rename or delete the workspace's
-project list. Names must be unique ignoring case, and deleting a project keeps
-its features, which move to **No project**. Choose a feature's project in the
-feature form. Estimation shows the project label before the feature title. The
-Roadmap keeps strict priority order and inserts a project heading whenever
-consecutive features belong to a different project. No headings appear when no
-roadmap feature has a project.
+Every feature belongs to a **main project**, and features reach their workspace
+through that project. Owners/editors use **Manage projects** on Estimation to
+add, rename or delete the workspace's project list. Names must be unique
+ignoring case, and a project can only be deleted once it has no features. The
+feature form requires a project; choose **+ New project** to create one inline
+while saving the feature. Estimation shows the project label before the feature
+title. The Roadmap keeps strict priority order and inserts a project heading
+whenever consecutive features belong to a different project.
 Feature creation and editing share footer actions: a primary Create/Save button
 beside Discard. Discard closes without saving; failed saves keep the draft open.
 People and weeks must be whole numbers. Both values must be positive for an
@@ -338,6 +338,11 @@ project with approval:
     another workspace, a workspace that still holds teams cannot be deleted,
     `planner_set_workspace_teams` is dropped and `create_team(p_name, p_workspace)`
     adds a team to a workspace of its owner.
+21. `20261017020000_features_belong_to_a_project.sql`: every feature belongs to
+    a project. Project-less features move into a **General** project of their
+    workspace, `features.workspace_id` is dropped, feature access and the roadmap
+    RPCs go through the project, and a project with features cannot be deleted
+    (deleting the workspace still removes everything).
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

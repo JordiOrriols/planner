@@ -11,7 +11,7 @@ import { EMPTY_FEATURE, ROLES, type Feature } from "@/types/planner";
 const feature: Feature = {
   ...EMPTY_FEATURE,
   id: "feature",
-  workspace_id: "workspace",
+  project_id: "project",
   name: "Checkout",
   description: "A readable feature estimate",
   backend_devs: 2,

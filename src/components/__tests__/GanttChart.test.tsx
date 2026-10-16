@@ -37,7 +37,7 @@ const members: PlannerMember[] = [
 const mixed: Feature = {
   ...EMPTY_FEATURE,
   id: "mixed",
-  workspace_id: "workspace",
+  project_id: "project",
   name: "Mixed",
   in_backlog: true,
   delivered: false,

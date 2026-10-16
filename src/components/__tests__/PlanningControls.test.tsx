@@ -55,7 +55,7 @@ beforeEach(() => {
     {
       ...EMPTY_FEATURE,
       id: "project",
-      workspace_id: "squad",
+      project_id: "payments",
       name: "Checkout",
       backend_devs: 1,
       backend_weeks: 1,
@@ -131,7 +131,7 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.getByRole("button", { name: "Add feature" })).toBeVisible();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
-    await waitFor(() => expect(setDelivered).toHaveBeenCalledWith("squad", "project", true));
+    await waitFor(() => expect(setDelivered).toHaveBeenCalledWith("project", true));
   });
 
   it("calls estimates features and keeps backlog actions off the estimation page", () => {
@@ -306,14 +306,14 @@ function dragFeature(from: string, to: string) {
 describe("inline schedule priority controls", () => {
   it("persists delivery, refreshes it, and allows undoing without changing backlog inclusion", async () => {
     selectBacklog();
-    setDelivered.mockImplementation(async (_workspace: string, id: string, delivered: boolean) => {
+    setDelivered.mockImplementation(async (id: string, delivered: boolean) => {
       state.features = state.features.map((p) => (p.id === id ? { ...p, delivered } : p));
     });
     const rendered = renderBacklog();
     fireEvent.contextMenu(screen.getByRole("button", { name: "Reorder Checkout" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(setDelivered).toHaveBeenCalledExactlyOnceWith("squad", "project", true);
+    expect(setDelivered).toHaveBeenCalledExactlyOnceWith("project", true);
     rendered.rerender(
       <MemoryRouter>
         <Backlog />
@@ -321,7 +321,7 @@ describe("inline schedule priority controls", () => {
     );
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     await userEvent.click(screen.getByRole("menuitem", { name: "Undo delivery" }));
-    await waitFor(() => expect(setDelivered).toHaveBeenLastCalledWith("squad", "project", false));
+    await waitFor(() => expect(setDelivered).toHaveBeenLastCalledWith("project", false));
     expect(toggleBacklog).not.toHaveBeenCalled();
     expect(reorder).not.toHaveBeenCalled();
   });

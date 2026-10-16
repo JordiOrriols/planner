@@ -557,7 +557,11 @@
       "roleWeeks": "Settimane {{role}}",
       "project": "Progetto"
     },
-    "summary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona"
+    "summary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona",
+    "project": {
+      "choose": "Scegli un progetto",
+      "new": "+ Nuovo progetto"
+    }
   },
   "featureCard": {
     "showDetails": "Mostra dettagli per area",
@@ -812,7 +816,8 @@
       "rolePairRequired": "Imposta sia il numero di persone sia quello di settimane per {{role}}, oppure lascia entrambi a zero.",
       "unverifiedStart": "Scegli una data iniziale in un anno con festività verificate (2026 o 2027).",
       "unverifiedWorkingYear": "Le festività di Barcellona non sono verificate per {{year}}.",
-      "unverifiedYear": "Le festività di Barcellona non sono verificate per {{year}}"
+      "unverifiedYear": "Le festività di Barcellona non sono verificate per {{year}}",
+      "projectRequired": "Scegli un progetto per questa funzionalità."
     }
   },
   "holidays": {
@@ -839,7 +844,7 @@
   "projects": {
     "title": "Progetti",
     "manage": "Gestisci progetti",
-    "description": "Raggruppa le funzionalità sotto il loro progetto principale. Eliminando un progetto, le sue funzionalità restano e passano a Nessun progetto.",
+    "description": "Raggruppa le funzionalità sotto il progetto principale a cui appartengono. Un progetto può essere eliminato quando non ha più funzionalità.",
     "none": "Nessun progetto",
     "empty": "Ancora nessun progetto.",
     "fields": {
@@ -853,7 +858,9 @@
       "done": "Fatto"
     },
     "errors": {
-      "invalidName": "Il nome del progetto deve avere tra 1 e 80 caratteri."
-    }
+      "invalidName": "Il nome del progetto deve avere tra 1 e 80 caratteri.",
+      "hasFeatures": "Sposta o elimina prima le funzionalità di questo progetto."
+    },
+    "inUse": "Elimina o sposta prima le funzionalità di questo progetto."
   }
 }

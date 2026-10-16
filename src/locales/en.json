@@ -557,7 +557,11 @@
       "roleWeeks": "{{role}} weeks",
       "project": "Project"
     },
-    "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks"
+    "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks",
+    "project": {
+      "choose": "Choose a project",
+      "new": "+ New project"
+    }
   },
   "featureCard": {
     "showDetails": "Show role details",
@@ -812,7 +816,8 @@
       "rolePairRequired": "Set both people and weeks for {{role}}, or leave both at zero.",
       "unverifiedStart": "Choose a start date in a verified holiday year (2026 or 2027).",
       "unverifiedWorkingYear": "Barcelona holidays are not verified for {{year}}.",
-      "unverifiedYear": "Barcelona holidays are not verified for {{year}}"
+      "unverifiedYear": "Barcelona holidays are not verified for {{year}}",
+      "projectRequired": "Choose a project for this feature."
     }
   },
   "holidays": {
@@ -839,7 +844,7 @@
   "projects": {
     "title": "Projects",
     "manage": "Manage projects",
-    "description": "Group features under the main project they belong to. Deleting a project keeps its features and moves them to No project.",
+    "description": "Group features under the main project they belong to. A project can be deleted once it has no features.",
     "none": "No project",
     "empty": "No projects yet.",
     "fields": {
@@ -853,7 +858,9 @@
       "done": "Done"
     },
     "errors": {
-      "invalidName": "Project names need between 1 and 80 characters."
-    }
+      "invalidName": "Project names need between 1 and 80 characters.",
+      "hasFeatures": "Move or delete the features of this project first."
+    },
+    "inUse": "Delete or move this project's features first."
   }
 }

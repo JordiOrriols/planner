@@ -557,7 +557,11 @@
       "roleWeeks": "Semaines {{role}}",
       "project": "Projet"
     },
-    "summary": "Équipe maximale : {{people}} personnes · Durée idéale : {{weeks}} semaines · Effort : {{effort}} semaines-personne"
+    "summary": "Équipe maximale : {{people}} personnes · Durée idéale : {{weeks}} semaines · Effort : {{effort}} semaines-personne",
+    "project": {
+      "choose": "Choisir un projet",
+      "new": "+ Nouveau projet"
+    }
   },
   "featureCard": {
     "showDetails": "Afficher les détails par domaine",
@@ -812,7 +816,8 @@
       "rolePairRequired": "Renseignez le nombre de personnes et de semaines pour {{role}}, ou laissez les deux à zéro.",
       "unverifiedStart": "Choisissez une date de début dans une année dont les jours fériés sont vérifiés (2026 ou 2027).",
       "unverifiedWorkingYear": "Les jours fériés de Barcelone ne sont pas vérifiés pour {{year}}.",
-      "unverifiedYear": "Les jours fériés de Barcelone ne sont pas vérifiés pour {{year}}"
+      "unverifiedYear": "Les jours fériés de Barcelone ne sont pas vérifiés pour {{year}}",
+      "projectRequired": "Choisissez un projet pour cette fonctionnalité."
     }
   },
   "holidays": {
@@ -839,7 +844,7 @@
   "projects": {
     "title": "Projets",
     "manage": "Gérer les projets",
-    "description": "Regroupez les fonctionnalités sous leur projet principal. Supprimer un projet conserve ses fonctionnalités et les place dans Sans projet.",
+    "description": "Regroupez les fonctionnalités sous le projet principal auquel elles appartiennent. Un projet peut être supprimé lorsqu'il n'a plus de fonctionnalités.",
     "none": "Sans projet",
     "empty": "Aucun projet pour le moment.",
     "fields": {
@@ -853,7 +858,9 @@
       "done": "Terminé"
     },
     "errors": {
-      "invalidName": "Le nom du projet doit contenir entre 1 et 80 caractères."
-    }
+      "invalidName": "Le nom du projet doit contenir entre 1 et 80 caractères.",
+      "hasFeatures": "Déplacez ou supprimez d'abord les fonctionnalités de ce projet."
+    },
+    "inUse": "Supprimez ou déplacez d'abord les fonctionnalités de ce projet."
   }
 }

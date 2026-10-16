@@ -35,10 +35,9 @@ const memberSchema = z.object({
 });
 const featureSchema = z.object({
   id: z.string().uuid(),
-  workspace_id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
-  project_id: z.string().uuid().nullable(),
+  project_id: z.string().uuid(),
   in_backlog: z.boolean(),
   delivered: z.boolean(),
   priority: z.number(),
@@ -100,18 +99,19 @@ export function createPlannerRepository(client: SupabaseClient) {
   async function list<T>(
     table: string,
     schema: z.ZodType<T, z.ZodTypeDef, unknown>,
-    workspace?: string
+    workspace?: string,
+    { select = "*", workspaceColumn = "workspace_id" } = {}
   ): Promise<T[]> {
     // Supabase caps response sizes. Page instead of silently truncating capacity/history.
     const result: T[] = [];
     for (let offset = 0; ; offset += 500) {
       let query = client
         .from(table)
-        .select("*")
+        .select(select)
         .order(table === "vacations" ? "date" : "id")
         .range(offset, offset + 499);
       if (table === "vacations") query = query.order("member_id");
-      if (workspace) query = query.eq("workspace_id", workspace);
+      if (workspace) query = query.eq(workspaceColumn, workspace);
       const { data, error } = await query;
       if (error) throw new Error(error.message, { cause: error });
       const page = z.array(schema).parse(data);
@@ -171,7 +171,11 @@ export function createPlannerRepository(client: SupabaseClient) {
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
       const [features, projects, members, linkedTeams, canEdit] = await Promise.all([
-        list("features", featureSchema, workspace),
+        // Features reach their workspace through their project.
+        list("features", featureSchema, workspace, {
+          select: "*, projects!inner(workspace_id)",
+          workspaceColumn: "projects.workspace_id",
+        }),
         list("projects", projectSchema, workspace).then((items) =>
           items.sort((a, b) => a.name.localeCompare(b.name))
         ),
@@ -185,15 +189,12 @@ export function createPlannerRepository(client: SupabaseClient) {
       );
       return { features, projects, members, vacations, linkedTeams, canEdit };
     },
-    async saveFeature(workspace: string, input: FeatureInput, id?: string) {
+    async saveFeature(input: FeatureInput, id?: string) {
       validateFeature(input);
-      const payload = {
-        ...input,
-        name: input.name.trim(),
-        workspace_id: workspace,
-      };
+      if (!input.project_id) throw new Error(i18n.t("planning.validation.projectRequired"));
+      const payload = { ...input, name: input.name.trim() };
       const query = id
-        ? client.from("features").update(payload).eq("id", id).eq("workspace_id", workspace)
+        ? client.from("features").update(payload).eq("id", id)
         : client.from("features").insert(payload);
       const { data, error } = await query.select("*").single();
       if (error) throw new Error(error.message, { cause: error });
@@ -225,30 +226,34 @@ export function createPlannerRepository(client: SupabaseClient) {
         .delete()
         .eq("id", id)
         .eq("workspace_id", workspace);
-      if (error) throw new Error(error.message, { cause: error });
+      if (error)
+        throw new Error(
+          /features of this project/.test(error.message)
+            ? i18n.t("projects.errors.hasFeatures")
+            : error.message,
+          { cause: error }
+        );
     },
     async toggleBacklog(workspace: string, id: string, inBacklog: boolean) {
       return featureSchema.parse(
         await rpc("planner_toggle_backlog", { workspace, feature: id, included: inBacklog })
       );
     },
-    async deleteFeature(workspace: string, id: string) {
+    async deleteFeature(id: string) {
       const { error, data } = await client
         .from("features")
         .delete()
         .eq("id", id)
-        .eq("workspace_id", workspace)
         .select("id")
         .single();
       if (error) throw new Error(error.message, { cause: error });
       if (!data) throw new Error(i18n.t("planning.errors.featureNotDeleted"));
     },
-    async setDelivered(workspace: string, id: string, delivered: boolean) {
+    async setDelivered(id: string, delivered: boolean) {
       const { data, error } = await client
         .from("features")
         .update({ delivered })
         .eq("id", id)
-        .eq("workspace_id", workspace)
         .select("*")
         .single();
       if (error) throw new Error(error.message, { cause: error });

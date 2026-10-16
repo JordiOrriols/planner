@@ -558,7 +558,11 @@
       "roleWeeks": "Setmanes de {{role}}",
       "project": "Projecte"
     },
-    "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona"
+    "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona",
+    "project": {
+      "choose": "Tria un projecte",
+      "new": "+ Nou projecte"
+    }
   },
   "featureCard": {
     "showDetails": "Mostra els detalls per àrea",
@@ -813,7 +817,8 @@
       "rolePairRequired": "Indica tant el nombre de persones com el de setmanes per a {{role}}, o deixa'ls tots dos a zero.",
       "unverifiedStart": "Tria una data d'inici d'un any amb festius verificats (2026 o 2027).",
       "unverifiedWorkingYear": "Els festius de Barcelona no estan verificats per al {{year}}.",
-      "unverifiedYear": "Els festius de Barcelona no estan verificats per al {{year}}"
+      "unverifiedYear": "Els festius de Barcelona no estan verificats per al {{year}}",
+      "projectRequired": "Tria un projecte per a aquesta funcionalitat."
     }
   },
   "holidays": {
@@ -840,7 +845,7 @@
   "projects": {
     "title": "Projectes",
     "manage": "Gestiona els projectes",
-    "description": "Agrupa les funcionalitats sota el seu projecte principal. En suprimir un projecte, les seves funcionalitats es conserven i passen a Sense projecte.",
+    "description": "Agrupa les funcionalitats sota el projecte principal al qual pertanyen. Un projecte es pot eliminar quan ja no té funcionalitats.",
     "none": "Sense projecte",
     "empty": "Encara no hi ha projectes.",
     "fields": {
@@ -854,7 +859,9 @@
       "done": "Fet"
     },
     "errors": {
-      "invalidName": "El nom del projecte ha de tenir entre 1 i 80 caràcters."
-    }
+      "invalidName": "El nom del projecte ha de tenir entre 1 i 80 caràcters.",
+      "hasFeatures": "Mou o elimina abans les funcionalitats d'aquest projecte."
+    },
+    "inUse": "Elimina o mou abans les funcionalitats d'aquest projecte."
   }
 }

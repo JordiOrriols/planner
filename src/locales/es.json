@@ -558,7 +558,11 @@
       "roleWeeks": "Semanas de {{role}}",
       "project": "Proyecto"
     },
-    "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona"
+    "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona",
+    "project": {
+      "choose": "Elige un proyecto",
+      "new": "+ Nuevo proyecto"
+    }
   },
   "featureCard": {
     "showDetails": "Mostrar detalles por área",
@@ -813,7 +817,8 @@
       "rolePairRequired": "Indica tanto el número de personas como el de semanas para {{role}}, o deja ambos en cero.",
       "unverifiedStart": "Elige una fecha de inicio de un año con festivos verificados (2026 o 2027).",
       "unverifiedWorkingYear": "Los festivos de Barcelona no están verificados para {{year}}.",
-      "unverifiedYear": "Los festivos de Barcelona no están verificados para {{year}}"
+      "unverifiedYear": "Los festivos de Barcelona no están verificados para {{year}}",
+      "projectRequired": "Elige un proyecto para esta funcionalidad."
     }
   },
   "holidays": {
@@ -840,7 +845,7 @@
   "projects": {
     "title": "Proyectos",
     "manage": "Gestionar proyectos",
-    "description": "Agrupa las funcionalidades bajo su proyecto principal. Al eliminar un proyecto, sus funcionalidades se conservan y pasan a Sin proyecto.",
+    "description": "Agrupa las funcionalidades bajo el proyecto principal al que pertenecen. Un proyecto se puede eliminar cuando ya no tiene funcionalidades.",
     "none": "Sin proyecto",
     "empty": "Aún no hay proyectos.",
     "fields": {
@@ -854,7 +859,9 @@
       "done": "Hecho"
     },
     "errors": {
-      "invalidName": "El nombre del proyecto debe tener entre 1 y 80 caracteres."
-    }
+      "invalidName": "El nombre del proyecto debe tener entre 1 y 80 caracteres.",
+      "hasFeatures": "Mueve o elimina antes las funcionalidades de este proyecto."
+    },
+    "inUse": "Elimina o mueve antes las funcionalidades de este proyecto."
   }
 }

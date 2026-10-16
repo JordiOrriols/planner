@@ -15,6 +15,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof ProjectsManager>> 
     open: true,
     onClose: vi.fn(),
     projects,
+    projectsInUse: new Set<string>(),
     onCreate: vi.fn().mockResolvedValue(undefined),
     onRename: vi.fn().mockResolvedValue(undefined),
     onDelete: vi.fn().mockResolvedValue(undefined),
@@ -46,6 +47,17 @@ describe("Projects manager", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Delete Growth" }));
     await waitFor(() => expect(props.onDelete).toHaveBeenCalledExactlyOnceWith("growth"));
+  });
+
+  it("blocks deleting a project that still has features", () => {
+    setup({ projectsInUse: new Set(["payments"]) });
+    const deletePayments = screen.getByRole("button", { name: "Delete Payments" });
+    expect(deletePayments).toBeDisabled();
+    expect(deletePayments).toHaveAttribute(
+      "title",
+      "Delete or move this project's features first."
+    );
+    expect(screen.getByRole("button", { name: "Delete Growth" })).toBeEnabled();
   });
 
   it("shows an empty state and surfaces failures", async () => {

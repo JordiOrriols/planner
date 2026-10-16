@@ -23,7 +23,7 @@ const member: PlannerMember = {
 const feature = (id = "one", weeks = 1): Feature => ({
   ...EMPTY_FEATURE,
   id,
-  workspace_id: "workspace",
+  project_id: "project",
   name: id,
   in_backlog: true,
   delivered: false,

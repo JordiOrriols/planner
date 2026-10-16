@@ -59,7 +59,7 @@ export default function Backlog() {
   function deliver(id: string, delivered: boolean) {
     if (!repository) throw new Error(t("roadmap.errors.signInRequired"));
     void action.run(async () => {
-      await repository.setDelivered(workspace.id, id, delivered);
+      await repository.setDelivered(id, delivered);
       await refresh();
     });
   }

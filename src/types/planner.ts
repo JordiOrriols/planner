@@ -11,9 +11,9 @@ export interface Project {
   workspace_id: string;
   name: string;
 }
-export type Feature = FeatureInput & {
+export type Feature = Omit<FeatureInput, "project_id"> & {
   id: string;
-  workspace_id: string;
+  project_id: string;
   in_backlog: boolean;
   delivered: boolean;
   priority: number;
