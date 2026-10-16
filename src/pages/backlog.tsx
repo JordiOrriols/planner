@@ -16,7 +16,7 @@ export default function Backlog() {
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
   const availableProjects = projects.filter((project) => !project.in_backlog);
-  if (!repository) throw new Error("Sign in to manage the backlog");
+  if (!repository) throw new Error("Sign in to manage the roadmap");
   const backlog = [...projects]
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -45,14 +45,14 @@ export default function Backlog() {
     });
   }
   function toggle(id: string, included: boolean) {
-    if (!repository) throw new Error("Sign in to manage the backlog");
+    if (!repository) throw new Error("Sign in to manage the roadmap");
     void action.run(async () => {
       await repository.toggleBacklog(workspace.id, id, included);
       await refresh();
     });
   }
   function deliver(id: string, delivered: boolean) {
-    if (!repository) throw new Error("Sign in to manage the backlog");
+    if (!repository) throw new Error("Sign in to manage the roadmap");
     void action.run(async () => {
       await repository.setDelivered(workspace.id, id, delivered);
       await refresh();
@@ -75,16 +75,16 @@ export default function Backlog() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
-          <h1 className="font-heading text-2xl font-semibold">Backlog plan</h1>
+          <h1 className="font-heading text-2xl font-semibold">Roadmap</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Priority allocates available people by role each day. Roles and projects overlap when
+            Priority allocates available people by role each day. Roles and features overlap when
             capacity allows.
           </p>
         </div>
         {canEdit && (
           <Button onClick={() => setAdding(true)}>
             <Plus className="size-4" />
-            Add projects
+            Add feature
           </Button>
         )}
       </div>
@@ -109,7 +109,7 @@ export default function Backlog() {
           />
         </div>
         <div className="panel">
-          <p className="text-xs text-muted-foreground">Backlog finishes</p>
+          <p className="text-xs text-muted-foreground">Roadmap finishes</p>
           <p className="font-semibold">
             {completed.length === backlog.length && finish
               ? fmtDate(finish)
@@ -132,16 +132,16 @@ export default function Backlog() {
       {!backlog.length ? (
         <EmptyState
           icon={<GanttChartSquare />}
-          title="No projects in the backlog"
+          title="No features on the roadmap"
           description={
             canEdit
-              ? "Choose which estimates to include in this plan."
-              : "Workspace owners and editors select projects for this plan."
+              ? "Choose which features to prioritize on this roadmap."
+              : "Workspace owners and editors prioritize features on this roadmap."
           }
-          action={canEdit && <Button onClick={() => setAdding(true)}>Add projects</Button>}
+          action={canEdit && <Button onClick={() => setAdding(true)}>Add feature</Button>}
         />
       ) : (
-        <section className="panel" aria-label="Project schedule">
+        <section className="panel" aria-label="Feature schedule">
           <h2 className="font-semibold mb-4">
             Schedule · {completed.length}/{backlog.length} completed in forecast
           </h2>
@@ -174,8 +174,8 @@ export default function Backlog() {
       {canEdit && adding && (
         <Modal
           isOpen
-          title="Add projects to backlog"
-          description="Choose existing estimates. Adding a project places it at the end of the priority list."
+          title="Add feature to roadmap"
+          description="Choose existing features. Adding a feature places it at the end of the priority list."
           closeLabel="Close"
           onOpenChange={(open) => {
             if (!open && !action.busy) setAdding(false);
@@ -197,10 +197,10 @@ export default function Backlog() {
                   <Button
                     size="sm"
                     disabled={action.busy}
-                    aria-label={`Add to backlog: ${project.name}`}
+                    aria-label={`Add feature to roadmap: ${project.name}`}
                     onClick={() => toggle(project.id, true)}
                   >
-                    Add
+                    Add feature
                   </Button>
                 </li>
               ))}
@@ -208,15 +208,15 @@ export default function Backlog() {
           ) : (
             <p className="text-sm text-muted-foreground">
               {projects.length
-                ? "All estimates are already in the backlog."
-                : "Create an estimate first, then choose it for the plan."}
+                ? "All features are already on the roadmap."
+                : "Create a feature first, then add it to the roadmap."}
             </p>
           )}
           <Link
             to="/"
             className="inline-flex mt-4 text-sm text-primary underline underline-offset-4"
           >
-            Create a new estimate
+            Create a new feature
           </Link>
         </Modal>
       )}

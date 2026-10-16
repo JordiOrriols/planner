@@ -1,7 +1,7 @@
 {
   "planner": {
-    "name": "Cadence",
-    "brand": "Cadence / Planner",
+    "name": "Planner",
+    "brand": "Planner",
     "subtitle": "Projektschätzung und Planung",
     "pages": "Planner-Seiten",
     "workspace": "Arbeitsbereich",
@@ -12,7 +12,7 @@
     "retry": "Erneut versuchen",
     "tabs": {
       "estimation": "Schätzung",
-      "backlog": "Backlog-Plan",
+      "backlog": "Roadmap",
       "vacations": "Urlaub"
     },
     "welcome": {

@@ -1,7 +1,7 @@
 {
   "planner": {
-    "name": "Cadence",
-    "brand": "Cadence / Planner",
+    "name": "Planner",
+    "brand": "Planner",
     "subtitle": "Project estimation & planning",
     "pages": "Planner pages",
     "workspace": "Workspace",
@@ -10,7 +10,7 @@
     "newWorkspace": "New workspace",
     "noShares": "This workspace has not been shared yet.",
     "retry": "Retry",
-    "tabs": { "estimation": "Estimation", "backlog": "Backlog Plan", "vacations": "Vacations" },
+    "tabs": { "estimation": "Estimation", "backlog": "Roadmap", "vacations": "Vacations" },
     "welcome": {
       "title": "Make room for the work ahead.",
       "description": "Estimate features, plan around real squad capacity, and keep everyone's time off in view.",

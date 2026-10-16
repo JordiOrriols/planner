@@ -112,6 +112,12 @@ or arrange an explicit UUID mapping before migrating old overrides.
 
 ## Estimates and scheduling
 
+The app header is named **Planner**. **Roadmap** is the prioritized plan (the
+existing `/backlog` route remains valid). Feature Estimation first shows features
+on the roadmap in priority order, followed by **Backlog** / **Not prioritized
+features** for ideas not yet on the roadmap. Use **Add feature** on Roadmap to
+prioritize an estimate; removing it returns it to the unprioritized group.
+
 For each feature, enter people and weeks for backend, frontend, design and
 QA. People and weeks must be whole numbers. Both values must be positive for an
 active role (or both zero). Decimal input is rejected by the form, repository and

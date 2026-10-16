@@ -93,7 +93,7 @@ export default function GanttChart({
       </div>
       {onReorder && (
         <p className="mb-2 text-[11px] text-muted-foreground">
-          Drag project names to reorder, or use Arrow Up / Arrow Down. Hover bars for details.
+          Drag feature names to reorder, or use Arrow Up / Arrow Down. Hover bars for details.
           Right-click a row (or press Shift+F10) for delivery and removal actions.
         </p>
       )}
@@ -116,7 +116,7 @@ export default function GanttChart({
           )}
           <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
             <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
-              Project · priority
+              Feature · priority
             </div>
             {monthGroups.map((g) => (
               <div
@@ -333,7 +333,7 @@ export default function GanttChart({
                           disabled={disabled}
                           onSelect={() => onRemove(s.project.id)}
                         >
-                          Remove from schedule
+                          Remove from roadmap
                         </ContextMenu.Item>
                       )}
                     </ContextMenu.Content>

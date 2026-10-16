@@ -75,7 +75,7 @@ describe("role-aware Gantt allocations", () => {
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} onRemove={remove} />);
     expect(screen.queryByRole("button", { name: /Remove/ })).not.toBeInTheDocument();
     fireEvent.contextMenu(screen.getByRole("group", { name: /^Mixed:/ }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from roadmap" }));
     expect(remove).toHaveBeenCalledExactlyOnceWith("mixed");
   });
 

@@ -68,6 +68,32 @@ beforeEach(() => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
+  it("groups prioritized features in roadmap order before the unprioritized backlog", () => {
+    const base = state.projects[0]!;
+    state.projects = [
+      { ...base, id: "later", name: "Later", in_backlog: true, priority: 2 },
+      { ...base, id: "idea", name: "Idea", in_backlog: false },
+      { ...base, id: "first", name: "First", in_backlog: true, priority: 1 },
+    ];
+    render(<Estimation />);
+    const roadmap = screen.getByRole("region", { name: "Roadmap" });
+    const backlog = screen.getByRole("region", { name: "Backlog" });
+    expect(
+      within(roadmap)
+        .getAllByRole("heading", { level: 3 })
+        .map((item) => item.textContent)
+    ).toEqual(["First", "Later"]);
+    expect(
+      within(backlog)
+        .getAllByRole("heading", { level: 3 })
+        .map((item) => item.textContent)
+    ).toEqual(["Idea"]);
+    expect(backlog).toHaveTextContent("Not prioritized features.");
+    expect(
+      roadmap.compareDocumentPosition(backlog) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
   it("allows shared editors to manage features and schedule without being owners", async () => {
     state.isOwner = false;
     state.canEditOverride = true;
@@ -78,7 +104,7 @@ describe("Planner estimate and backlog controls", () => {
     state.projects[0]!.in_backlog = true;
     renderBacklog();
     expect(screen.getByLabelText("Plan starts")).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Add projects" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Add feature" })).toBeVisible();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
     await waitFor(() => expect(setDelivered).toHaveBeenCalledWith("squad", "project", true));
@@ -155,37 +181,34 @@ describe("Planner estimate and backlog controls", () => {
   });
   it("adds an existing estimate directly from an empty backlog", async () => {
     renderBacklog();
-    await userEvent.click(screen.getAllByRole("button", { name: "Add projects" })[0]!);
-    expect(screen.getByRole("dialog", { name: "Add projects to backlog" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Add to backlog: Checkout" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Add feature" })[0]!);
+    expect(screen.getByRole("dialog", { name: "Add feature to roadmap" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Add feature to roadmap: Checkout" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", true);
-    expect(screen.getByRole("link", { name: "Create a new estimate" })).toHaveAttribute(
-      "href",
-      "/"
-    );
+    expect(screen.getByRole("link", { name: "Create a new feature" })).toHaveAttribute("href", "/");
   });
   it("removes a selected estimate without deleting it", async () => {
     state.projects[0]!.in_backlog = true;
     renderBacklog();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from roadmap" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
   });
   it("shows add failures and leaves the picker open", async () => {
     toggleBacklog.mockRejectedValue(new Error("Only the owner can change the backlog"));
     renderBacklog();
-    await userEvent.click(screen.getAllByRole("button", { name: "Add projects" })[0]!);
-    await userEvent.click(screen.getByRole("button", { name: "Add to backlog: Checkout" }));
+    await userEvent.click(screen.getAllByRole("button", { name: "Add feature" })[0]!);
+    await userEvent.click(screen.getByRole("button", { name: "Add feature to roadmap: Checkout" }));
     await waitFor(() => expect(screen.getByRole("dialog")).toHaveTextContent("Only the owner"));
     expect(refresh).not.toHaveBeenCalled();
   });
   it("does not expose selection actions to read-only members", () => {
     state.isOwner = false;
     renderBacklog();
-    expect(screen.queryByRole("button", { name: "Add projects" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add feature" })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Remove from backlog: Checkout" })
     ).not.toBeInTheDocument();
@@ -346,7 +369,7 @@ describe("inline schedule priority controls", () => {
       "false"
     );
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    expect(screen.getByRole("menuitem", { name: "Remove from schedule" })).toHaveAttribute(
+    expect(screen.getByRole("menuitem", { name: "Remove from roadmap" })).toHaveAttribute(
       "aria-disabled",
       "true"
     );
@@ -366,11 +389,11 @@ describe("inline schedule priority controls", () => {
     selectBacklog();
     state.isOwner = false;
     renderBacklog();
-    expect(screen.getByRole("region", { name: "Project schedule" })).toHaveTextContent("Checkout");
+    expect(screen.getByRole("region", { name: "Feature schedule" })).toHaveTextContent("Checkout");
     expect(screen.queryByRole("button", { name: /^Reorder / })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Remove from backlog:/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Mark delivered:/ })).not.toBeInTheDocument();
-    expect(screen.queryByText(/Drag project names/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Drag feature names/)).not.toBeInTheDocument();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
@@ -381,7 +404,7 @@ describe("inline schedule priority controls", () => {
     renderBacklog();
     expect(screen.getByRole("alert")).toHaveTextContent("whole numbers");
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from roadmap" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(toggleBacklog).toHaveBeenCalledWith("squad", "project", false);
   });
@@ -391,7 +414,7 @@ describe("inline schedule priority controls", () => {
     toggleBacklog.mockRejectedValue(new Error("Could not remove project"));
     renderBacklog();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from schedule" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove from roadmap" }));
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Could not remove project")
     );

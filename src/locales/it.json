@@ -1,7 +1,7 @@
 {
   "planner": {
-    "name": "Cadence",
-    "brand": "Cadence / Planner",
+    "name": "Planner",
+    "brand": "Planner",
     "subtitle": "Stima e pianificazione progetti",
     "pages": "Pagine Planner",
     "workspace": "Spazio di lavoro",
@@ -12,7 +12,7 @@
     "retry": "Riprova",
     "tabs": {
       "estimation": "Stima",
-      "backlog": "Piano backlog",
+      "backlog": "Roadmap",
       "vacations": "Ferie"
     },
     "welcome": {

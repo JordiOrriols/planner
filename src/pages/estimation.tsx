@@ -16,6 +16,10 @@ export default function Estimation() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
+  const roadmap = projects
+    .filter((project) => project.in_backlog)
+    .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  const backlog = projects.filter((project) => !project.in_backlog);
   if (!repository) throw new Error("Sign in to manage projects");
   return (
     <div className="space-y-6">
@@ -23,7 +27,7 @@ export default function Estimation() {
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">Feature estimation</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Estimate people and weeks per role. Add features to your plan on the Schedule page.
+            Estimate people and weeks per role. Prioritize features on the Roadmap page.
           </p>
         </div>
         {canEdit && (
@@ -41,7 +45,7 @@ export default function Estimation() {
       <div className="grid grid-cols-3 gap-3 max-w-lg">
         <Metric label="Features" value={projects.length} />
         <Metric
-          label="In backlog"
+          label="On roadmap"
           value={projects.filter((project) => project.in_backlog).length}
         />
         <Metric
@@ -66,19 +70,39 @@ export default function Estimation() {
           description="Create your first estimate to start planning."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectEstimateCard
-              key={project.id}
-              project={project}
-              disabled={action.busy}
-              readOnly={!canEdit}
-              onEdit={() => {
-                setEditing(project);
-                setFormOpen(true);
-              }}
-              onDelete={() => setDeleting(project)}
-            />
+        <div className="space-y-8">
+          {[
+            {
+              name: "Roadmap",
+              description: "Prioritized features in roadmap order.",
+              features: roadmap,
+            },
+            { name: "Backlog", description: "Not prioritized features.", features: backlog },
+          ].map((group) => (
+            <section key={group.name} aria-label={group.name} className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold">{group.name}</h2>
+                <p className="text-sm text-muted-foreground">{group.description}</p>
+              </div>
+              {!group.features.length && (
+                <p className="text-sm text-muted-foreground">No features in this group.</p>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.features.map((project) => (
+                  <ProjectEstimateCard
+                    key={project.id}
+                    project={project}
+                    disabled={action.busy}
+                    readOnly={!canEdit}
+                    onEdit={() => {
+                      setEditing(project);
+                      setFormOpen(true);
+                    }}
+                    onDelete={() => setDeleting(project)}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
