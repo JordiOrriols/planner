@@ -95,6 +95,10 @@ Other members' working-day overrides and vacation tokens are not exposed.
 They do not grant team management, workspace or evaluation access. Self, peer and view evaluation tokens cannot be used for
 vacations. Keep links private: anyone possessing a vacation link can use it.
 Saved vacations immediately affect all workspaces containing that member.
+**Working Day** removes vacation overrides in the selected range instead of
+inserting working-day overrides. Weekends and Barcelona holidays therefore
+remain non-working. Existing intentional working-day overrides are preserved;
+no historical data is rewritten.
 On both vacation pages, select the first and last calendar day (or select a
 single day), then click **Vacations** or **Working Day** to save immediately.
 The highlighted selection stays visible after saving and across month navigation.
@@ -184,6 +188,8 @@ project with approval:
    View/Edit shares, editor project/start-date permissions and immutable workspace
    identity. Supersedes owner-only project/start-date writes without changing
    linked-team editing permissions.
+9. `20261016092000_planner_restore_working_calendar.sql`: changes Working Day
+   saves to remove vacations while preserving the default calendar. Pending approval/application.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

@@ -63,6 +63,7 @@ beforeAll(async () => {
     "20261014224000_planner_project_delivery.sql",
     "20261014225000_planner_workspace_plan_start.sql",
     "20261014230000_planner_workspace_sharing.sql",
+    "20261016092000_planner_restore_working_calendar.sql",
   ]) {
     await db.exec(
       await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
@@ -321,6 +322,66 @@ describe("Registered-account workspace sharing", () => {
 });
 
 describe("Shared Ladders roster and independent vacation token permissions", () => {
+  it.each(["authenticated", "token"])(
+    "restores the default calendar over weekends and holidays through %s saves",
+    async (mode) => {
+      await link();
+      const other = (
+        await db.query<{ id: string }>(
+          "insert into public.members(team_id,name) values($1,'Other') returning id",
+          [team]
+        )
+      ).rows[0]!.id;
+      await db.query("insert into public.planner_team_availability values($1,'2026-10-14',false)", [
+        other,
+      ]);
+      async function save(working: boolean) {
+        if (mode === "token") {
+          await login(null, "anon");
+          await db.query("select public.planner_vacation_save($1,'2026-10-05','2026-10-16',$2)", [
+            member.vacation_token,
+            working,
+          ]);
+        } else {
+          await db.query(
+            "select public.planner_set_team_availability($1,'2026-10-05','2026-10-16',$2)",
+            [member.id, working]
+          );
+        }
+      }
+      await save(false);
+      await login(owner);
+      expect(
+        (
+          await db.query("select * from public.planner_team_availability where member_id=$1", [
+            member.id,
+          ])
+        ).rows
+      ).toHaveLength(12);
+      await save(true);
+      await login(owner);
+      expect(
+        (
+          await db.query("select * from public.planner_team_availability where member_id=$1", [
+            member.id,
+          ])
+        ).rows
+      ).toEqual([]);
+      expect(
+        (
+          await db.query("select * from public.planner_team_availability where member_id=$1", [
+            other,
+          ])
+        ).rows
+      ).toHaveLength(1);
+      const { isWorking, parseDate } = await import("@/lib/planning");
+      expect(isWorking(member, parseDate("2026-10-10"), [])).toBe(false);
+      expect(isWorking(member, parseDate("2026-10-11"), [])).toBe(false);
+      expect(isWorking(member, parseDate("2026-10-12"), [])).toBe(false);
+      expect(isWorking(member, parseDate("2026-10-13"), [])).toBe(true);
+    }
+  );
+
   it("exposes only current-team names and vacations, while keeping writes and tokens member-only", async () => {
     const grace = (
       await db.query<{ id: string; vacation_token: string }>(

@@ -68,6 +68,10 @@ export function AvailabilityEditor({
           Working Day
         </Button>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Working Day removes saved vacations in the selected range. Weekends and holidays keep their
+        normal calendar.
+      </p>
       {!canEdit && (
         <p>
           Only a Ladders team owner/editor can edit this member. Members can use their personal
