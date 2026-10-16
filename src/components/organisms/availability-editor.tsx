@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button } from "@jordiorriols/ui";
 import VacationCalendar from "./vacation-calendar";
@@ -24,19 +25,21 @@ export function AvailabilityEditor({
   canEdit: boolean;
   save: (start: string, end: string, working: boolean) => Promise<void>;
 }) {
+  const { t } = useTranslation();
+
   const [range, setRange] = useState<{ start: string; end: string | null } | null>(null);
   const action = useAsyncAction();
   function apply(working: boolean) {
     void action.run(async () => {
-      if (!canEdit) throw new Error("You cannot edit this member's availability.");
-      if (!range) throw new Error("Select dates on the calendar first.");
+      if (!canEdit) throw new Error(t("copy.youCannotEditThisMemberSAvailability"));
+      if (!range) throw new Error(t("copy.selectDatesOnTheCalendarFirst"));
       const end = range.end ?? range.start;
       const first = parseDate(range.start),
         last = parseDate(end);
       if (!hasHolidayCalendar(range.start) || !hasHolidayCalendar(end))
-        throw new Error("Choose dates in a verified holiday year (2026 or 2027).");
+        throw new Error(t("copy.chooseDatesInAVerifiedHolidayYear2026"));
       if (last < first || differenceInCalendarDays(last, first) > 365)
-        throw new Error("Choose a date range of at most 366 days.");
+        throw new Error(t("copy.chooseADateRangeOfAtMost366"));
       await save(range.start, end, working);
       setRange({ start: range.start, end });
     });
@@ -58,26 +61,20 @@ export function AvailabilityEditor({
       />
       <div className="flex flex-wrap gap-2">
         <Button disabled={!canEdit || action.busy || !range} onClick={() => apply(false)}>
-          Vacations
+          {t("copy.vacations")}
         </Button>
         <Button
           variant="outline"
           disabled={!canEdit || action.busy || !range}
           onClick={() => apply(true)}
         >
-          Working Day
+          {t("copy.workingDay")}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Working Day removes saved vacations in the selected range. Weekends and holidays keep their
-        normal calendar.
+        {t("copy.workingDayRemovesSavedVacationsInTheSelected")}
       </p>
-      {!canEdit && (
-        <p>
-          Only a Ladders team owner/editor can edit this member. Members can use their personal
-          vacation link.
-        </p>
-      )}
+      {!canEdit && <p>{t("copy.onlyALaddersTeamOwnerEditorCanEdit")}</p>}
       {action.error && <p role="alert">{action.error}</p>}
     </div>
   );

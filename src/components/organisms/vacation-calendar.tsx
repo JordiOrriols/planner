@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React from "react";
 import {
   startOfMonth,
@@ -12,6 +13,7 @@ import {
 import { ChevronLeft, ChevronRight } from "@jordiorriols/ui/icons";
 import { Button } from "@jordiorriols/ui";
 import { hasHolidayCalendar, holidayName } from "@/lib/barcelonaHolidays";
+import { fmtMonth } from "@/lib/planning";
 import type { PlannerMember, Availability } from "@/types/planner";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +47,8 @@ export default function VacationCalendar({
   selectedRange?: { start: string; end: string | null } | null;
   onClearSelection?: () => void;
 }) {
+  const { t, i18n } = useTranslation();
+
   const first = selectedRange?.end === null ? selectedRange.start : null;
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(month), { weekStartsOn: 1 }),
@@ -53,10 +57,10 @@ export default function VacationCalendar({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">{format(month, "MMMM yyyy")}</h3>
+        <h3 className="font-semibold">{fmtMonth(month)}</h3>
         <div className="flex gap-1">
           <Button
-            aria-label="Previous month"
+            aria-label={t("copy.previousMonth")}
             size="icon"
             variant="ghost"
             onClick={() => {
@@ -66,7 +70,7 @@ export default function VacationCalendar({
             <ChevronLeft size={16} />
           </Button>
           <Button
-            aria-label="Next month"
+            aria-label={t("copy.nextMonth")}
             size="icon"
             variant="ghost"
             onClick={() => {
@@ -80,8 +84,8 @@ export default function VacationCalendar({
       {!disabled && (
         <p role="status" className="text-sm mb-3 text-muted-foreground">
           {first
-            ? "Select the last day, or apply to this day."
-            : "Select the first and last day, then choose Vacations or Working Day."}{" "}
+            ? t("copy.selectTheLastDayOrApplyToThis")
+            : t("copy.selectTheFirstAndLastDayThenChoose")}{" "}
           {selectedRange && (
             <button
               type="button"
@@ -90,14 +94,14 @@ export default function VacationCalendar({
                 onClearSelection?.();
               }}
             >
-              Clear selection
+              {t("copy.clearSelection")}
             </button>
           )}
         </p>
       )}
       <div
         className="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs"
-        aria-label="Team vacation legend"
+        aria-label={t("copy.teamVacationLegend")}
       >
         {teamMembers.map((member, index) => (
           <span key={member.id} className="inline-flex items-center gap-1.5">
@@ -110,14 +114,14 @@ export default function VacationCalendar({
               {member.name.trim().charAt(0).toLocaleUpperCase()}
             </span>
             {member.name}
-            {member.id === selectedMember ? " (you / selected)" : ""}
+            {member.id === selectedMember ? t("copy.selectedMemberSuffix") : ""}
           </span>
         ))}
       </div>
       <div className="grid grid-cols-7 border-t border-l rounded-lg overflow-hidden">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-          <div key={day} className="text-xs text-center py-2 bg-muted border-b border-r">
-            {day}
+        {days.slice(0, 7).map((day) => (
+          <div key={day.getTime()} className="text-xs text-center py-2 bg-muted border-b border-r">
+            {new Intl.DateTimeFormat(i18n.resolvedLanguage, { weekday: "short" }).format(day)}
           </div>
         ))}
         {days.map((date) => {
@@ -168,8 +172,8 @@ export default function VacationCalendar({
                   <span
                     key={member.id}
                     className="inline-flex min-w-0 items-center gap-1"
-                    title={`${member.name}: vacation`}
-                    aria-label={`${member.name}: vacation`}
+                    title={t("copy.memberVacation", { name: member.name })}
+                    aria-label={t("copy.memberVacation", { name: member.name })}
                   >
                     <span
                       className={cn(
@@ -192,8 +196,7 @@ export default function VacationCalendar({
       </div>
       {!hasHolidayCalendar(format(month, "yyyy-MM-dd")) && (
         <p role="alert" className="mt-3">
-          Barcelona holidays are verified only for 2026 and 2027. Update the calendar before
-          planning this year.
+          {t("copy.barcelonaHolidaysAreVerifiedOnlyFor2026And")}
         </p>
       )}
     </div>
