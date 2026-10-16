@@ -6,14 +6,8 @@ import { addDays, differenceInCalendarDays, format, isWeekend } from "date-fns";
 import { ROLES, ROLE_LABELS, fmtDate, fmtMonth, roleDevs } from "@/lib/planning";
 import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
+import { ROLE_COLORS } from "@/config/roleColors";
 import type { CapacityWeek, ScheduledProject, ScheduledRole } from "@/lib/planning";
-
-const ROLE_TONES = {
-  backend: "bg-sky-700/70",
-  frontend: "bg-sky-400/60",
-  design: "bg-amber-500/50",
-  qa: "bg-emerald-600/50",
-};
 
 function workRuns(role: ScheduledRole) {
   const runs: { start: Date; end: Date; personDays: number }[] = [];
@@ -80,7 +74,10 @@ export default function GanttChart({
       <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         {ROLES.map((role) => (
           <span key={role} className="inline-flex items-center gap-1.5">
-            <span className={cn("size-2 rounded-sm", ROLE_TONES[role])} />
+            <span
+              data-role-swatch={role}
+              className={cn("size-2 rounded-sm", ROLE_COLORS[role].className)}
+            />
             {ROLE_LABELS[role]}
             {t(
               role === "backend"
@@ -321,7 +318,10 @@ export default function GanttChart({
                                       role="img"
                                       aria-label={label}
                                       title={label}
-                                      className={cn("absolute shadow-inner", ROLE_TONES[role])}
+                                      className={cn(
+                                        "absolute shadow-inner",
+                                        ROLE_COLORS[role].className
+                                      )}
                                       style={{
                                         left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
                                         width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,

@@ -7,10 +7,10 @@ import { Check, ChevronDown, Settings } from "@jordiorriols/ui/icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ROLES, ROLE_LABELS, fmtShortDate } from "@/lib/planning";
 import { calibratedRate, forecastSprints, sprintCapacity } from "@/lib/sprints";
+import { ROLE_COLORS } from "@/config/roleColors";
 import VelocityCalibration from "@/components/organisms/velocity-calibration";
 import type { Availability, LinkedTeam, PlannerMember, SprintResult } from "@/types/planner";
 
-const AREA_COLORS = { backend: "#0369a1", frontend: "#38bdf8", design: "#d97706", qa: "#059669" };
 const TEAM_COLORS = [
   "#0369a1",
   "#38bdf8",
@@ -69,7 +69,7 @@ export default function SquadVelocity({
       ? ROLES.map((role) => ({
           id: role,
           name: ROLE_LABELS[role],
-          color: AREA_COLORS[role],
+          color: ROLE_COLORS[role].hex,
           members: members.filter((member) => member.role === role),
         }))
       : linkedTeams.map((team, index) => ({

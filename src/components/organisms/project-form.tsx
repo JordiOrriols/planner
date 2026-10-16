@@ -2,16 +2,10 @@ import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import {
-  ROLES,
-  ROLE_LABELS,
-  ROLE_COLORS,
-  peakDevs,
-  durationWeeks,
-  totalDevWeeks,
-} from "@/lib/planning";
+import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import { EMPTY_PROJECT, type ProjectInput } from "@/types/planner";
 import { cn } from "@/lib/utils";
+import { ROLE_COLORS } from "@/config/roleColors";
 
 export default function ProjectForm({
   open,
@@ -88,7 +82,10 @@ export default function ProjectForm({
           {ROLES.map((role) => (
             <div key={role} className="grid grid-cols-3 gap-2 p-3 border-t items-center">
               <span className="text-sm flex gap-2 items-center">
-                <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
+                <span
+                  data-role-swatch={role}
+                  className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role].className)}
+                />
                 {ROLE_LABELS[role]}
               </span>
               <Input

@@ -25,12 +25,6 @@ export const ROLE_LABELS: Record<Role, string> = {
     return i18n.t("planningRoles.qa");
   },
 };
-export const ROLE_COLORS: Record<Role, string> = {
-  backend: "bg-indigo-500",
-  frontend: "bg-sky-500",
-  design: "bg-amber-500",
-  qa: "bg-emerald-500",
-};
 export const roleDevs = (p: ProjectInput, role: Role) => p[`${role}_devs`];
 export const roleWeeks = (p: ProjectInput, role: Role) => p[`${role}_weeks`];
 export const peakDevs = (p: ProjectInput) =>

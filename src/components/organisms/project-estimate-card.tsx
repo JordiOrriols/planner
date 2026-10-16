@@ -3,15 +3,9 @@ import React, { useId, useState } from "react";
 import { ChevronDown, Pencil, Trash2 } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/types/planner";
-import {
-  ROLES,
-  ROLE_LABELS,
-  ROLE_COLORS,
-  peakDevs,
-  durationWeeks,
-  totalDevWeeks,
-} from "@/lib/planning";
+import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import { cn } from "@/lib/utils";
+import { ROLE_COLORS } from "@/config/roleColors";
 
 export default function ProjectEstimateCard({
   project,
@@ -88,7 +82,10 @@ export default function ProjectEstimateCard({
             key={role}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium"
           >
-            <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
+            <span
+              data-role-swatch={role}
+              className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role].className)}
+            />
             {ROLE_LABELS[role]}
           </span>
         ))}
@@ -153,7 +150,10 @@ export default function ProjectEstimateCard({
               className="min-w-0 rounded-lg bg-muted/40 p-3"
             >
               <h4 className="flex items-center gap-2 text-xs font-medium">
-                <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
+                <span
+                  data-role-swatch={role}
+                  className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role].className)}
+                />
                 {ROLE_LABELS[role]}
               </h4>
               <dl className="mt-3 grid grid-cols-3 gap-2">
