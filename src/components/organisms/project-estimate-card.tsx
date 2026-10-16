@@ -78,25 +78,9 @@ export default function ProjectEstimateCard({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {activeRoles.length === 0 && (
-          <span className="text-xs text-muted-foreground italic">
-            {t("featureCard.noEstimates")}
-          </span>
-        )}
-        {activeRoles.map((role) => (
-          <span
-            key={role}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium"
-          >
-            <span
-              data-role-swatch={role}
-              className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role].className)}
-            />
-            {ROLE_LABELS[role]}
-          </span>
-        ))}
-      </div>
+      {activeRoles.length === 0 && (
+        <span className="text-xs text-muted-foreground italic">{t("featureCard.noEstimates")}</span>
+      )}
 
       <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
         <Stat

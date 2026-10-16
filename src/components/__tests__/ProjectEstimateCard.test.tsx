@@ -62,6 +62,13 @@ describe("Feature estimate breakdown", () => {
           .filter((element) => !element.closest("[hidden]"))
       ).toHaveLength(5);
       const roleEffort = within(card).getByRole("group", { name: t("featureCard.roleEffort") });
+      for (const role of ROLES)
+        expect(
+          within(card)
+            .getAllByText(t(`planningRoles.${role}`))
+            .filter((element) => !element.closest("[hidden]"))
+            .every((element) => roleEffort.contains(element))
+        ).toBe(true);
       expect(within(roleEffort).queryByText(t("featureCard.metrics.peakTeam"))).toBeNull();
       for (const role of ROLES) {
         expect(roleEffort).toHaveTextContent(

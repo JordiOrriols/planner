@@ -213,8 +213,8 @@ collapsed by default; expanding them replaces the compact summary with people,
 weeks and person-weeks for each area. Role columns stack on smaller screens;
 unused areas show zero.
 Role colors live in `src/config/roleColors.ts`, which uses the roadmap palette.
-Estimation badges, the feature form, the roadmap legend and bars, and velocity
-charts all read from it.
+Estimation's role-colored effort titles, the feature form, the roadmap legend and
+bars, and velocity charts all read from it.
 
 Features can optionally belong to a **main project**. Owners/editors use
 **Manage projects** on Estimation to add, rename or delete the workspace's
