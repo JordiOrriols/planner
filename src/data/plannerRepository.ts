@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { ROLES, type ProjectInput, type Role, type WorkspaceAccess } from "@/types/planner";
@@ -8,7 +9,10 @@ const workspaceSchema = z.object({
   id: z.string().uuid(),
   owner_id: z.string().uuid(),
   name: z.string(),
-  plan_start_date: z.string().date("Invalid workspace plan start date"),
+  plan_start_date: z.string().refine(
+    (value) => z.string().date().safeParse(value).success,
+    () => ({ message: i18n.t("copy.invalidWorkspacePlanStartDate") })
+  ),
 });
 const memberSchema = z.object({
   id: z.string().uuid(),
@@ -104,7 +108,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
       if (!hasHolidayCalendar(date))
-        throw new Error("Choose a start date in a verified holiday year (2026 or 2027).");
+        throw new Error(i18n.t("copy.chooseAStartDateInAVerifiedHoliday"));
       const { data, error } = await client
         .from("planner_workspaces")
         .update({ plan_start_date: date })
@@ -162,7 +166,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .select("id")
         .single();
       if (error) throw new Error(error.message, { cause: error });
-      if (!data) throw new Error("Project was not deleted.");
+      if (!data) throw new Error(i18n.t("copy.projectWasNotDeleted"));
     },
     async setDelivered(workspace: string, id: string, delivered: boolean) {
       const { data, error } = await client
@@ -194,9 +198,9 @@ export function createPlannerRepository(client: SupabaseClient) {
         rpcList("planner_vacation_team_list", availabilitySchema, { token }),
       ]);
       const member = z.array(vacationMemberSchema).parse(identity)[0];
-      if (!member) throw new Error("Invalid vacation link");
+      if (!member) throw new Error(i18n.t("copy.invalidVacationLink"));
       if (!members.some((item) => item.id === member.id))
-        throw new Error("The vacation calendar did not include its member. Reload the page.");
+        throw new Error(i18n.t("copy.theVacationCalendarDidNotIncludeItsMember"));
       return { member, members, availability };
     },
     saveVacation: (token: string, start: string, end: string, working: boolean) =>

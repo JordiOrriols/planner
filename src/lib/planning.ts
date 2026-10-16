@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import { addDays, addWeeks, format, isValid, parseISO, startOfWeek } from "date-fns";
 import { hasHolidayCalendar, isHoliday } from "./barcelonaHolidays";
 import {
@@ -11,10 +12,18 @@ import {
 
 export { ROLES };
 export const ROLE_LABELS: Record<Role, string> = {
-  backend: "Backend",
-  frontend: "Frontend",
-  design: "Design",
-  qa: "QA",
+  get backend() {
+    return i18n.t("planningRoles.backend");
+  },
+  get frontend() {
+    return i18n.t("planningRoles.frontend");
+  },
+  get design() {
+    return i18n.t("planningRoles.design");
+  },
+  get qa() {
+    return i18n.t("planningRoles.qa");
+  },
 };
 export const ROLE_COLORS: Record<Role, string> = {
   backend: "bg-indigo-500",
@@ -33,10 +42,22 @@ export const durationWeeks = (p: ProjectInput) =>
 export const totalDevWeeks = (p: ProjectInput) =>
   ROLES.reduce((sum, role) => sum + roleDevs(p, role) * roleWeeks(p, role), 0);
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
-export const fmtDate = (date: Date) => format(date, "MMM d, yyyy");
+export const fmtDate = (date: Date) =>
+  new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+export const fmtShortDate = (date: Date) =>
+  new Intl.DateTimeFormat(i18n.resolvedLanguage, { month: "short", day: "numeric" }).format(date);
+export const fmtMonth = (date: Date, compact = false) =>
+  new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    month: compact ? "short" : "long",
+    year: compact ? "2-digit" : "numeric",
+  }).format(date);
 
 export function validateProject(input: ProjectInput) {
-  if (!input.name.trim()) throw new Error("A project name is required.");
+  if (!input.name.trim()) throw new Error(i18n.t("copy.featureNameRequired"));
   for (const role of ROLES) {
     const devs = roleDevs(input, role),
       weeks = roleWeeks(input, role);
@@ -48,18 +69,18 @@ export function validateProject(input: ProjectInput) {
       devs > 100 ||
       weeks > 104
     )
-      throw new Error(
-        `${ROLE_LABELS[role]} estimates must be whole numbers between 0 and 100 people / 104 weeks.`
-      );
+      throw new Error(i18n.t("copy.estimateBounds", { role: ROLE_LABELS[role] }));
     if ((devs === 0) !== (weeks === 0))
-      throw new Error(`Set both people and weeks for ${ROLE_LABELS[role]}, or leave both at zero.`);
+      throw new Error(
+        i18n.t("copy.setBothPeopleAndWeeksForOrLeave", { value1: ROLE_LABELS[role] })
+      );
   }
 }
 
 export function parseDate(value: string): Date {
   const date = parseISO(value);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !isValid(date) || format(date, "yyyy-MM-dd") !== value)
-    throw new Error("Choose a valid calendar date.");
+    throw new Error(i18n.t("copy.chooseAValidCalendarDate"));
   return date;
 }
 
@@ -71,7 +92,9 @@ export function isWorking(
   const key = format(date, "yyyy-MM-dd");
   const override = availability.find((item) => item.member_id === member.id && item.date === key);
   if (!hasHolidayCalendar(key))
-    throw new Error(`Barcelona holidays are not verified for ${date.getFullYear()}.`);
+    throw new Error(
+      i18n.t("copy.barcelonaHolidaysAreNotVerifiedFor2", { value1: date.getFullYear() })
+    );
   return override?.is_working ?? (date.getDay() !== 0 && date.getDay() !== 6 && !isHoliday(key));
 }
 
@@ -139,7 +162,7 @@ export function computeSchedule(
   horizon = 52
 ) {
   if (!isValid(startDate) || !hasHolidayCalendar(format(startDate, "yyyy-MM-dd")))
-    throw new Error("Choose a start date in a verified holiday year (2026 or 2027).");
+    throw new Error(i18n.t("copy.chooseAStartDateInAVerifiedHoliday"));
   const weeks = squadVelocity(members, availability, startDate, horizon);
   const sorted = [...projects]
     .filter((p) => p.in_backlog)
@@ -165,9 +188,11 @@ export function computeSchedule(
       })),
       reason:
         totalDevWeeks(project) === 0
-          ? "No estimates set"
+          ? i18n.t("copy.noEstimatesSet")
           : missing.length
-            ? `No ${missing.map((role) => ROLE_LABELS[role]).join(", ")} capacity`
+            ? i18n.t("copy.noCapacity", {
+                value1: missing.map((role) => ROLE_LABELS[role]).join(", "),
+              })
             : null,
     };
   });
@@ -231,7 +256,7 @@ export function computeSchedule(
   });
   for (const item of schedule) {
     if (!item.complete && !item.reason)
-      item.reason = "Not completed within the verified planning horizon";
+      item.reason = i18n.t("copy.notCompletedWithinTheVerifiedPlanningHorizon");
   }
   const finalWeek = weeks.at(-1);
   return {

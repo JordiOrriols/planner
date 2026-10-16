@@ -17,6 +17,10 @@ const resources = {
   it: { translation: it },
 };
 
+i18n.on("languageChanged", (language: string) => {
+  document.documentElement.lang = language;
+});
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
