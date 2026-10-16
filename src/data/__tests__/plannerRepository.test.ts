@@ -199,16 +199,24 @@ describe("Planner repository", () => {
     fetch.mockResolvedValue(response([{ id: "invalid", name: "Squad" }]));
     await expect(repository.listWorkspaces()).rejects.toThrow();
   });
-  it("uses Ladders team linking and a separate global planning-role RPC", async () => {
+  it("creates workspaces and teams through their RPCs and keeps the planning-role RPC separate", async () => {
     const { fetch, response, repository } = setup();
-    fetch.mockImplementation(async () => response(null));
-    await repository.setWorkspaceTeams(workspace.id, ["team-one", "team-two"]);
+    const team = { id: "00000000-0000-4000-8000-000000000009", name: "Core" };
+    fetch
+      .mockResolvedValueOnce(response(team))
+      .mockResolvedValueOnce(response(null))
+      .mockResolvedValueOnce(response(workspace));
+    await expect(repository.createTeam(workspace.id, "  Core ")).resolves.toEqual(team);
     await repository.updatePlanningRole("member", null);
-    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_set_workspace_teams");
+    await expect(repository.createWorkspace("Squad")).resolves.toEqual(workspace);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/create_team");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
-      workspace: workspace.id,
-      team_ids: ["team-one", "team-two"],
+      p_name: "Core",
+      p_workspace: workspace.id,
     });
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/create_workspace");
+    await expect(repository.createTeam(workspace.id, "   ")).rejects.toThrow(/Name the team/);
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({
       member: "member",
       member_role: null,

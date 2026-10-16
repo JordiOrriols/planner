@@ -38,12 +38,10 @@ export interface PlannerMember {
   can_edit: boolean;
   vacation_token: string | null;
 }
-export interface LaddersTeam {
+export interface LinkedTeam {
   id: string;
   name: string;
-  access_level: "owner" | "editor" | "viewer";
 }
-export type LinkedTeam = Pick<LaddersTeam, "id" | "name">;
 export type WorkspaceAccess = "viewer" | "editor";
 export interface Vacation {
   member_id: string;

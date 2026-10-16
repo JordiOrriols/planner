@@ -491,7 +491,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Create a planning workspace, then link your existing Ladders teams on the Vacations page.",
+      "description": "Create a planning workspace, then add its teams in Configuration.",
       "name": "Workspace name",
       "submit": "Create workspace",
       "title": "Your planning workspace"
@@ -672,23 +672,24 @@
   "teamConfiguration": {
     "title": "Team configuration",
     "errors": {
-      "signInToLink": "Sign in before linking teams",
-      "signInToLoad": "Sign in before loading teams"
+      "signInToCreate": "Sign in before adding teams",
+      "teamNameRequired": "Name the team first"
     },
     "members": {
       "copyLink": "Copy vacation link for {{memberName}}",
-      "empty": "No members in linked teams. Link a Ladders team to get started.",
+      "empty": "No members in this workspace's teams yet. Add them in Ladders.",
       "linkCopied": "Vacation link copied",
       "roleLabel": "Planning role for {{memberName}}",
       "title": "Team members",
       "unassigned": "Unassigned"
     },
     "teams": {
-      "description": "Choose the teams that belong to this workspace. A team lives in one workspace only, so choosing it here moves it out of the one it is in now. Create or move members in Ladders, not here.",
-      "empty": "Create a team in Ladders using the same account first.",
-      "loading": "Loading teams...",
-      "save": "Save linked teams",
-      "title": "Ladders teams"
+      "title": "Teams",
+      "description": "The teams of this workspace. Teams stay in the workspace they were created in; manage their members in Ladders.",
+      "empty": "This workspace has no teams yet.",
+      "nameLabel": "New team name",
+      "namePlaceholder": "Team name",
+      "create": "Add team"
     }
   },
   "vacationEditor": {
@@ -765,7 +766,7 @@
     "description_other": "Available person-weeks (five working days per person), next {{count}} verified weeks.",
     "empty": {
       "selectionRequired": "Select at least one area or team to show velocity.",
-      "teamRequired": "Link a team in Configuration to show team velocity."
+      "teamRequired": "Add a team in Configuration to show team velocity."
     },
     "filters": {
       "all": {

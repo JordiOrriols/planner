@@ -491,7 +491,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Erstelle einen Planungsarbeitsbereich und verknüpfe anschließend deine bestehenden Ladders-Teams auf der Seite Urlaub.",
+      "description": "Erstelle einen Planungsarbeitsbereich und füge dann in der Konfiguration seine Teams hinzu.",
       "name": "Name des Arbeitsbereichs",
       "submit": "Arbeitsbereich erstellen",
       "title": "Dein Planungsarbeitsbereich"
@@ -672,23 +672,24 @@
   "teamConfiguration": {
     "title": "Teamkonfiguration",
     "errors": {
-      "signInToLink": "Melde dich an, bevor du Teams verknüpfst",
-      "signInToLoad": "Melde dich an, bevor du Teams lädst"
+      "signInToCreate": "Melde dich an, bevor du Teams hinzufügst",
+      "teamNameRequired": "Gib dem Team zuerst einen Namen"
     },
     "members": {
       "copyLink": "Urlaubslink für {{memberName}} kopieren",
-      "empty": "Keine Mitglieder in den verknüpften Teams. Verknüpfe ein Ladders-Team, um loszulegen.",
+      "empty": "Die Teams dieses Arbeitsbereichs haben noch keine Mitglieder. Füge sie in Ladders hinzu.",
       "linkCopied": "Urlaubslink kopiert",
       "roleLabel": "Planungsrolle für {{memberName}}",
       "title": "Teammitglieder",
       "unassigned": "Nicht zugewiesen"
     },
     "teams": {
-      "description": "Wähle die Teams, die zu diesem Arbeitsbereich gehören. Ein Team lebt nur in einem Arbeitsbereich, deshalb verschiebt die Auswahl hier es aus seinem aktuellen. Erstelle oder verschiebe Mitglieder in Ladders, nicht hier.",
-      "empty": "Erstelle zuerst mit demselben Konto ein Team in Ladders.",
-      "loading": "Teams werden geladen...",
-      "save": "Verknüpfte Teams speichern",
-      "title": "Ladders-Teams"
+      "title": "Teams",
+      "description": "Die Teams dieses Arbeitsbereichs. Teams bleiben in dem Arbeitsbereich, in dem sie erstellt wurden; verwalte ihre Mitglieder in Ladders.",
+      "empty": "Dieser Arbeitsbereich hat noch keine Teams.",
+      "nameLabel": "Name des neuen Teams",
+      "namePlaceholder": "Teamname",
+      "create": "Team hinzufügen"
     }
   },
   "vacationEditor": {
@@ -765,7 +766,7 @@
     "description_other": "Verfügbare Personenwochen (fünf Arbeitstage pro Person), nächste {{count}} bestätigte Wochen.",
     "empty": {
       "selectionRequired": "Wähle mindestens einen Bereich oder ein Team aus, um die Geschwindigkeit anzuzeigen.",
-      "teamRequired": "Verknüpfe in der Konfiguration ein Team, um dessen Geschwindigkeit anzuzeigen."
+      "teamRequired": "Füge in der Konfiguration ein Team hinzu, um dessen Geschwindigkeit anzuzeigen."
     },
     "filters": {
       "all": {

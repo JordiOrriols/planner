@@ -231,7 +231,7 @@ describe("Squad velocity area and team series", () => {
       "teams"
     );
     expect(screen.getByRole("button", { name: "Select velocity teams" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("Link a team in Configuration");
+    expect(screen.getByRole("status")).toHaveTextContent("Add a team in Configuration");
     rendered.rerender(
       <SquadVelocity
         members={members}

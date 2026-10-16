@@ -27,11 +27,9 @@ beforeAll(async () => {
   ]);
 });
 beforeEach(async () => {
-  await db.exec("reset role; delete from public.workspaces");
+  await db.exec("reset role; delete from public.workspaces where not created_for_team");
   await login(owner);
-  const created = await db.query<{ id: string }>(
-    "select id from public.planner_create_linked_workspace('Squad')"
-  );
+  const created = await db.query<{ id: string }>("select id from public.create_workspace('Squad')");
   workspace = created.rows[0]!.id;
 });
 afterAll(async () => {
@@ -183,7 +181,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     await db.exec("reset role");
     await db.query("update auth.users set email_confirmed_at = null where id=$1", [stranger]);
     await login(stranger);
-    await expect(db.query("select public.planner_create_linked_workspace('Bad')")).rejects.toThrow(
+    await expect(db.query("select public.create_workspace('Bad')")).rejects.toThrow(
       /verified email/
     );
     await db.exec("reset role");

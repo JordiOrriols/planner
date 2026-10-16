@@ -492,7 +492,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Crea un espacio de planificación y vincula después tus equipos Ladders existentes desde la página Vacaciones.",
+      "description": "Crea un espacio de planificación y añade después sus equipos en Configuración.",
       "name": "Nombre del espacio de trabajo",
       "submit": "Crear espacio de trabajo",
       "title": "Tu espacio de planificación"
@@ -673,23 +673,24 @@
   "teamConfiguration": {
     "title": "Configuración del equipo",
     "errors": {
-      "signInToLink": "Inicia sesión antes de vincular equipos",
-      "signInToLoad": "Inicia sesión antes de cargar los equipos"
+      "signInToCreate": "Inicia sesión antes de añadir equipos",
+      "teamNameRequired": "Ponle nombre al equipo primero"
     },
     "members": {
       "copyLink": "Copiar el enlace de vacaciones de {{memberName}}",
-      "empty": "No hay miembros en los equipos vinculados. Vincula un equipo de Ladders para empezar.",
+      "empty": "Los equipos de este espacio de trabajo aún no tienen miembros. Añádelos en Ladders.",
       "linkCopied": "Enlace de vacaciones copiado",
       "roleLabel": "Rol de planificación de {{memberName}}",
       "title": "Miembros del equipo",
       "unassigned": "Sin asignar"
     },
     "teams": {
-      "description": "Elige los equipos que pertenecen a este espacio de trabajo. Un equipo solo vive en un espacio de trabajo, así que elegirlo aquí lo saca del que está ahora. Crea o mueve miembros en Ladders, no aquí.",
-      "empty": "Crea primero un equipo en Ladders con la misma cuenta.",
-      "loading": "Cargando equipos...",
-      "save": "Guardar equipos vinculados",
-      "title": "Equipos de Ladders"
+      "title": "Equipos",
+      "description": "Los equipos de este espacio de trabajo. Los equipos se quedan en el espacio donde se crearon; gestiona sus miembros en Ladders.",
+      "empty": "Este espacio de trabajo aún no tiene equipos.",
+      "nameLabel": "Nombre del nuevo equipo",
+      "namePlaceholder": "Nombre del equipo",
+      "create": "Añadir equipo"
     }
   },
   "vacationEditor": {
@@ -766,7 +767,7 @@
     "description_other": "Semanas-persona disponibles (cinco días laborables por persona), próximas {{count}} semanas verificadas.",
     "empty": {
       "selectionRequired": "Selecciona al menos un área o equipo para mostrar la velocidad.",
-      "teamRequired": "Vincula un equipo en Configuración para mostrar su velocidad."
+      "teamRequired": "Añade un equipo en Configuración para mostrar su velocidad."
     },
     "filters": {
       "all": {

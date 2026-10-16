@@ -1,73 +1,62 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
-import { Button, Skeleton } from "@jordiorriols/ui";
+import { Button } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { useQuery } from "@tanstack/react-query";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 import { ROLE_LABELS } from "@/lib/planning";
 import { ROLES, type LinkedTeam } from "@/types/planner";
 
-function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
+function WorkspaceTeams({ linkedTeams, isOwner }: { linkedTeams: LinkedTeam[]; isOwner: boolean }) {
   const { t } = useTranslation();
   const { workspace, refresh } = useWorkspace();
-  const { repository, user } = useData();
-  const query = useQuery({
-    queryKey: ["planner-ladders-teams", user?.id, workspace.id],
-    queryFn: () => {
-      if (!repository) throw new Error(t("teamConfiguration.errors.signInToLoad"));
-      return repository.listTeams();
-    },
-  });
-  const [selected, setSelected] = useState(linkedTeams.map((team) => team.id));
+  const { repository } = useData();
+  const [name, setName] = useState("");
   const action = useAsyncAction();
-  // A team lives in one workspace, and only its owner can move it here.
-  const teams = new Map(linkedTeams.map((team) => [team.id, team]));
-  for (const team of query.data ?? []) if (team.access_level === "owner") teams.set(team.id, team);
   return (
-    <form
-      className="panel p-5 space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void action.run(async () => {
-          if (!repository) throw new Error(t("teamConfiguration.errors.signInToLink"));
-          await repository.setWorkspaceTeams(workspace.id, selected);
-          await refresh();
-        });
-      }}
-    >
+    <section className="panel p-5 space-y-3" aria-label={t("teamConfiguration.teams.title")}>
       <h2 className="font-semibold">{t("teamConfiguration.teams.title")}</h2>
       <p className="text-sm text-muted-foreground">{t("teamConfiguration.teams.description")}</p>
-      {query.isPending && (
-        <div role="status" aria-label={t("teamConfiguration.teams.loading")} aria-busy="true">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-6 w-36" />
-        </div>
-      )}
-      {query.error && <p role="alert">{query.error.message}</p>}
-      {!query.isPending && !query.error && !teams.size && (
+      {linkedTeams.length ? (
+        <ul className="flex flex-wrap gap-2">
+          {linkedTeams.map((team) => (
+            <li key={team.id} className="rounded-md border px-3 py-1 text-sm">
+              {team.name}
+            </li>
+          ))}
+        </ul>
+      ) : (
         <p>{t("teamConfiguration.teams.empty")}</p>
       )}
-      {[...teams.values()].map((team) => (
-        <label key={team.id} className="flex gap-2 items-center">
+      {isOwner && (
+        <form
+          className="flex flex-wrap items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void action.run(async () => {
+              if (!repository) throw new Error(t("teamConfiguration.errors.signInToCreate"));
+              await repository.createTeam(workspace.id, name);
+              setName("");
+              await refresh();
+            });
+          }}
+        >
           <input
-            type="checkbox"
-            checked={selected.includes(team.id)}
+            className="field w-auto"
+            aria-label={t("teamConfiguration.teams.nameLabel")}
+            placeholder={t("teamConfiguration.teams.namePlaceholder")}
+            value={name}
+            maxLength={120}
             disabled={action.busy}
-            onChange={(event) =>
-              setSelected((ids) =>
-                event.target.checked ? [...ids, team.id] : ids.filter((id) => id !== team.id)
-              )
-            }
+            onChange={(event) => setName(event.target.value)}
           />
-          {team.name}
-        </label>
-      ))}
+          <Button disabled={action.busy || !name.trim()} type="submit">
+            {t("teamConfiguration.teams.create")}
+          </Button>
+        </form>
+      )}
       {action.error && <p role="alert">{action.error}</p>}
-      <Button disabled={action.busy || query.isPending || !!query.error} type="submit">
-        {t("teamConfiguration.teams.save")}
-      </Button>
-    </form>
+    </section>
   );
 }
 
@@ -81,9 +70,7 @@ export default function TeamConfiguration() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{t("teamConfiguration.title")}</h1>
-      {isOwner && (
-        <TeamPicker key={linkedTeams.map((team) => team.id).join(",")} linkedTeams={linkedTeams} />
-      )}
+      <WorkspaceTeams linkedTeams={linkedTeams} isOwner={isOwner} />
       <section className="panel p-5 space-y-3" aria-label={t("teamConfiguration.members.title")}>
         <h2 className="font-semibold">{t("teamConfiguration.members.title")}</h2>
         {!members.length && <p>{t("teamConfiguration.members.empty")}</p>}

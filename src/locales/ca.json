@@ -492,7 +492,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Crea un espai de planificació i després enllaça els teus equips de Ladders existents des de la pàgina Vacances.",
+      "description": "Crea un espai de planificació i després afegeix-hi els equips a Configuració.",
       "name": "Nom de l'espai de treball",
       "submit": "Crea un espai de treball",
       "title": "El teu espai de planificació"
@@ -673,23 +673,24 @@
   "teamConfiguration": {
     "title": "Configuració de l'equip",
     "errors": {
-      "signInToLink": "Inicia la sessió abans d'enllaçar equips",
-      "signInToLoad": "Inicia la sessió abans de carregar els equips"
+      "signInToCreate": "Inicia la sessió abans d'afegir equips",
+      "teamNameRequired": "Posa nom a l'equip primer"
     },
     "members": {
       "copyLink": "Copia l'enllaç de vacances de {{memberName}}",
-      "empty": "No hi ha membres als equips enllaçats. Enllaça un equip de Ladders per començar.",
+      "empty": "Els equips d'aquest espai de treball encara no tenen membres. Afegeix-los a Ladders.",
       "linkCopied": "S'ha copiat l'enllaç de vacances",
       "roleLabel": "Rol de planificació de {{memberName}}",
       "title": "Membres de l'equip",
       "unassigned": "Sense assignar"
     },
     "teams": {
-      "description": "Tria els equips que pertanyen a aquest espai de treball. Un equip només viu en un espai de treball, així que triar-lo aquí el treu del que és ara. Crea o mou membres a Ladders, no aquí.",
-      "empty": "Crea primer un equip a Ladders amb el mateix compte.",
-      "loading": "Carregant els equips...",
-      "save": "Desa els equips enllaçats",
-      "title": "Equips de Ladders"
+      "title": "Equips",
+      "description": "Els equips d'aquest espai de treball. Els equips es queden a l'espai on es van crear; gestiona'n els membres a Ladders.",
+      "empty": "Aquest espai de treball encara no té equips.",
+      "nameLabel": "Nom del nou equip",
+      "namePlaceholder": "Nom de l'equip",
+      "create": "Afegeix un equip"
     }
   },
   "vacationEditor": {
@@ -766,7 +767,7 @@
     "description_other": "Setmanes-persona disponibles (cinc dies laborables per persona), pròximes {{count}} setmanes verificades.",
     "empty": {
       "selectionRequired": "Selecciona almenys una àrea o un equip per mostrar la velocitat.",
-      "teamRequired": "Enllaça un equip a Configuració per mostrar-ne la velocitat."
+      "teamRequired": "Afegeix un equip a Configuració per mostrar-ne la velocitat."
     },
     "filters": {
       "all": {

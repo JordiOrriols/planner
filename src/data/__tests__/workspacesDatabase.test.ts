@@ -7,6 +7,8 @@ const SHARED_WORKSPACES = "20261016180000_shared_workspaces.sql";
 const SETTINGS_ON_WORKSPACES = "20261016210000_planner_settings_live_on_workspaces.sql";
 const WORKSPACE_COLLABORATORS = "20261016220000_workspace_collaborators.sql";
 const LADDERS_SHARES = "20261016230000_ladders_shares_live_on_workspaces.sql";
+// Teams could still move between workspaces before this migration.
+const TEAMS_STAY = "20261017010000_teams_stay_in_their_workspace.sql";
 const owner = "11111111-1111-4111-8111-111111111111";
 const stranger = "33333333-3333-4333-8333-333333333333";
 const accounts = [
@@ -54,7 +56,7 @@ describe("Shared workspaces migration", () => {
     ))!;
 
     await login(null, "postgres");
-    await applyMigrations(db, { from: SHARED_WORKSPACES });
+    await applyMigrations(db, { from: SHARED_WORKSPACES, until: TEAMS_STAY });
 
     const teams = await db.query<{ id: string; workspace: string; owner: string }>(
       `select t.id, w.name as workspace, w.owner_id as owner
@@ -114,7 +116,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("only lets a team move into a workspace owned by its own owner", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const team = await createTeam("Platform");
     const roadmap = (await value<string>(
@@ -141,7 +143,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("moves chosen teams into a Planner workspace and gives released teams their own again", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const [backend, frontend] = [await createTeam("Backend"), await createTeam("Frontend")];
     const digital = (await value<string>(
@@ -227,7 +229,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("lists team workspaces for planning and keeps one that holds a plan after its team leaves", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const lead = await createTeam("Lead");
     const leadWorkspace = (await value<string>(
@@ -260,7 +262,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("moves the teams of a deleted workspace into workspaces of their own", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const [backend, frontend] = [await createTeam("Backend"), await createTeam("Frontend")];
     const digital = (await value<string>(
@@ -420,7 +422,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("shares every team of the workspace when one Ladders team is shared", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const [backend, frontend, lead] = [
       await createTeam("Backend"),
@@ -477,7 +479,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("drops the shares of a team workspace once its only team moves out", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAMS_STAY });
     await login(owner);
     const lead = await createTeam("Lead");
     await db.query("select public.share_team_by_email($1, 'stranger@example.com', 'viewer')", [

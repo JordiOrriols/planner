@@ -491,7 +491,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Crea un workspace di pianificazione, poi collega i team Ladders esistenti dalla pagina Ferie.",
+      "description": "Crea un workspace di pianificazione, poi aggiungi i suoi team in Configurazione.",
       "name": "Nome del workspace",
       "submit": "Crea workspace",
       "title": "Il tuo workspace di pianificazione"
@@ -672,23 +672,24 @@
   "teamConfiguration": {
     "title": "Configurazione del team",
     "errors": {
-      "signInToLink": "Accedi prima di collegare i team",
-      "signInToLoad": "Accedi prima di caricare i team"
+      "signInToCreate": "Accedi prima di aggiungere team",
+      "teamNameRequired": "Dai prima un nome al team"
     },
     "members": {
       "copyLink": "Copia il link ferie di {{memberName}}",
-      "empty": "Nessun membro nei team collegati. Collega un team Ladders per iniziare.",
+      "empty": "I team di questo spazio di lavoro non hanno ancora membri. Aggiungili in Ladders.",
       "linkCopied": "Link ferie copiato",
       "roleLabel": "Ruolo di pianificazione di {{memberName}}",
       "title": "Membri del team",
       "unassigned": "Non assegnato"
     },
     "teams": {
-      "description": "Scegli i team che appartengono a questo workspace. Un team vive in un solo workspace, quindi sceglierlo qui lo sposta da quello in cui si trova ora. Crea o sposta i membri in Ladders, non qui.",
-      "empty": "Crea prima un team in Ladders usando lo stesso account.",
-      "loading": "Caricamento dei team...",
-      "save": "Salva i team collegati",
-      "title": "Team Ladders"
+      "title": "Team",
+      "description": "I team di questo spazio di lavoro. I team restano nello spazio in cui sono stati creati; gestisci i loro membri in Ladders.",
+      "empty": "Questo spazio di lavoro non ha ancora team.",
+      "nameLabel": "Nome del nuovo team",
+      "namePlaceholder": "Nome del team",
+      "create": "Aggiungi team"
     }
   },
   "vacationEditor": {
@@ -765,7 +766,7 @@
     "description_other": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossime {{count}} settimane verificate.",
     "empty": {
       "selectionRequired": "Seleziona almeno un'area o un team per mostrare la velocità.",
-      "teamRequired": "Collega un team in Configurazione per mostrarne la velocità."
+      "teamRequired": "Aggiungi un team in Configurazione per mostrarne la velocità."
     },
     "filters": {
       "all": {

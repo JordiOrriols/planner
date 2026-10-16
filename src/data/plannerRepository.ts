@@ -61,12 +61,7 @@ const vacationSchema = z.object({
   date: z.string(),
   is_working: z.boolean(),
 });
-const teamSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  access_level: z.enum(["owner", "editor", "viewer"]),
-});
-const linkedTeamSchema = teamSchema.pick({ id: true, name: true });
+const linkedTeamSchema = z.object({ id: z.string().uuid(), name: z.string() });
 const vacationMemberSchema = memberSchema.pick({ id: true, name: true, role: true });
 const APP = "planner";
 const workspaceShareSchema = z.object({
@@ -161,13 +156,17 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     createWorkspace: async (name: string) =>
       workspaceSchema.parse(
-        await rpc("planner_create_linked_workspace", {
+        await rpc("create_workspace", {
           workspace_name: name,
         })
       ),
-    listTeams: () => rpcList("list_accessible_teams", teamSchema),
-    setWorkspaceTeams: (workspace: string, ids: string[]) =>
-      rpc("planner_set_workspace_teams", { workspace, team_ids: ids }),
+    async createTeam(workspace: string, name: string) {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error(i18n.t("teamConfiguration.errors.teamNameRequired"));
+      return linkedTeamSchema.parse(
+        await rpc("create_team", { p_name: trimmed, p_workspace: workspace })
+      );
+    },
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {

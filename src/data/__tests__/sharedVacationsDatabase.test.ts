@@ -3,6 +3,9 @@ import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createMigratedDatabase } from "./support/migratedDatabase";
 
+// These scenarios link teams into plans; teams have stayed in their workspace since this migration.
+const TEAMS_STAY = "20261017010000_teams_stay_in_their_workspace.sql";
+
 const owner = "11111111-1111-4111-8111-111111111111";
 const viewer = "22222222-2222-4222-8222-222222222222";
 const stranger = "33333333-3333-4333-8333-333333333333";
@@ -26,11 +29,14 @@ async function link(workspaceId = workspace, teams = [team]) {
   await db.query("select public.planner_set_workspace_teams($1,$2)", [workspaceId, teams]);
 }
 beforeAll(async () => {
-  db = await createMigratedDatabase([
-    { id: owner, email: "owner@example.com" },
-    { id: viewer, email: "viewer@example.com" },
-    { id: stranger, email: "stranger@example.com" },
-  ]);
+  db = await createMigratedDatabase(
+    [
+      { id: owner, email: "owner@example.com" },
+      { id: viewer, email: "viewer@example.com" },
+      { id: stranger, email: "stranger@example.com" },
+    ],
+    { until: TEAMS_STAY }
+  );
 });
 beforeEach(async () => {
   await login(null, "postgres");
