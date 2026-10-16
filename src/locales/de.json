@@ -730,6 +730,34 @@
     "title": "Dein geplanter Urlaub"
   },
   "velocity": {
+    "sprintDescription": "Zweiwöchige Sprints · {{startDate}} bis {{endDate}}",
+    "forecastCaption": "Geschätzte Story Points pro Sprint",
+    "capacityCaption": "Verfügbare Personenwochen pro Sprint",
+    "sprintOf": "Sprintbeginn",
+    "storyPoints": "Story Points",
+    "noHistory": "Mit gelieferten Sprintpunkten kalibrieren, um eine Prognose zu sehen. Bis dahin werden verfügbare Personenwochen angezeigt.",
+    "noSprints": "Im geprüften Feiertagskalender sind keine vollständigen Sprints mehr verfügbar.",
+    "calibration": {
+      "title": "Teamgeschwindigkeit kalibrieren",
+      "description": "Gelieferte Punkte abgeschlossener zweiwöchiger Sprints eintragen. Die Kapazität berücksichtigt das aktuelle Team, Urlaub und Feiertage. Der Durchschnitt ist die Gesamtpunktzahl geteilt durch die verfügbaren Personenwochen.",
+      "open": "Geschwindigkeit kalibrieren",
+      "anchor": "Beginn des Sprintrhythmus",
+      "date": "Sprintbeginn",
+      "points": "Gelieferte Story Points",
+      "capacity": "Verfügbare Personenwochen",
+      "add": "Sprint hinzufügen",
+      "remove": "Sprint {{sprintNumber}} entfernen",
+      "save": "Kalibrierung speichern",
+      "rate": "{{rate}} Story Points pro verfügbarer Personenwoche",
+      "errors": {
+        "calendar": "Jeder Sprint muss vollständig im geprüften Feiertagskalender 2026–2027 liegen.",
+        "alignment": "Sprints müssen alle 14 Tage dem gewählten Startdatum folgen.",
+        "duplicate": "Jeden Sprint nur einmal eintragen.",
+        "points": "Für jeden Sprint eine nicht negative Anzahl an Story Points eingeben.",
+        "noCapacity": "Ein erfasster Sprint hat keine verfügbare Kapazität. Rollen und Urlaub prüfen.",
+        "unfinished": "Nur abgeschlossene Sprints können zur Kalibrierung verwendet werden."
+      }
+    },
     "description_one": "Verfügbare Personenwochen (fünf Arbeitstage pro Person), nächste bestätigte Woche: {{count}}.",
     "description_other": "Verfügbare Personenwochen (fünf Arbeitstage pro Person), nächste {{count}} bestätigte Wochen.",
     "empty": {

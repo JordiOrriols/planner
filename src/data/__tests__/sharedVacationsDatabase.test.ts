@@ -64,6 +64,7 @@ beforeAll(async () => {
     "20261014225000_planner_workspace_plan_start.sql",
     "20261014230000_planner_workspace_sharing.sql",
     "20261016092000_planner_restore_working_calendar.sql",
+    "20261016110000_planner_sprint_calibration.sql",
   ]) {
     await db.exec(
       await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
@@ -102,6 +103,89 @@ afterAll(async () => {
 });
 
 describe("Registered-account workspace sharing", () => {
+  it("persists sprint calibration for editors and denies viewers and outsiders", async () => {
+    const history = [{ start_date: "2026-02-02", story_points: 50 }];
+    await db.query(
+      "update public.planner_workspaces set sprint_start_date=$2,sprint_history=$3 where id=$1",
+      [workspace, "2026-02-02", JSON.stringify(history)]
+    );
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+      workspace,
+    ]);
+    await login(viewer);
+    expect(
+      (
+        await db.query("select sprint_history from public.planner_workspaces where id=$1", [
+          workspace,
+        ])
+      ).rows
+    ).toEqual([{ sprint_history: history }]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set sprint_history='[]' where id=$1 returning id",
+          [workspace]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await login(owner);
+    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+      workspace,
+      viewer,
+    ]);
+    await login(viewer);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set sprint_history='[]' where id=$1 returning sprint_history",
+          [workspace]
+        )
+      ).rows
+    ).toEqual([{ sprint_history: [] }]);
+    await login(stranger);
+    expect(
+      (
+        await db.query("select sprint_history from public.planner_workspaces where id=$1", [
+          workspace,
+        ])
+      ).rows
+    ).toHaveLength(0);
+    expect(
+      (
+        await db.query(
+          "update public.planner_workspaces set sprint_history='[]' where id=$1 returning id",
+          [workspace]
+        )
+      ).rows
+    ).toHaveLength(0);
+  });
+
+  it("rejects invalid, duplicate and off-cadence sprint results in PostgreSQL", async () => {
+    await db.query(
+      "update public.planner_workspaces set sprint_start_date='2026-02-02' where id=$1",
+      [workspace]
+    );
+    for (const history of [
+      {},
+      [{}],
+      [{ start_date: "2026-02-02", story_points: -1 }],
+      [{ start_date: "2026-02-02", story_points: null }],
+      [{ start_date: "2026-02-30", story_points: 2 }],
+      [{ start_date: "2026-02-03", story_points: 2 }],
+      [{ start_date: "2027-12-27", story_points: 2 }],
+      [
+        { start_date: "2026-02-02", story_points: 2 },
+        { start_date: "2026-02-02", story_points: 5 },
+      ],
+    ])
+      await expect(
+        db.query("update public.planner_workspaces set sprint_history=$2 where id=$1", [
+          workspace,
+          JSON.stringify(history),
+        ])
+      ).rejects.toThrow();
+  });
+
   it("preserves existing linked-team viewing after revoking an explicit editor share", async () => {
     await link();
     await db.query("select public.share_team_by_email($1,'viewer@example.com','viewer')", [team]);

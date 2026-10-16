@@ -14,6 +14,12 @@ export interface Workspace {
   name: string;
   owner_id: string;
   plan_start_date: string;
+  sprint_start_date: string;
+  sprint_history: SprintResult[];
+}
+export interface SprintResult {
+  start_date: string;
+  story_points: number;
 }
 export interface PlannerMember {
   id: string;

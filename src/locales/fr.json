@@ -730,6 +730,34 @@
     "title": "Vos vacances planifiées"
   },
   "velocity": {
+    "sprintDescription": "Sprints de deux semaines · {{startDate}} au {{endDate}}",
+    "forecastCaption": "Points de récit estimés par sprint",
+    "capacityCaption": "Semaines-personnes disponibles par sprint",
+    "sprintOf": "Début du sprint",
+    "storyPoints": "Points de récit",
+    "noHistory": "Calibrez avec les points livrés pour afficher une prévision. Les semaines-personnes disponibles sont affichées en attendant.",
+    "noSprints": "Aucun sprint complet ne reste dans le calendrier des jours fériés vérifié.",
+    "calibration": {
+      "title": "Calibrer la vélocité de l'équipe",
+      "description": "Saisissez les points livrés lors de sprints terminés de deux semaines. La capacité utilise l'équipe actuelle, les congés et les jours fériés. La moyenne est le total des points divisé par les semaines-personnes disponibles.",
+      "open": "Calibrer la vélocité",
+      "anchor": "Début de la cadence des sprints",
+      "date": "Début du sprint",
+      "points": "Points de récit livrés",
+      "capacity": "Semaines-personnes disponibles",
+      "add": "Ajouter un sprint",
+      "remove": "Supprimer le sprint {{sprintNumber}}",
+      "save": "Enregistrer le calibrage",
+      "rate": "{{rate}} points de récit par semaine-personne disponible",
+      "errors": {
+        "calendar": "Chaque sprint doit être entièrement compris dans le calendrier des jours fériés vérifié 2026–2027.",
+        "alignment": "Les sprints doivent suivre la date de début choisie tous les 14 jours.",
+        "duplicate": "Saisissez chaque sprint une seule fois.",
+        "points": "Saisissez un nombre positif ou nul de points de récit pour chaque sprint.",
+        "noCapacity": "Un sprint enregistré n'a aucune capacité disponible. Vérifiez les rôles et les congés.",
+        "unfinished": "Seuls les sprints terminés peuvent servir au calibrage."
+      }
+    },
     "description_one": "Semaines-personne disponibles (cinq jours ouvrés par personne), prochaine semaine vérifiée : {{count}}.",
     "description_other": "Semaines-personne disponibles (cinq jours ouvrés par personne), prochaines {{count}} semaines vérifiées.",
     "empty": {

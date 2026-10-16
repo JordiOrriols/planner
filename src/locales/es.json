@@ -731,6 +731,34 @@
     "title": "Tus vacaciones planificadas"
   },
   "velocity": {
+    "sprintDescription": "Sprints de dos semanas · {{startDate}} a {{endDate}}",
+    "forecastCaption": "Puntos de historia estimados por sprint",
+    "capacityCaption": "Semanas-persona disponibles por sprint",
+    "sprintOf": "Inicio del sprint",
+    "storyPoints": "Puntos de historia",
+    "noHistory": "Calibra con los puntos entregados para ver una previsión. Mientras tanto se muestran las semanas-persona disponibles.",
+    "noSprints": "No quedan sprints completos en el calendario de festivos verificado.",
+    "calibration": {
+      "title": "Calibrar la velocidad del equipo",
+      "description": "Introduce los puntos entregados en sprints completos de dos semanas. La capacidad usa el equipo actual, las vacaciones y los festivos. La media del espacio es el total de puntos dividido por las semanas-persona disponibles.",
+      "open": "Calibrar velocidad",
+      "anchor": "Inicio de la cadencia de sprints",
+      "date": "Inicio del sprint",
+      "points": "Puntos de historia entregados",
+      "capacity": "Semanas-persona disponibles",
+      "add": "Añadir sprint",
+      "remove": "Eliminar sprint {{sprintNumber}}",
+      "save": "Guardar calibración",
+      "rate": "{{rate}} puntos de historia por semana-persona disponible",
+      "errors": {
+        "calendar": "Cada sprint debe estar completo dentro del calendario de festivos verificado de 2026–2027.",
+        "alignment": "Los sprints deben seguir la fecha de inicio seleccionada cada 14 días.",
+        "duplicate": "Introduce cada sprint solo una vez.",
+        "points": "Introduce un número no negativo de puntos de historia para cada sprint.",
+        "noCapacity": "Un sprint registrado no tiene capacidad disponible. Revisa los roles y las vacaciones.",
+        "unfinished": "Solo se pueden usar sprints terminados para la calibración."
+      }
+    },
     "description_one": "Semanas-persona disponibles (cinco días laborables por persona), próxima semana verificada: {{count}}.",
     "description_other": "Semanas-persona disponibles (cinco días laborables por persona), próximas {{count}} semanas verificadas.",
     "empty": {

@@ -8,6 +8,8 @@ const workspace = {
   owner_id: "22222222-2222-4222-8222-222222222222",
   name: "Squad",
   plan_start_date: "2026-10-15",
+  sprint_start_date: "2026-02-02",
+  sprint_history: [],
 };
 function setup() {
   const fetch = vi.fn<typeof globalThis.fetch>();
@@ -24,6 +26,34 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("saves sprint cadence and results atomically and validates them before requesting", async () => {
+    const { fetch, response, repository } = setup();
+    const history = [{ start_date: "2026-02-02", story_points: 50 }];
+    fetch.mockResolvedValue(response({ ...workspace, sprint_history: history }));
+    expect(await repository.setSprintCalibration(workspace.id, "2026-02-02", history)).toEqual({
+      ...workspace,
+      sprint_history: history,
+    });
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      sprint_start_date: "2026-02-02",
+      sprint_history: history,
+    });
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`id=eq.${workspace.id}`);
+    fetch.mockClear();
+    for (const invalid of [
+      [{ start_date: "2026-02-03", story_points: 10 }],
+      [{ start_date: "2026-02-02", story_points: -1 }],
+      [...history, ...history],
+    ])
+      await expect(
+        repository.setSprintCalibration(workspace.id, "2026-02-02", invalid)
+      ).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockResolvedValue(response({ message: "Edit access required" }, 403));
+    await expect(
+      repository.setSprintCalibration(workspace.id, "2026-02-02", history)
+    ).rejects.toThrow("Edit access required");
+  });
   it("uses registered-account sharing RPCs and validates returned permissions", async () => {
     const { fetch, response, repository } = setup();
     fetch.mockImplementation(async () => response(null));

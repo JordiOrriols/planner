@@ -731,6 +731,34 @@
     "title": "Les teves vacances planificades"
   },
   "velocity": {
+    "sprintDescription": "Sprints de dues setmanes · {{startDate}} a {{endDate}}",
+    "forecastCaption": "Punts d'història estimats per sprint",
+    "capacityCaption": "Setmanes-persona disponibles per sprint",
+    "sprintOf": "Inici del sprint",
+    "storyPoints": "Punts d'història",
+    "noHistory": "Calibra amb els punts lliurats per veure una previsió. Mentrestant es mostren les setmanes-persona disponibles.",
+    "noSprints": "No queden sprints complets al calendari de festius verificat.",
+    "calibration": {
+      "title": "Calibra la velocitat de l'equip",
+      "description": "Introdueix els punts lliurats en sprints complets de dues setmanes. La capacitat fa servir l'equip actual, les vacances i els festius. La mitjana de l'espai és el total de punts dividit per les setmanes-persona disponibles.",
+      "open": "Calibra la velocitat",
+      "anchor": "Inici de la cadència de sprints",
+      "date": "Inici del sprint",
+      "points": "Punts d'història lliurats",
+      "capacity": "Setmanes-persona disponibles",
+      "add": "Afegeix un sprint",
+      "remove": "Elimina el sprint {{sprintNumber}}",
+      "save": "Desa el calibratge",
+      "rate": "{{rate}} punts d'història per setmana-persona disponible",
+      "errors": {
+        "calendar": "Cada sprint ha de quedar sencer dins del calendari de festius verificat de 2026–2027.",
+        "alignment": "Els sprints han de seguir la data d'inici seleccionada cada 14 dies.",
+        "duplicate": "Introdueix cada sprint només una vegada.",
+        "points": "Introdueix un nombre no negatiu de punts d'història per a cada sprint.",
+        "noCapacity": "Un sprint registrat no té capacitat disponible. Revisa els rols i les vacances.",
+        "unfinished": "Només es poden fer servir sprints acabats per al calibratge."
+      }
+    },
     "description_one": "Setmanes-persona disponibles (cinc dies laborables per persona), pròxima setmana verificada: {{count}}.",
     "description_other": "Setmanes-persona disponibles (cinc dies laborables per persona), pròximes {{count}} setmanes verificades.",
     "empty": {

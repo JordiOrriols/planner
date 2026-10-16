@@ -730,6 +730,34 @@
     "title": "Your planned vacations"
   },
   "velocity": {
+    "sprintDescription": "Two-week sprints · {{startDate}} to {{endDate}}",
+    "forecastCaption": "Estimated story points per sprint",
+    "capacityCaption": "Available person-weeks per sprint",
+    "sprintOf": "Sprint starts",
+    "storyPoints": "Story points",
+    "noHistory": "Calibrate with delivered sprint points to see a story-point forecast. Showing available person-weeks until then.",
+    "noSprints": "No complete sprints remain in the verified holiday calendar.",
+    "calibration": {
+      "title": "Calibrate squad velocity",
+      "description": "Enter delivered points for completed two-week sprints. Capacity comes from the current team, vacations and holidays. The workspace average is total points divided by total available person-weeks.",
+      "open": "Calibrate velocity",
+      "anchor": "Sprint cadence starts",
+      "date": "Sprint start",
+      "points": "Delivered story points",
+      "capacity": "Available person-weeks",
+      "add": "Add sprint",
+      "remove": "Remove sprint {{sprintNumber}}",
+      "save": "Save calibration",
+      "rate": "{{rate}} story points per available person-week",
+      "errors": {
+        "calendar": "Each sprint must fit entirely within the verified 2026–2027 holiday calendar.",
+        "alignment": "Sprint dates must follow the selected start date every 14 days.",
+        "duplicate": "Enter each sprint only once.",
+        "points": "Enter a non-negative number of story points for each sprint.",
+        "noCapacity": "A recorded sprint has no available capacity. Check its team roles and vacation calendar.",
+        "unfinished": "Only completed sprints can be used for calibration."
+      }
+    },
     "description_one": "Available person-weeks (five working days per person), next {{count}} verified week.",
     "description_other": "Available person-weeks (five working days per person), next {{count}} verified weeks.",
     "empty": {

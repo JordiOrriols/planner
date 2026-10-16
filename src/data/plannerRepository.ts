@@ -1,7 +1,14 @@
 import i18n from "@/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { ROLES, type ProjectInput, type Role, type WorkspaceAccess } from "@/types/planner";
+import {
+  ROLES,
+  type ProjectInput,
+  type Role,
+  type WorkspaceAccess,
+  type SprintResult,
+} from "@/types/planner";
+import { validateSprintSettings } from "@/lib/sprints";
 import { parseDate, validateProject } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 
@@ -12,6 +19,10 @@ const workspaceSchema = z.object({
   plan_start_date: z.string().refine(
     (value) => z.string().date().safeParse(value).success,
     () => ({ message: i18n.t("workspace.errors.invalidPlanStart") })
+  ),
+  sprint_start_date: z.string().date(),
+  sprint_history: z.array(
+    z.object({ start_date: z.string().date(), story_points: z.number().finite().nonnegative() })
   ),
 });
 const memberSchema = z.object({
@@ -111,6 +122,17 @@ export function createPlannerRepository(client: SupabaseClient) {
       const { data, error } = await client
         .from("planner_workspaces")
         .update({ plan_start_date: date })
+        .eq("id", workspace)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return workspaceSchema.parse(data);
+    },
+    async setSprintCalibration(workspace: string, anchor: string, history: SprintResult[]) {
+      validateSprintSettings(anchor, history);
+      const { data, error } = await client
+        .from("planner_workspaces")
+        .update({ sprint_start_date: anchor, sprint_history: history })
         .eq("id", workspace)
         .select("*")
         .single();

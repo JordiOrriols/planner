@@ -730,6 +730,34 @@
     "title": "Le tue ferie pianificate"
   },
   "velocity": {
+    "sprintDescription": "Sprint di due settimane · dal {{startDate}} al {{endDate}}",
+    "forecastCaption": "Story point stimati per sprint",
+    "capacityCaption": "Settimane-persona disponibili per sprint",
+    "sprintOf": "Inizio sprint",
+    "storyPoints": "Story point",
+    "noHistory": "Calibra con i punti consegnati per visualizzare una previsione. Nel frattempo vengono mostrate le settimane-persona disponibili.",
+    "noSprints": "Non rimangono sprint completi nel calendario festivo verificato.",
+    "calibration": {
+      "title": "Calibra la velocità del team",
+      "description": "Inserisci i punti consegnati negli sprint completati di due settimane. La capacità usa il team attuale, le ferie e le festività. La media è il totale dei punti diviso per le settimane-persona disponibili.",
+      "open": "Calibra velocità",
+      "anchor": "Inizio della cadenza degli sprint",
+      "date": "Inizio sprint",
+      "points": "Story point consegnati",
+      "capacity": "Settimane-persona disponibili",
+      "add": "Aggiungi sprint",
+      "remove": "Rimuovi sprint {{sprintNumber}}",
+      "save": "Salva calibrazione",
+      "rate": "{{rate}} story point per settimana-persona disponibile",
+      "errors": {
+        "calendar": "Ogni sprint deve rientrare interamente nel calendario festivo verificato 2026–2027.",
+        "alignment": "Gli sprint devono seguire la data iniziale selezionata ogni 14 giorni.",
+        "duplicate": "Inserisci ogni sprint una sola volta.",
+        "points": "Inserisci un numero non negativo di story point per ogni sprint.",
+        "noCapacity": "Uno sprint registrato non ha capacità disponibile. Controlla ruoli e ferie.",
+        "unfinished": "Solo gli sprint completati possono essere usati per la calibrazione."
+      }
+    },
     "description_one": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossima settimana verificata: {{count}}.",
     "description_other": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossime {{count}} settimane verificate.",
     "empty": {
