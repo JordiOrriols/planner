@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,8 @@ import { supabase } from "@/data/supabaseClient";
 const repository = supabase ? createPlannerRepository(supabase) : null;
 
 export default function VacationLink() {
+  const { t } = useTranslation();
+
   const { token = "" } = useParams();
   const [month, setMonth] = useState(new Date());
   const client = useQueryClient();
@@ -18,20 +21,19 @@ export default function VacationLink() {
     queryKey,
     retry: false,
     queryFn: () => {
-      if (!z.string().uuid().safeParse(token).success) throw new Error("Invalid vacation link");
-      if (!repository) throw new Error("Supabase is not configured. Contact the team owner.");
+      if (!z.string().uuid().safeParse(token).success)
+        throw new Error(t("copy.invalidVacationLink"));
+      if (!repository) throw new Error(t("copy.supabaseNotConfigured"));
       return repository.loadVacation(token);
     },
   });
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-5">
-      <h1 className="text-3xl font-bold">Your planned vacations</h1>
-      <p className="text-muted-foreground">
-        This personal link lets you update only your availability. Changes apply to every linked
-        planning workspace. You can also see vacations for your current team, but cannot edit them.
-        Keep this link private.
-      </p>
-      {query.isPending && <AppSkeleton label="Loading vacation calendar..." fullPage={false} />}
+      <h1 className="text-3xl font-bold">{t("copy.yourPlannedVacations")}</h1>
+      <p className="text-muted-foreground">{t("copy.thisPersonalLinkLetsYouUpdateOnlyYour")}</p>
+      {query.isPending && (
+        <AppSkeleton label={t("copy.loadingVacationCalendar")} fullPage={false} />
+      )}
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.data && repository && (
         <section className="panel p-5 space-y-4">
