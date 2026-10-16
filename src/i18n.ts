@@ -18,7 +18,7 @@ const resources = {
 };
 
 i18n.on("languageChanged", (language: string) => {
-  document.documentElement.lang = language;
+  if (typeof document !== "undefined") document.documentElement.lang = language;
 });
 
 i18n
