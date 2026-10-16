@@ -48,7 +48,20 @@ directives. Official Radix exports and the original UI Button are unchanged.
 All application-owned visible copy, accessible labels, tooltips and validation
 messages use i18next. Keep translations in `src/locales/{en,es,ca,fr,de,it}.json`,
 including complete interpolated sentences and plural forms rather than assembling
-English fragments in components. React views subscribe with `useTranslation`;
+English fragments in components. Organize messages under the owning page or
+component, for example `estimation`, `roadmap`, `gantt`, `featureForm`,
+`featureCard`, `vacations`, `teamConfiguration`, `availabilityEditor`,
+`vacationCalendar`, `vacationLink`, and `velocity`. Shared actions and units belong
+under `common`; workspace flows, planning validation and holiday names have their
+own `workspace`, `planning`, and `holidays` groups. Do not add a generic `copy`
+bucket or use sentence fragments as key names.
+
+Interpolation names describe their content: `{{featureName}}`, `{{memberName}}`,
+`{{date}}`, `{{year}}`, `{{role}}`, or `{{roles}}`, never numbered `value`/`param`
+variables. Use i18next's `{{count}}` for plural messages, keeping each plural family
+in its owning group. Update all six catalogs and translation call sites together.
+
+React views subscribe with `useTranslation`;
 planning helpers translate roles, holiday names and errors when used, not at
 module initialization. Dates, month names and weekdays follow the selected locale.
 The document language updates with the language selector.
