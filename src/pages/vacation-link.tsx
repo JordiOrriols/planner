@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { AppSkeleton } from "@jordiorriols/ui";
 import { AvailabilityEditor } from "@/components/organisms/availability-editor";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
@@ -30,7 +31,7 @@ export default function VacationLink() {
         planning workspace. You can also see vacations for your current team, but cannot edit them.
         Keep this link private.
       </p>
-      {query.isPending && <p role="status">Loading vacation calendar...</p>}
+      {query.isPending && <AppSkeleton label="Loading vacation calendar..." fullPage={false} />}
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.data && repository && (
         <section className="panel p-5 space-y-4">

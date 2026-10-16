@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { Button, Input, Label } from "@jordiorriols/ui";
+import { AppSkeleton, Button, Input, Label } from "@jordiorriols/ui";
 import { useData } from "./DataProvider";
 import {
   type Workspace,
@@ -67,11 +67,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
   if (!repository || !user) throw new Error("Sign in before opening Planner");
   if (directory.isPending || (workspace && data.isPending))
-    return (
-      <p role="status" className="p-8">
-        Loading your workspace...
-      </p>
-    );
+    return <AppSkeleton label="Loading your workspace..." />;
   if (directory.error || data.error)
     return (
       <div className="p-8 space-y-4">

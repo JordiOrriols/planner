@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "@jordiorriols/ui";
+import { Button, Skeleton } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useQuery } from "@tanstack/react-query";
 import VacationCalendar from "@/components/organisms/vacation-calendar";
@@ -42,7 +42,12 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
         Link one or more teams. Their current members and vacations are shared across workspaces.
         Create or move members in Ladders, not here.
       </p>
-      {query.isPending && <p role="status">Loading teams...</p>}
+      {query.isPending && (
+        <div role="status" aria-label="Loading teams..." aria-busy="true" className="space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-6 w-36" />
+        </div>
+      )}
       {query.error && <p role="alert">{query.error.message}</p>}
       {!query.isPending && !query.error && !teams.size && (
         <p>Create a team in Ladders using the same account first.</p>

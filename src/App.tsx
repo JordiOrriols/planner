@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Button, Spinner } from "@jordiorriols/ui";
+import { AppSkeleton, Button } from "@jordiorriols/ui";
 import { DataProvider } from "./data/DataProvider";
 import { WorkspaceProvider } from "./data/WorkspaceProvider";
 import { EntryGate } from "./components/EntryGate";
@@ -32,7 +32,7 @@ export default function App() {
         <DataProvider>
           <PasswordResetDialog />
           <EntryGate>
-            <Suspense fallback={<Spinner label="Loading page" />}>
+            <Suspense fallback={<AppSkeleton label="Loading page" />}>
               <Routes>
                 <Route path="/vacations/:token" element={<VacationLink />} />
                 <Route
