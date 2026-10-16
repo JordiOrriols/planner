@@ -9,12 +9,14 @@ import { ROLE_COLORS } from "@/config/roleColors";
 
 export default function ProjectEstimateCard({
   project,
+  mainProjectName,
   onEdit,
   onDelete,
   disabled,
   readOnly,
 }: {
   project: Project;
+  mainProjectName?: string | undefined;
   onEdit: () => void;
   onDelete: () => void;
   disabled: boolean;
@@ -38,8 +40,13 @@ export default function ProjectEstimateCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-heading font-semibold text-[15px] tracking-tight truncate">
-            {project.name}
+          <h3 className="flex min-w-0 items-center gap-2 font-heading font-semibold text-[15px] tracking-tight">
+            {mainProjectName && (
+              <span className="shrink-0 rounded-md bg-brand/10 px-2 py-0.5 text-[11px] font-medium tracking-normal text-brand">
+                {mainProjectName}
+              </span>
+            )}
+            <span className="truncate">{project.name}</span>
           </h3>
           {project.description && (
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{project.description}</p>

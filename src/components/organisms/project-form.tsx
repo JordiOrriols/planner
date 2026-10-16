@@ -3,7 +3,7 @@ import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
-import { EMPTY_PROJECT, type ProjectInput } from "@/types/planner";
+import { EMPTY_PROJECT, type MainProject, type ProjectInput } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
@@ -12,7 +12,9 @@ export default function ProjectForm({
   onClose,
   onSave,
   initial,
+  mainProjects = [],
 }: {
+  mainProjects?: MainProject[];
   open: boolean;
   onClose: () => void;
   onSave: (input: ProjectInput) => Promise<void>;
@@ -21,7 +23,7 @@ export default function ProjectForm({
   const { t } = useTranslation();
   const formId = useId();
 
-  const [form, setForm] = useState<ProjectInput>(initial ?? EMPTY_PROJECT);
+  const [form, setForm] = useState<ProjectInput>({ ...EMPTY_PROJECT, ...initial });
   const action = useAsyncAction();
   return (
     <Modal
@@ -63,6 +65,22 @@ export default function ProjectForm({
           maxLength={120}
           autoFocus
         />
+        <Label htmlFor="project-main-project">{t("featureForm.fields.mainProject")}</Label>
+        <select
+          id="project-main-project"
+          className="field"
+          value={form.main_project_id ?? ""}
+          onChange={(event) =>
+            setForm((previous) => ({ ...previous, main_project_id: event.target.value || null }))
+          }
+        >
+          <option value="">{t("mainProjects.none")}</option>
+          {mainProjects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
         <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
         <textarea
           id="project-description"

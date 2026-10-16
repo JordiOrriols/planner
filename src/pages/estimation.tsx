@@ -2,9 +2,10 @@ import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, ConfirmDialog, EmptyState } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { Plus, Calculator } from "@jordiorriols/ui/icons";
+import { Plus, Calculator, FolderKanban } from "@jordiorriols/ui/icons";
 import ProjectForm from "@/components/organisms/project-form";
 import ProjectEstimateCard from "@/components/organisms/project-estimate-card";
+import MainProjectsManager from "@/components/organisms/main-projects-manager";
 import { totalDevWeeks } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
@@ -13,12 +14,14 @@ import type { Project } from "@/types/planner";
 export default function Estimation() {
   const { t } = useTranslation();
 
-  const { projects, workspace, canEdit, refresh } = useWorkspace();
+  const { projects, mainProjects, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
+  const [managingProjects, setManagingProjects] = useState(false);
+  const mainProjectNames = new Map(mainProjects.map((item) => [item.id, item.name]));
   const roadmap = projects
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -34,15 +37,21 @@ export default function Estimation() {
           <p className="text-muted-foreground text-sm mt-1">{t("estimation.description")}</p>
         </div>
         {canEdit && (
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t("featureForm.createTitle")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setManagingProjects(true)}>
+              <FolderKanban className="h-4 w-4 mr-2" />
+              {t("mainProjects.manage")}
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {t("featureForm.createTitle")}
+            </Button>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-3 gap-3 max-w-lg">
@@ -99,6 +108,11 @@ export default function Estimation() {
                   <ProjectEstimateCard
                     key={project.id}
                     project={project}
+                    mainProjectName={
+                      project.main_project_id
+                        ? mainProjectNames.get(project.main_project_id)
+                        : undefined
+                    }
                     disabled={action.busy}
                     readOnly={!canEdit}
                     onEdit={() => {
@@ -118,8 +132,28 @@ export default function Estimation() {
           open
           onClose={() => setFormOpen(false)}
           initial={editing}
+          mainProjects={mainProjects}
           onSave={async (input) => {
             await repository.saveProject(workspace.id, input, editing?.id);
+            await refresh();
+          }}
+        />
+      )}
+      {managingProjects && (
+        <MainProjectsManager
+          open
+          onClose={() => setManagingProjects(false)}
+          projects={mainProjects}
+          onCreate={async (name) => {
+            await repository.createMainProject(workspace.id, name);
+            await refresh();
+          }}
+          onRename={async (id, name) => {
+            await repository.renameMainProject(workspace.id, id, name);
+            await refresh();
+          }}
+          onDelete={async (id) => {
+            await repository.deleteMainProject(workspace.id, id);
             await refresh();
           }}
         />

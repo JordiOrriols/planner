@@ -34,6 +34,54 @@ describe("Feature form footer actions", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("assigns or clears the feature's main project from the workspace list", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ProjectForm
+        open
+        initial={{ ...EMPTY_PROJECT, name: "Checkout", main_project_id: "growth" }}
+        mainProjects={[
+          { id: "payments", workspace_id: "workspace", name: "Payments" },
+          { id: "growth", workspace_id: "workspace", name: "Growth" },
+        ]}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    const select = screen.getByLabelText("Main project");
+    expect(select).toHaveValue("growth");
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "No project",
+      "Payments",
+      "Growth",
+    ]);
+    await userEvent.selectOptions(select, "Payments");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenLastCalledWith(
+        expect.objectContaining({ main_project_id: "payments" })
+      )
+    );
+  });
+
+  it("saves features without a main project as null", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ProjectForm
+        open
+        initial={{ ...EMPTY_PROJECT, name: "Checkout", main_project_id: "payments" }}
+        mainProjects={[{ id: "payments", workspace_id: "workspace", name: "Payments" }]}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    await userEvent.selectOptions(screen.getByLabelText("Main project"), "No project");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ main_project_id: null }))
+    );
+  });
+
   it("discards changes without saving", async () => {
     const onSave = vi.fn();
     const onClose = vi.fn();

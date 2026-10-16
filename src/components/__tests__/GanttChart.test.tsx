@@ -56,6 +56,45 @@ function renderSchedule(projects: Project[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("keeps priority order and adds a project heading whenever the main project changes", () => {
+    const mainProjects = [
+      { id: "payments", workspace_id: "workspace", name: "Payments" },
+      { id: "growth", workspace_id: "workspace", name: "Growth" },
+    ];
+    const features = ["Pay A", "Pay B", "Loose", "Grow", "Pay C"].map((name, index) => ({
+      ...mixed,
+      id: name,
+      name,
+      priority: index,
+      main_project_id: [`payments`, "payments", null, "growth", "payments"][index]!,
+    }));
+    const result = computeSchedule(features, members, [], parseISO("2026-02-02"), 12);
+    render(
+      <GanttChart weeks={result.weeks} schedule={result.schedule} mainProjects={mainProjects} />
+    );
+    const order = screen
+      .getAllByRole("heading")
+      .concat(screen.getAllByLabelText(/^Schedule row:/))
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      .map((element) => element.getAttribute("aria-label"));
+    expect(order).toEqual([
+      "Project: Payments",
+      "Schedule row: Pay A",
+      "Schedule row: Pay B",
+      "Project: No project",
+      "Schedule row: Loose",
+      "Project: Growth",
+      "Schedule row: Grow",
+      "Project: Payments",
+      "Schedule row: Pay C",
+    ]);
+  });
+
+  it("omits project headings when no scheduled feature belongs to a project", () => {
+    renderSchedule([mixed, { ...mixed, id: "other", name: "Other", priority: 2 }]);
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+  });
+
   it("supports opening the row menu and selecting actions from the keyboard", async () => {
     const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
     const delivered = vi.fn();

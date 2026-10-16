@@ -101,6 +101,34 @@ describe("Feature estimate breakdown", () => {
     }
   );
 
+  it("shows the main project label before the feature title only when assigned", () => {
+    const { rerender } = render(
+      <ProjectEstimateCard
+        project={project}
+        mainProjectName="Payments"
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        disabled={false}
+        readOnly
+      />
+    );
+    const title = screen.getByRole("heading", { level: 3 });
+    expect(title.textContent).toBe(`Payments${project.name}`);
+    expect(title.firstElementChild).toHaveTextContent("Payments");
+    rerender(
+      <ProjectEstimateCard
+        project={project}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        disabled={false}
+        readOnly
+      />
+    );
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+      new RegExp(`^${project.name}$`)
+    );
+  });
+
   it("shows zero estimates for unused areas without hiding their labels", async () => {
     renderCard({ ...project, ...EMPTY_PROJECT, name: project.name }, true);
     await userEvent.click(screen.getByRole("button", { name: i18n.t("featureCard.showDetails") }));

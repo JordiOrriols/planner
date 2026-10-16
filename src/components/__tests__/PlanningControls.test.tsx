@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import Backlog from "@/pages/backlog";
 import Estimation from "@/pages/estimation";
 import ProjectForm from "@/components/organisms/project-form";
-import { EMPTY_PROJECT, type Project } from "@/types/planner";
+import { EMPTY_PROJECT, type MainProject, type Project } from "@/types/planner";
 
 const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
@@ -18,6 +18,7 @@ const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = v
     isOwner: true,
     canEditOverride: null as boolean | null,
     projects: [] as Project[],
+    mainProjects: [] as MainProject[],
     planStart: "2026-10-15",
   },
 }));
@@ -46,6 +47,7 @@ beforeEach(() => {
   state.isOwner = true;
   state.canEditOverride = null;
   state.planStart = "2026-10-15";
+  state.mainProjects = [];
   setPlanStart.mockImplementation(async (_id: string, date: string) => {
     state.planStart = date;
   });
@@ -139,6 +141,34 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.getByRole("button", { name: "Edit Checkout" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /backlog/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/microproject/i)).not.toBeInTheDocument();
+  });
+
+  it("labels features with their main project and lets only editors manage projects", async () => {
+    state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
+    state.projects = state.projects.map((project) => ({
+      ...project,
+      main_project_id: "payments",
+    }));
+    const rendered = render(<Estimation />);
+    expect(screen.getByRole("heading", { name: "PaymentsCheckout" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Manage projects" }));
+    expect(screen.getByRole("dialog", { name: "Projects" })).toBeVisible();
+    expect(screen.getByLabelText("Rename Payments")).toHaveValue("Payments");
+    rendered.unmount();
+    state.isOwner = false;
+    render(<Estimation />);
+    expect(screen.queryByRole("button", { name: "Manage projects" })).not.toBeInTheDocument();
+  });
+
+  it("groups roadmap rows under main project headings in priority order", () => {
+    state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
+    state.projects = state.projects.map((project) => ({
+      ...project,
+      in_backlog: true,
+      main_project_id: "payments",
+    }));
+    renderBacklog();
+    expect(screen.getByRole("heading", { name: "Project: Payments" })).toBeVisible();
   });
 
   it("uses the saved workspace date and retains a changed start after page remount", async () => {

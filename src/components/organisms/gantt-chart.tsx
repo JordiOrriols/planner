@@ -8,6 +8,7 @@ import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 import type { CapacityWeek, ScheduledProject, ScheduledRole } from "@/lib/planning";
+import type { MainProject } from "@/types/planner";
 
 function workRuns(role: ScheduledRole) {
   const runs: { start: Date; end: Date; personDays: number }[] = [];
@@ -35,6 +36,7 @@ function workRuns(role: ScheduledRole) {
 export default function GanttChart({
   weeks,
   schedule,
+  mainProjects = [],
   onReorder,
   onRemove,
   onDeliveredChange,
@@ -42,6 +44,7 @@ export default function GanttChart({
 }: {
   weeks: CapacityWeek[];
   schedule: ScheduledProject[];
+  mainProjects?: MainProject[];
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
   onDeliveredChange?: (id: string, delivered: boolean) => void;
@@ -57,6 +60,14 @@ export default function GanttChart({
     return () => clearInterval(timer);
   }, []);
   const N = weeks.length;
+  const mainProjectNames = new Map(mainProjects.map((item) => [item.id, item.name]));
+  const groupByProject = schedule.some(
+    (item) => item.project.main_project_id && mainProjectNames.has(item.project.main_project_id)
+  );
+  const projectKey = (item: ScheduledProject) =>
+    item.project.main_project_id && mainProjectNames.has(item.project.main_project_id)
+      ? item.project.main_project_id
+      : null;
   const columns = `220px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
   const todayOffset = weeks[0] ? differenceInCalendarDays(today, weeks[0].weekStart) : -1;
   const showToday = todayOffset >= 0 && todayOffset < N * 7;
@@ -155,224 +166,254 @@ export default function GanttChart({
                 s.start && lastWork ? differenceInCalendarDays(lastWork, s.start) + 1 : 0;
               const spanWeeks =
                 s.startIdx != null && s.endIdx != null ? (s.endIdx - s.startIdx + 1) * 7 : 0;
+              const groupKey = projectKey(s);
+              const groupName = groupKey ? mainProjectNames.get(groupKey)! : t("mainProjects.none");
+              const startsGroup =
+                groupByProject && (idx === 0 || projectKey(schedule[idx - 1]!) !== groupKey);
               return (
-                <ContextMenu.Root key={s.project.id}>
-                  <ContextMenu.Trigger asChild disabled={!onRemove && !onDeliveredChange}>
+                <React.Fragment key={s.project.id}>
+                  {startsGroup && (
                     <div
-                      tabIndex={onRemove || onDeliveredChange ? 0 : undefined}
-                      aria-label={t("gantt.row.label", { featureName: s.project.name })}
-                      onKeyDown={(event) => {
-                        if (
-                          (!onRemove && !onDeliveredChange) ||
-                          !(event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))
-                        )
-                          return;
-                        event.preventDefault();
-                        const bounds = event.currentTarget.getBoundingClientRect();
-                        event.currentTarget.dispatchEvent(
-                          new MouseEvent("contextmenu", {
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: bounds.left + 24,
-                            clientY: bounds.top + bounds.height / 2,
-                          })
-                        );
-                      }}
-                      className={cn(
-                        "grid items-stretch border-b border-border/60",
-                        dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"
-                      )}
-                      style={{
-                        gridTemplateColumns: columns,
-                        gridTemplateRows: s.reason && s.startIdx != null ? "32px auto" : "32px",
-                      }}
+                      role="heading"
+                      aria-level={3}
+                      aria-label={t("gantt.row.projectGroup", { projectName: groupName })}
+                      className="grid border-b border-border/60 bg-muted/40"
+                      style={{ gridTemplateColumns: columns }}
                     >
                       <div
-                        className="sticky left-0 bg-card z-10 flex items-center gap-1 px-2 text-xs"
-                        style={{ gridRow: "1 / -1" }}
-                        onDragOver={(event) => {
-                          if (!onReorder || disabled || !draggedId || draggedId === s.project.id)
+                        className={cn(
+                          "sticky left-0 z-10 truncate bg-muted px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide",
+                          groupKey ? "text-foreground" : "text-muted-foreground"
+                        )}
+                      >
+                        {groupName}
+                      </div>
+                    </div>
+                  )}
+                  <ContextMenu.Root>
+                    <ContextMenu.Trigger asChild disabled={!onRemove && !onDeliveredChange}>
+                      <div
+                        tabIndex={onRemove || onDeliveredChange ? 0 : undefined}
+                        aria-label={t("gantt.row.label", { featureName: s.project.name })}
+                        onKeyDown={(event) => {
+                          if (
+                            (!onRemove && !onDeliveredChange) ||
+                            !(
+                              event.key === "ContextMenu" ||
+                              (event.shiftKey && event.key === "F10")
+                            )
+                          )
                             return;
                           event.preventDefault();
-                          event.dataTransfer.dropEffect = "move";
-                          setDropId(s.project.id);
+                          const bounds = event.currentTarget.getBoundingClientRect();
+                          event.currentTarget.dispatchEvent(
+                            new MouseEvent("contextmenu", {
+                              bubbles: true,
+                              cancelable: true,
+                              clientX: bounds.left + 24,
+                              clientY: bounds.top + bounds.height / 2,
+                            })
+                          );
                         }}
-                        onDragLeave={() => setDropId(null)}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          if (onReorder && !disabled && draggedId && draggedId !== s.project.id)
-                            onReorder(draggedId, s.project.id);
-                          setDraggedId(null);
-                          setDropId(null);
+                        className={cn(
+                          "grid items-stretch border-b border-border/60",
+                          dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"
+                        )}
+                        style={{
+                          gridTemplateColumns: columns,
+                          gridTemplateRows: s.reason && s.startIdx != null ? "32px auto" : "32px",
                         }}
                       >
-                        <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
-                          {idx + 1}
-                        </span>
-                        {onReorder ? (
-                          <button
-                            type="button"
-                            className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
-                            aria-label={t("gantt.row.reorder", { featureName: s.project.name })}
-                            title={t("gantt.row.reorderHelp", { featureName: s.project.name })}
-                            draggable={!disabled}
-                            disabled={disabled}
-                            onDragStart={(event) => {
-                              if (disabled) {
-                                event.preventDefault();
-                                return;
-                              }
-                              event.dataTransfer.effectAllowed = "move";
-                              event.dataTransfer.setData("text/plain", s.project.id);
-                              setDraggedId(s.project.id);
-                            }}
-                            onDragEnd={() => {
-                              setDraggedId(null);
-                              setDropId(null);
-                            }}
-                            onKeyDown={(event) => {
-                              if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-                              event.preventDefault();
-                              const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
-                              if (!disabled && target) onReorder(s.project.id, target.project.id);
-                            }}
-                          >
-                            <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />
-                            <span className="truncate">{s.project.name}</span>
-                          </button>
-                        ) : (
-                          <span
-                            className="min-w-0 flex-1 truncate font-medium"
-                            title={s.project.name}
-                          >
-                            {s.project.name}
-                          </span>
-                        )}
-                      </div>
-                      {weeks.map((_, index) => (
                         <div
-                          key={index}
-                          className="border-l border-border/60 bg-muted/10"
-                          style={{ gridColumn: index + 2, gridRow: "1" }}
-                          aria-hidden="true"
-                        />
-                      ))}
-                      {s.start && lastWork && s.startIdx != null && s.endIdx != null && (
-                        <div
-                          className="relative min-w-0"
-                          style={{
-                            gridColumn: `${s.startIdx + 2} / ${s.endIdx + 3}`,
-                            gridRow: "1",
+                          className="sticky left-0 bg-card z-10 flex items-center gap-1 px-2 text-xs"
+                          style={{ gridRow: "1 / -1" }}
+                          onDragOver={(event) => {
+                            if (!onReorder || disabled || !draggedId || draggedId === s.project.id)
+                              return;
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = "move";
+                            setDropId(s.project.id);
+                          }}
+                          onDragLeave={() => setDropId(null)}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            if (onReorder && !disabled && draggedId && draggedId !== s.project.id)
+                              onReorder(draggedId, s.project.id);
+                            setDraggedId(null);
+                            setDropId(null);
                           }}
                         >
+                          <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
+                            {idx + 1}
+                          </span>
+                          {onReorder ? (
+                            <button
+                              type="button"
+                              className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
+                              aria-label={t("gantt.row.reorder", { featureName: s.project.name })}
+                              title={t("gantt.row.reorderHelp", { featureName: s.project.name })}
+                              draggable={!disabled}
+                              disabled={disabled}
+                              onDragStart={(event) => {
+                                if (disabled) {
+                                  event.preventDefault();
+                                  return;
+                                }
+                                event.dataTransfer.effectAllowed = "move";
+                                event.dataTransfer.setData("text/plain", s.project.id);
+                                setDraggedId(s.project.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedId(null);
+                                setDropId(null);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                                event.preventDefault();
+                                const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
+                                if (!disabled && target) onReorder(s.project.id, target.project.id);
+                              }}
+                            >
+                              <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate">{s.project.name}</span>
+                            </button>
+                          ) : (
+                            <span
+                              className="min-w-0 flex-1 truncate font-medium"
+                              title={s.project.name}
+                            >
+                              {s.project.name}
+                            </span>
+                          )}
+                        </div>
+                        {weeks.map((_, index) => (
                           <div
-                            role="group"
-                            aria-label={t("gantt.bar.projectSpan", {
-                              featureName: s.project.name,
-                              startDate: fmtDate(s.start),
-                              endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
-                              deliveryStatus: s.project.delivered
-                                ? t("gantt.bar.deliveredSuffix")
-                                : "",
-                            })}
-                            title={t("gantt.bar.projectSpan", {
-                              featureName: s.project.name,
-                              startDate: fmtDate(s.start),
-                              endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
-                              deliveryStatus: s.project.delivered
-                                ? t("gantt.bar.deliveredSuffix")
-                                : "",
-                            })}
-                            className={cn(
-                              "absolute inset-y-1 overflow-hidden rounded ring-1 ring-inset",
-                              s.project.delivered
-                                ? "bg-emerald-600 ring-emerald-700/30"
-                                : "bg-slate-400/40 ring-slate-500/15"
-                            )}
+                            key={index}
+                            className="border-l border-border/60 bg-muted/10"
+                            style={{ gridColumn: index + 2, gridRow: "1" }}
+                            aria-hidden="true"
+                          />
+                        ))}
+                        {s.start && lastWork && s.startIdx != null && s.endIdx != null && (
+                          <div
+                            className="relative min-w-0"
                             style={{
-                              left: `${(differenceInCalendarDays(s.start, weeks[s.startIdx]!.weekStart) / spanWeeks) * 100}%`,
-                              width: `${(spanDays / spanWeeks) * 100}%`,
+                              gridColumn: `${s.startIdx + 2} / ${s.endIdx + 3}`,
+                              gridRow: "1",
                             }}
                           >
-                            {!s.project.delivered &&
-                              s.roles.flatMap((roleSchedule) =>
-                                workRuns(roleSchedule).map((run) => {
-                                  const { role } = roleSchedule;
-                                  const people = roleDevs(s.project, role);
-                                  const label = t("gantt.bar.roleSpan", {
-                                    featureName: s.project.name,
-                                    role: ROLE_LABELS[role],
-                                    startDate: fmtDate(run.start),
-                                    endDate: fmtDate(run.end),
-                                    requestedPeople: t("gantt.bar.peopleRequested", {
-                                      count: people,
-                                    }),
-                                    effort: (run.personDays / 5).toFixed(1),
-                                    forecastStatus: roleSchedule.complete
-                                      ? ""
-                                      : t("gantt.bar.partialSuffix"),
-                                  });
-                                  return (
-                                    <div
-                                      key={`${role}-${run.start.getTime()}`}
-                                      role="img"
-                                      aria-label={label}
-                                      title={label}
-                                      className={cn(
-                                        "absolute shadow-inner",
-                                        ROLE_COLORS[role].className
-                                      )}
-                                      style={{
-                                        left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
-                                        width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,
-                                        top: role === "frontend" ? "50%" : "0",
-                                        height:
-                                          role === "backend" || role === "frontend"
-                                            ? "50%"
-                                            : "100%",
-                                      }}
-                                    />
-                                  );
-                                })
+                            <div
+                              role="group"
+                              aria-label={t("gantt.bar.projectSpan", {
+                                featureName: s.project.name,
+                                startDate: fmtDate(s.start),
+                                endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
+                                deliveryStatus: s.project.delivered
+                                  ? t("gantt.bar.deliveredSuffix")
+                                  : "",
+                              })}
+                              title={t("gantt.bar.projectSpan", {
+                                featureName: s.project.name,
+                                startDate: fmtDate(s.start),
+                                endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
+                                deliveryStatus: s.project.delivered
+                                  ? t("gantt.bar.deliveredSuffix")
+                                  : "",
+                              })}
+                              className={cn(
+                                "absolute inset-y-1 overflow-hidden rounded ring-1 ring-inset",
+                                s.project.delivered
+                                  ? "bg-emerald-600 ring-emerald-700/30"
+                                  : "bg-slate-400/40 ring-slate-500/15"
                               )}
+                              style={{
+                                left: `${(differenceInCalendarDays(s.start, weeks[s.startIdx]!.weekStart) / spanWeeks) * 100}%`,
+                                width: `${(spanDays / spanWeeks) * 100}%`,
+                              }}
+                            >
+                              {!s.project.delivered &&
+                                s.roles.flatMap((roleSchedule) =>
+                                  workRuns(roleSchedule).map((run) => {
+                                    const { role } = roleSchedule;
+                                    const people = roleDevs(s.project, role);
+                                    const label = t("gantt.bar.roleSpan", {
+                                      featureName: s.project.name,
+                                      role: ROLE_LABELS[role],
+                                      startDate: fmtDate(run.start),
+                                      endDate: fmtDate(run.end),
+                                      requestedPeople: t("gantt.bar.peopleRequested", {
+                                        count: people,
+                                      }),
+                                      effort: (run.personDays / 5).toFixed(1),
+                                      forecastStatus: roleSchedule.complete
+                                        ? ""
+                                        : t("gantt.bar.partialSuffix"),
+                                    });
+                                    return (
+                                      <div
+                                        key={`${role}-${run.start.getTime()}`}
+                                        role="img"
+                                        aria-label={label}
+                                        title={label}
+                                        className={cn(
+                                          "absolute shadow-inner",
+                                          ROLE_COLORS[role].className
+                                        )}
+                                        style={{
+                                          left: `${(differenceInCalendarDays(run.start, s.start!) / spanDays) * 100}%`,
+                                          width: `${((differenceInCalendarDays(run.end, run.start) + 1) / spanDays) * 100}%`,
+                                          top: role === "frontend" ? "50%" : "0",
+                                          height:
+                                            role === "backend" || role === "frontend"
+                                              ? "50%"
+                                              : "100%",
+                                        }}
+                                      />
+                                    );
+                                  })
+                                )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {s.reason && (
-                        <div
-                          style={{ gridColumn: "2 / -1", gridRow: s.startIdx != null ? "2" : "1" }}
-                          className="text-xs text-destructive px-2 py-1.5 bg-destructive/5"
-                        >
-                          {s.reason}
-                        </div>
-                      )}
-                    </div>
-                  </ContextMenu.Trigger>
-                  <ContextMenu.Portal>
-                    <ContextMenu.Content className="z-50 min-w-48 rounded-lg border border-border bg-card p-1 text-sm shadow-lg">
-                      {onDeliveredChange && (
-                        <ContextMenu.Item
-                          className="rounded px-3 py-2 outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
-                          disabled={disabled}
-                          onSelect={() => onDeliveredChange(s.project.id, !s.project.delivered)}
-                        >
-                          {s.project.delivered
-                            ? t("gantt.actions.undoDelivery")
-                            : t("gantt.actions.markDelivered")}
-                        </ContextMenu.Item>
-                      )}
-                      {onRemove && (
-                        <ContextMenu.Item
-                          className="rounded px-3 py-2 text-destructive outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
-                          disabled={disabled}
-                          onSelect={() => onRemove(s.project.id)}
-                        >
-                          {t("gantt.actions.remove")}
-                        </ContextMenu.Item>
-                      )}
-                    </ContextMenu.Content>
-                  </ContextMenu.Portal>
-                </ContextMenu.Root>
+                        )}
+                        {s.reason && (
+                          <div
+                            style={{
+                              gridColumn: "2 / -1",
+                              gridRow: s.startIdx != null ? "2" : "1",
+                            }}
+                            className="text-xs text-destructive px-2 py-1.5 bg-destructive/5"
+                          >
+                            {s.reason}
+                          </div>
+                        )}
+                      </div>
+                    </ContextMenu.Trigger>
+                    <ContextMenu.Portal>
+                      <ContextMenu.Content className="z-50 min-w-48 rounded-lg border border-border bg-card p-1 text-sm shadow-lg">
+                        {onDeliveredChange && (
+                          <ContextMenu.Item
+                            className="rounded px-3 py-2 outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
+                            disabled={disabled}
+                            onSelect={() => onDeliveredChange(s.project.id, !s.project.delivered)}
+                          >
+                            {s.project.delivered
+                              ? t("gantt.actions.undoDelivery")
+                              : t("gantt.actions.markDelivered")}
+                          </ContextMenu.Item>
+                        )}
+                        {onRemove && (
+                          <ContextMenu.Item
+                            className="rounded px-3 py-2 text-destructive outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
+                            disabled={disabled}
+                            onSelect={() => onRemove(s.project.id)}
+                          >
+                            {t("gantt.actions.remove")}
+                          </ContextMenu.Item>
+                        )}
+                      </ContextMenu.Content>
+                    </ContextMenu.Portal>
+                  </ContextMenu.Root>
+                </React.Fragment>
               );
             })}
           </div>
