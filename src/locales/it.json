@@ -684,12 +684,11 @@
       "unassigned": "Non assegnato"
     },
     "teams": {
-      "description": "Collega uno o più team. I membri attuali e le loro ferie sono condivisi tra i workspace. Crea o sposta i membri in Ladders, non qui.",
+      "description": "Scegli i team che appartengono a questo workspace. Un team vive in un solo workspace, quindi sceglierlo qui lo sposta da quello in cui si trova ora. Crea o sposta i membri in Ladders, non qui.",
       "empty": "Crea prima un team in Ladders usando lo stesso account.",
       "loading": "Caricamento dei team...",
       "save": "Salva i team collegati",
-      "title": "Team Ladders",
-      "viewOnly": "(sola lettura)"
+      "title": "Team Ladders"
     }
   },
   "availabilityEditor": {

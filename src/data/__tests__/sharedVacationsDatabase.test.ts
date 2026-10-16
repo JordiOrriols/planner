@@ -622,14 +622,14 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     ).toHaveLength(3);
     await expect(link(workspace, [team, team])).rejects.toThrow(/distinct/);
   });
-  it("denies linking private or read-only teams and outsider workspace access", async () => {
-    await expect(link(workspace, [otherTeam])).rejects.toThrow(/edit access/);
+  it("denies moving teams the owner does not own, even shared for editing, and outsider access", async () => {
+    await expect(link(workspace, [otherTeam])).rejects.toThrow(/your own teams/);
     await login(stranger);
-    await db.query("select public.share_team_by_email($1,'owner@example.com','viewer')", [
+    await db.query("select public.share_team_by_email($1,'owner@example.com','editor')", [
       otherTeam,
     ]);
     await login(owner);
-    await expect(link(workspace, [otherTeam])).rejects.toThrow(/edit access/);
+    await expect(link(workspace, [otherTeam])).rejects.toThrow(/your own teams/);
     await link();
     await login(stranger);
     await expect(link()).rejects.toThrow(/workspace owner/);
@@ -685,7 +685,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     ).rows;
     expect(availability).toHaveLength(2);
     expect(availability.every((row) => row["member_id"] === member.id)).toBe(true);
-    for (const table of ["vacations", "planner_workspace_teams", "members", "evaluations"]) {
+    for (const table of ["vacations", "teams", "members", "evaluations"]) {
       await expect(db.exec(`select * from public.${table}`)).rejects.toThrow(/permission denied/);
     }
     await db.query("select public.planner_vacation_clear($1,'2026-11-02')", [
@@ -735,7 +735,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       ).rejects.toThrow(/verified date range/);
     }
   });
-  it("keeps a vacation UUID immutable and leave shared across workspaces after unlinking", async () => {
+  it("keeps a vacation UUID immutable and leave with the member as its team moves between plans", async () => {
     await expect(
       db.query("update public.members set vacation_token=gen_random_uuid() where id=$1", [
         member.id,
@@ -747,21 +747,18 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
         "select id from public.planner_create_linked_workspace('Another')"
       )
     ).rows[0]!.id;
-    await link(secondWorkspace);
     await db.query("select public.planner_vacation_save($1,'2026-11-02','2026-11-02',false)", [
       member.vacation_token,
     ]);
-    for (const id of [workspace, secondWorkspace]) {
-      expect(
-        (await db.query<{ id: string }>("select id from public.planner_workspace_roster($1)", [id]))
-          .rows
-      ).toEqual([{ id: member.id }]);
-    }
-    await link(workspace, []);
+    await link(secondWorkspace);
+    const roster = async (id: string) =>
+      (await db.query<{ id: string }>("select id from public.planner_workspace_roster($1)", [id]))
+        .rows;
+    expect(await roster(workspace)).toEqual([]);
+    expect(await roster(secondWorkspace)).toEqual([{ id: member.id }]);
+    await link(secondWorkspace, []);
+    expect(await roster(secondWorkspace)).toEqual([]);
     expect((await db.query("select * from public.vacations")).rows).toHaveLength(1);
-    expect(
-      (await db.query("select * from public.planner_workspace_roster($1)", [workspace])).rows
-    ).toHaveLength(0);
   });
   it("drops the legacy invitation members, their availability and RPCs", async () => {
     await login(null, "postgres");

@@ -138,4 +138,48 @@ describe("Shared workspaces migration", () => {
       db.query("insert into public.teams(name, workspace_id) values('Sneaky', $1)", [foreign])
     ).rejects.toThrow(/workspace of their owner/);
   });
+
+  it("moves chosen teams into a Planner workspace and gives released teams their own again", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const [backend, frontend] = [await createTeam("Backend"), await createTeam("Frontend")];
+    const digital = (await value<string>(
+      "select (public.planner_create_linked_workspace('Digital')).id as value"
+    ))!;
+    const workspaceNames = async () =>
+      (
+        await db!.query<{ name: string }>("select name from public.workspaces order by name")
+      ).rows.map((row) => row.name);
+    expect(await workspaceNames()).toEqual(["Backend", "Default Team", "Digital", "Frontend"]);
+
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [
+      digital,
+      [backend, frontend],
+    ]);
+    expect(
+      (
+        await db.query<{ name: string }>("select name from public.planner_linked_teams($1)", [
+          digital,
+        ])
+      ).rows
+    ).toEqual([{ name: "Backend" }, { name: "Frontend" }]);
+    // The workspaces that only held the moved teams are gone.
+    expect(await workspaceNames()).toEqual(["Default Team", "Digital"]);
+
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [digital, [frontend]]);
+    expect(await workspaceNames()).toEqual(["Backend", "Default Team", "Digital"]);
+    expect(
+      await value<string>(
+        "select w.name as value from public.teams t join public.workspaces w on w.id = t.workspace_id where t.id = $1",
+        [backend]
+      )
+    ).toBe("Backend");
+
+    // Emptying a Planner workspace keeps it, since it still holds the plan.
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [digital, []]);
+    expect(await workspaceNames()).toEqual(["Backend", "Default Team", "Digital", "Frontend"]);
+
+    await db.query("delete from public.teams where id = $1", [backend]);
+    expect(await workspaceNames()).toEqual(["Default Team", "Digital", "Frontend"]);
+  });
 });
