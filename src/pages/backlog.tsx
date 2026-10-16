@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, EmptyState, Modal } from "@jordiorriols/ui";
 import { GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
@@ -10,6 +11,8 @@ import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 
 export default function Backlog() {
+  const { t } = useTranslation();
+
   const { projects, members, availability, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
@@ -18,7 +21,7 @@ export default function Backlog() {
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
   const availableProjects = projects.filter((project) => !project.in_backlog);
-  if (!repository) throw new Error("Sign in to manage the roadmap");
+  if (!repository) throw new Error(t("copy.signInToManageTheRoadmap"));
   const backlog = [...projects]
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -47,14 +50,14 @@ export default function Backlog() {
     });
   }
   function toggle(id: string, included: boolean) {
-    if (!repository) throw new Error("Sign in to manage the roadmap");
+    if (!repository) throw new Error(t("copy.signInToManageTheRoadmap"));
     void action.run(async () => {
       await repository.toggleBacklog(workspace.id, id, included);
       await refresh();
     });
   }
   function deliver(id: string, delivered: boolean) {
-    if (!repository) throw new Error("Sign in to manage the roadmap");
+    if (!repository) throw new Error(t("copy.signInToManageTheRoadmap"));
     void action.run(async () => {
       await repository.setDelivered(workspace.id, id, delivered);
       await refresh();
@@ -64,7 +67,7 @@ export default function Backlog() {
     setDraftStart(date);
     void action.run(async () => {
       if (!repository || !canEdit)
-        throw new Error("Workspace edit access is required to change the plan start.");
+        throw new Error(t("copy.workspaceEditAccessIsRequiredToChangeThe"));
       try {
         await repository.setPlanStart(workspace.id, date);
         await refresh();
@@ -78,26 +81,25 @@ export default function Backlog() {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
-          <h1 className="font-heading text-2xl font-semibold">Roadmap</h1>
+          <h1 className="font-heading text-2xl font-semibold">{t("copy.roadmap")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Priority allocates available people by role each day. Roles and features overlap when
-            capacity allows.
+            {t("copy.priorityAllocatesAvailablePeopleByRoleEachDay")}
           </p>
         </div>
         {canEdit && (
           <Button onClick={() => setAdding(true)}>
             <Plus className="size-4" />
-            Add feature
+            {t("copy.addFeature")}
           </Button>
         )}
       </div>
       <div className="grid sm:grid-cols-3 gap-3">
         <div className="panel">
-          <p className="text-xs text-muted-foreground">Squad size</p>
-          <p className="font-semibold">{members.length} people</p>
+          <p className="text-xs text-muted-foreground">{t("copy.squadSize")}</p>
+          <p className="font-semibold">{t("copy.peopleCount", { count: members.length })}</p>
         </div>
         <PlanDateCard
-          label="Plan starts"
+          label={t("copy.planStarts")}
           value={fmtDate(parseDate(workspace.plan_start_date))}
           action={
             canEdit && (
@@ -105,7 +107,9 @@ export default function Backlog() {
                 variant="ghost"
                 size="icon"
                 className="size-7"
-                aria-label={editingStart ? "Cancel editing plan start" : "Edit plan start"}
+                aria-label={
+                  editingStart ? t("copy.cancelEditingPlanStart") : t("copy.editPlanStart")
+                }
                 disabled={action.busy}
                 onClick={() => setEditingStart((editing) => !editing)}
               >
@@ -119,7 +123,7 @@ export default function Backlog() {
               id="plan-start"
               className="field mt-1"
               type="date"
-              aria-label="Plan starts"
+              aria-label={t("copy.planStarts")}
               min="2026-01-01"
               max="2027-12-31"
               value={startDate}
@@ -129,9 +133,11 @@ export default function Backlog() {
           ) : undefined}
         </PlanDateCard>
         <PlanDateCard
-          label="Roadmap finishes"
+          label={t("copy.roadmapFinishes")}
           value={
-            completed.length === backlog.length && finish ? fmtDate(finish) : "Not fully scheduled"
+            completed.length === backlog.length && finish
+              ? fmtDate(finish)
+              : t("copy.notFullyScheduled")
           }
         />
       </div>
@@ -141,27 +147,26 @@ export default function Backlog() {
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        Barcelona holidays verified for 2026–2027. A person-week is five working days; vacations
-        extend the forecast. Estimates are not delivery commitments.
+        {t("copy.barcelonaHolidaysVerifiedFor20262027APerson")}
       </p>
-      {result?.calendarLimited && (
-        <p role="status">The forecast stops at the end of the verified holiday calendar.</p>
-      )}
+      {result?.calendarLimited && <p role="status">{t("copy.theForecastStopsAtTheEndOfThe")}</p>}
       {!backlog.length ? (
         <EmptyState
           icon={<GanttChartSquare />}
-          title="No features on the roadmap"
+          title={t("copy.noFeaturesOnTheRoadmap")}
           description={
             canEdit
-              ? "Choose which features to prioritize on this roadmap."
-              : "Workspace owners and editors prioritize features on this roadmap."
+              ? t("copy.chooseWhichFeaturesToPrioritizeOnThisRoadmap")
+              : t("copy.workspaceOwnersAndEditorsPrioritizeFeaturesOnThis")
           }
-          action={canEdit && <Button onClick={() => setAdding(true)}>Add feature</Button>}
+          action={
+            canEdit && <Button onClick={() => setAdding(true)}>{t("copy.addFeature")}</Button>
+          }
         />
       ) : (
-        <section className="panel" aria-label="Feature schedule">
+        <section className="panel" aria-label={t("copy.featureSchedule")}>
           <h2 className="font-semibold mb-4">
-            Schedule · {completed.length}/{backlog.length} completed in forecast
+            {t("copy.forecastCompleted", { completed: completed.length, total: backlog.length })}
           </h2>
           <GanttChart
             weeks={result?.weeks ?? []}
@@ -192,9 +197,9 @@ export default function Backlog() {
       {canEdit && adding && (
         <Modal
           isOpen
-          title="Add feature to roadmap"
-          description="Choose existing features. Adding a feature places it at the end of the priority list."
-          closeLabel="Close"
+          title={t("copy.addFeatureToRoadmap")}
+          description={t("copy.chooseExistingFeaturesAddingAFeaturePlacesIt")}
+          closeLabel={t("copy.close")}
           onOpenChange={(open) => {
             if (!open && !action.busy) setAdding(false);
           }}
@@ -215,10 +220,10 @@ export default function Backlog() {
                   <Button
                     size="sm"
                     disabled={action.busy}
-                    aria-label={`Add feature to roadmap: ${project.name}`}
+                    aria-label={t("copy.addFeatureToRoadmap2", { value1: project.name })}
                     onClick={() => toggle(project.id, true)}
                   >
-                    Add feature
+                    {t("copy.addFeature")}
                   </Button>
                 </li>
               ))}
@@ -226,15 +231,15 @@ export default function Backlog() {
           ) : (
             <p className="text-sm text-muted-foreground">
               {projects.length
-                ? "All features are already on the roadmap."
-                : "Create a feature first, then add it to the roadmap."}
+                ? t("copy.allFeaturesAreAlreadyOnTheRoadmap")
+                : t("copy.createAFeatureFirstThenAddItTo")}
             </p>
           )}
           <Link
             to="/"
             className="inline-flex mt-4 text-sm text-primary underline underline-offset-4"
           >
-            Create a new feature
+            {t("copy.createANewFeature")}
           </Link>
         </Modal>
       )}
