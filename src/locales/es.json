@@ -555,7 +555,8 @@
       "description": "Descripción",
       "name": "Nombre",
       "rolePeople": "Personas de {{role}}",
-      "roleWeeks": "Semanas de {{role}}"
+      "roleWeeks": "Semanas de {{role}}",
+      "mainProject": "Proyecto principal"
     },
     "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona"
   },
@@ -649,7 +650,8 @@
     "row": {
       "label": "Fila de planificación: {{featureName}}",
       "reorder": "Reordenar {{featureName}}",
-      "reorderHelp": "{{featureName}} — arrastra para reordenar o usa Flecha arriba / Flecha abajo"
+      "reorderHelp": "{{featureName}} — arrastra para reordenar o usa Flecha arriba / Flecha abajo",
+      "projectGroup": "Proyecto: {{projectName}}"
     },
     "today": {
       "label": "Hoy: {{date}}",
@@ -834,5 +836,25 @@
     "santEsteve": "San Esteban",
     "santJoan": "San Juan",
     "whitMonday": "Lunes de Pentecostés"
+  },
+  "mainProjects": {
+    "title": "Proyectos",
+    "manage": "Gestionar proyectos",
+    "description": "Agrupa las funcionalidades bajo su proyecto principal. Al eliminar un proyecto, sus funcionalidades se conservan y pasan a Sin proyecto.",
+    "none": "Sin proyecto",
+    "empty": "Aún no hay proyectos.",
+    "fields": {
+      "newName": "Nombre del nuevo proyecto",
+      "rename": "Renombrar {{projectName}}"
+    },
+    "actions": {
+      "add": "Añadir proyecto",
+      "save": "Guardar {{projectName}}",
+      "delete": "Eliminar {{projectName}}",
+      "done": "Hecho"
+    },
+    "errors": {
+      "invalidName": "El nombre del proyecto debe tener entre 1 y 80 caracteres."
+    }
   }
 }

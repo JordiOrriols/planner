@@ -555,7 +555,8 @@
       "description": "Descripció",
       "name": "Nom",
       "rolePeople": "Persones de {{role}}",
-      "roleWeeks": "Setmanes de {{role}}"
+      "roleWeeks": "Setmanes de {{role}}",
+      "mainProject": "Projecte principal"
     },
     "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona"
   },
@@ -649,7 +650,8 @@
     "row": {
       "label": "Fila de planificació: {{featureName}}",
       "reorder": "Reordena {{featureName}}",
-      "reorderHelp": "{{featureName}} — arrossega per reordenar o fes servir Fletxa amunt / Fletxa avall"
+      "reorderHelp": "{{featureName}} — arrossega per reordenar o fes servir Fletxa amunt / Fletxa avall",
+      "projectGroup": "Projecte: {{projectName}}"
     },
     "today": {
       "label": "Avui: {{date}}",
@@ -834,5 +836,25 @@
     "santEsteve": "Sant Esteve",
     "santJoan": "Sant Joan",
     "whitMonday": "Dilluns de Pentecosta"
+  },
+  "mainProjects": {
+    "title": "Projectes",
+    "manage": "Gestiona els projectes",
+    "description": "Agrupa les funcionalitats sota el seu projecte principal. En suprimir un projecte, les seves funcionalitats es conserven i passen a Sense projecte.",
+    "none": "Sense projecte",
+    "empty": "Encara no hi ha projectes.",
+    "fields": {
+      "newName": "Nom del nou projecte",
+      "rename": "Canvia el nom de {{projectName}}"
+    },
+    "actions": {
+      "add": "Afegeix un projecte",
+      "save": "Desa {{projectName}}",
+      "delete": "Suprimeix {{projectName}}",
+      "done": "Fet"
+    },
+    "errors": {
+      "invalidName": "El nom del projecte ha de tenir entre 1 i 80 caràcters."
+    }
   }
 }

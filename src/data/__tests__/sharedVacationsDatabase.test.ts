@@ -65,6 +65,7 @@ beforeAll(async () => {
     "20261014230000_planner_workspace_sharing.sql",
     "20261016092000_planner_restore_working_calendar.sql",
     "20261016110000_planner_sprint_calibration.sql",
+    "20261016130000_planner_main_projects.sql",
   ]) {
     await db.exec(
       await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
@@ -158,6 +159,102 @@ describe("Registered-account workspace sharing", () => {
         )
       ).rows
     ).toHaveLength(0);
+  });
+
+  it("shares main projects with workspace editors and keeps features in their own workspace", async () => {
+    const mainProject = (
+      await db.query<{ id: string }>(
+        "insert into public.planner_main_projects(workspace_id,name) values($1,'Payments') returning id",
+        [workspace]
+      )
+    ).rows[0]!.id;
+    await expect(
+      db.query(
+        "insert into public.planner_main_projects(workspace_id,name) values($1,'payments')",
+        [workspace]
+      )
+    ).rejects.toThrow();
+    for (const name of ["", " Padded", "x".repeat(81)])
+      await expect(
+        db.query("insert into public.planner_main_projects(workspace_id,name) values($1,$2)", [
+          workspace,
+          name,
+        ])
+      ).rejects.toThrow();
+    const feature = (
+      await db.query<{ id: string }>(
+        "insert into public.planner_projects(workspace_id,name,main_project_id) values($1,'Checkout',$2) returning id",
+        [workspace, mainProject]
+      )
+    ).rows[0]!.id;
+    const otherWorkspace = (
+      await db.query<{ id: string }>(
+        "select id from public.planner_create_linked_workspace('Other squad')"
+      )
+    ).rows[0]!.id;
+    await expect(
+      db.query(
+        "insert into public.planner_projects(workspace_id,name,main_project_id) values($1,'Leak',$2)",
+        [otherWorkspace, mainProject]
+      )
+    ).rejects.toThrow();
+
+    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+      workspace,
+    ]);
+    await login(viewer);
+    expect(
+      (
+        await db.query("select name from public.planner_main_projects where workspace_id=$1", [
+          workspace,
+        ])
+      ).rows
+    ).toEqual([{ name: "Payments" }]);
+    expect(
+      (
+        await db.query(
+          "update public.planner_main_projects set name='Renamed' where id=$1 returning id",
+          [mainProject]
+        )
+      ).rows
+    ).toHaveLength(0);
+    await expect(
+      db.query("insert into public.planner_main_projects(workspace_id,name) values($1,'Viewer')", [
+        workspace,
+      ])
+    ).rejects.toThrow();
+    await login(stranger);
+    expect((await db.query("select id from public.planner_main_projects")).rows).toHaveLength(0);
+
+    await login(owner);
+    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+      workspace,
+      viewer,
+    ]);
+    await login(viewer);
+    expect(
+      (
+        await db.query(
+          "update public.planner_main_projects set name='Billing' where id=$1 returning name",
+          [mainProject]
+        )
+      ).rows
+    ).toEqual([{ name: "Billing" }]);
+    expect(
+      (
+        await db.query("delete from public.planner_main_projects where id=$1 returning id", [
+          mainProject,
+        ])
+      ).rows
+    ).toHaveLength(1);
+    expect(
+      (
+        await db.query(
+          "select workspace_id,main_project_id from public.planner_projects where id=$1",
+          [feature]
+        )
+      ).rows
+    ).toEqual([{ workspace_id: workspace, main_project_id: null }]);
   });
 
   it("rejects invalid, duplicate and off-cadence sprint results in PostgreSQL", async () => {

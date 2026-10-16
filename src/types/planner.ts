@@ -1,7 +1,16 @@
 export const ROLES = ["backend", "frontend", "design", "qa"] as const;
 export type Role = (typeof ROLES)[number];
 export type Estimates = Record<`${Role}_devs` | `${Role}_weeks`, number>;
-export type ProjectInput = Estimates & { name: string; description: string };
+export type ProjectInput = Estimates & {
+  name: string;
+  description: string;
+  main_project_id: string | null;
+};
+export interface MainProject {
+  id: string;
+  workspace_id: string;
+  name: string;
+}
 export type Project = ProjectInput & {
   id: string;
   workspace_id: string;
@@ -48,6 +57,7 @@ export interface Invitation {
 export const EMPTY_PROJECT: ProjectInput = {
   name: "",
   description: "",
+  main_project_id: null,
   backend_devs: 0,
   backend_weeks: 0,
   frontend_devs: 0,

@@ -554,7 +554,8 @@
       "description": "Description",
       "name": "Name",
       "rolePeople": "{{role}} people",
-      "roleWeeks": "{{role}} weeks"
+      "roleWeeks": "{{role}} weeks",
+      "mainProject": "Main project"
     },
     "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks"
   },
@@ -648,7 +649,8 @@
     "row": {
       "label": "Schedule row: {{featureName}}",
       "reorder": "Reorder {{featureName}}",
-      "reorderHelp": "{{featureName}} — drag to reorder, or use Arrow Up / Arrow Down"
+      "reorderHelp": "{{featureName}} — drag to reorder, or use Arrow Up / Arrow Down",
+      "projectGroup": "Project: {{projectName}}"
     },
     "today": {
       "label": "Today: {{date}}",
@@ -833,5 +835,25 @@
     "santEsteve": "Sant Esteve",
     "santJoan": "Sant Joan",
     "whitMonday": "Whit Monday"
+  },
+  "mainProjects": {
+    "title": "Projects",
+    "manage": "Manage projects",
+    "description": "Group features under the main project they belong to. Deleting a project keeps its features and moves them to No project.",
+    "none": "No project",
+    "empty": "No projects yet.",
+    "fields": {
+      "newName": "New project name",
+      "rename": "Rename {{projectName}}"
+    },
+    "actions": {
+      "add": "Add project",
+      "save": "Save {{projectName}}",
+      "delete": "Delete {{projectName}}",
+      "done": "Done"
+    },
+    "errors": {
+      "invalidName": "Project names need between 1 and 80 characters."
+    }
   }
 }

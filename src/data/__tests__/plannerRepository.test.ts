@@ -100,6 +100,37 @@ describe("Planner repository", () => {
     fetch.mockResolvedValue(response(null));
     await expect(repository.setPlanStart(workspace.id, "2026-02-02")).rejects.toThrow();
   });
+  it("trims, scopes and validates main project writes before requesting", async () => {
+    const { fetch, response, repository } = setup();
+    const mainProject = {
+      id: "33333333-3333-4333-8333-333333333333",
+      workspace_id: workspace.id,
+      name: "Payments",
+    };
+    for (const name of ["", "   ", "x".repeat(81)]) {
+      await expect(repository.createMainProject(workspace.id, name)).rejects.toThrow();
+      await expect(
+        repository.renameMainProject(workspace.id, mainProject.id, name)
+      ).rejects.toThrow();
+    }
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockImplementation(async () => response(mainProject));
+    expect(await repository.createMainProject(workspace.id, "  Payments ")).toEqual(mainProject);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      workspace_id: workspace.id,
+      name: "Payments",
+    });
+    await repository.renameMainProject(workspace.id, mainProject.id, " Billing ");
+    expect(String(fetch.mock.calls[1]?.[0])).toContain(`id=eq.${mainProject.id}`);
+    expect(String(fetch.mock.calls[1]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({ name: "Billing" });
+    fetch.mockImplementation(async () => new Response(null, { status: 204 }));
+    await repository.deleteMainProject(workspace.id, mainProject.id);
+    expect(fetch.mock.calls[2]?.[1]?.method).toBe("DELETE");
+    expect(String(fetch.mock.calls[2]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
+    fetch.mockImplementation(async () => response({ ...mainProject, id: "not-a-uuid" }));
+    await expect(repository.createMainProject(workspace.id, "Payments")).rejects.toThrow();
+  });
   it("converts plain PostgREST failures into visible error messages", async () => {
     const { fetch, response, repository } = setup();
     fetch.mockImplementation(async () =>

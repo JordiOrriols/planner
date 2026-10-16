@@ -554,7 +554,8 @@
       "description": "Beschreibung",
       "name": "Name",
       "rolePeople": "{{role}} Personen",
-      "roleWeeks": "{{role}} Wochen"
+      "roleWeeks": "{{role}} Wochen",
+      "mainProject": "Hauptprojekt"
     },
     "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen"
   },
@@ -648,7 +649,8 @@
     "row": {
       "label": "Planungszeile: {{featureName}}",
       "reorder": "{{featureName}} neu sortieren",
-      "reorderHelp": "{{featureName}} — zum Sortieren ziehen oder Pfeil nach oben / Pfeil nach unten verwenden"
+      "reorderHelp": "{{featureName}} — zum Sortieren ziehen oder Pfeil nach oben / Pfeil nach unten verwenden",
+      "projectGroup": "Projekt: {{projectName}}"
     },
     "today": {
       "label": "Heute: {{date}}",
@@ -833,5 +835,25 @@
     "santEsteve": "Sant Esteve",
     "santJoan": "Sant Joan",
     "whitMonday": "Pfingstmontag"
+  },
+  "mainProjects": {
+    "title": "Projekte",
+    "manage": "Projekte verwalten",
+    "description": "Ordne Features ihrem Hauptprojekt zu. Beim Löschen eines Projekts bleiben seine Features erhalten und landen unter Kein Projekt.",
+    "none": "Kein Projekt",
+    "empty": "Noch keine Projekte.",
+    "fields": {
+      "newName": "Name des neuen Projekts",
+      "rename": "{{projectName}} umbenennen"
+    },
+    "actions": {
+      "add": "Projekt hinzufügen",
+      "save": "{{projectName}} speichern",
+      "delete": "{{projectName}} löschen",
+      "done": "Fertig"
+    },
+    "errors": {
+      "invalidName": "Projektnamen müssen zwischen 1 und 80 Zeichen lang sein."
+    }
   }
 }

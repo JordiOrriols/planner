@@ -8,6 +8,7 @@ import { useData } from "./DataProvider";
 import {
   type Workspace,
   type Project,
+  type MainProject,
   type PlannerMember,
   type Availability,
   type LinkedTeam,
@@ -17,6 +18,7 @@ interface WorkspaceContextValue {
   workspace: Workspace;
   workspaces: Workspace[];
   projects: Project[];
+  mainProjects: MainProject[];
   members: PlannerMember[];
   availability: Availability[];
   linkedTeams: LinkedTeam[];

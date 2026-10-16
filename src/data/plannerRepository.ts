@@ -38,6 +38,7 @@ const projectSchema = z.object({
   workspace_id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
+  main_project_id: z.string().uuid().nullable(),
   in_backlog: z.boolean(),
   delivered: z.boolean(),
   priority: z.number(),
@@ -49,6 +50,11 @@ const projectSchema = z.object({
   design_weeks: z.number(),
   qa_devs: z.number(),
   qa_weeks: z.number(),
+});
+const mainProjectSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  name: z.string(),
 });
 const availabilitySchema = z.object({
   member_id: z.string().uuid(),
@@ -67,6 +73,12 @@ const workspaceShareSchema = z.object({
   email: z.string().email(),
   access_level: z.enum(["viewer", "editor"]),
 });
+
+function validateMainProjectName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 80) throw new Error(i18n.t("mainProjects.errors.invalidName"));
+  return trimmed;
+}
 
 export function createPlannerRepository(client: SupabaseClient) {
   async function rpc(name: string, args?: Record<string, unknown>) {
@@ -151,8 +163,11 @@ export function createPlannerRepository(client: SupabaseClient) {
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [projects, members, linkedTeams, canEdit] = await Promise.all([
+      const [projects, mainProjects, members, linkedTeams, canEdit] = await Promise.all([
         list("planner_projects", projectSchema, workspace),
+        list("planner_main_projects", mainProjectSchema, workspace).then((items) =>
+          items.sort((a, b) => a.name.localeCompare(b.name))
+        ),
         rpcList("planner_workspace_roster", memberSchema, { workspace }),
         rpcList("planner_linked_teams", linkedTeamSchema, { workspace }),
         rpc("planner_can_edit_workspace", { workspace }).then((value) => z.boolean().parse(value)),
@@ -161,7 +176,7 @@ export function createPlannerRepository(client: SupabaseClient) {
       const availability = (await list("planner_team_availability", availabilitySchema)).filter(
         (item) => ids.has(item.member_id)
       );
-      return { projects, members, availability, linkedTeams, canEdit };
+      return { projects, mainProjects, members, availability, linkedTeams, canEdit };
     },
     async saveProject(workspace: string, input: ProjectInput, id?: string) {
       validateProject(input);
@@ -172,6 +187,34 @@ export function createPlannerRepository(client: SupabaseClient) {
       const { data, error } = await query.select("*").single();
       if (error) throw new Error(error.message, { cause: error });
       return projectSchema.parse(data);
+    },
+    async createMainProject(workspace: string, name: string) {
+      const { data, error } = await client
+        .from("planner_main_projects")
+        .insert({ workspace_id: workspace, name: validateMainProjectName(name) })
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return mainProjectSchema.parse(data);
+    },
+    async renameMainProject(workspace: string, id: string, name: string) {
+      const { data, error } = await client
+        .from("planner_main_projects")
+        .update({ name: validateMainProjectName(name) })
+        .eq("id", id)
+        .eq("workspace_id", workspace)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return mainProjectSchema.parse(data);
+    },
+    async deleteMainProject(workspace: string, id: string) {
+      const { error } = await client
+        .from("planner_main_projects")
+        .delete()
+        .eq("id", id)
+        .eq("workspace_id", workspace);
+      if (error) throw new Error(error.message, { cause: error });
     },
     async toggleBacklog(workspace: string, id: string, inBacklog: boolean) {
       return projectSchema.parse(
