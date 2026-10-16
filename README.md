@@ -327,6 +327,10 @@ project with approval:
     through `share_workspace`, `update_workspace_share`, `remove_workspace_share`
     and `list_workspace_shares`. Planner shares move there and
     `planner_workspace_collaborators` is dropped.
+18. `20261016230000_ladders_shares_live_on_workspaces.sql`: Ladders team shares
+    move onto `workspace_collaborators` (app `ladders`), so sharing a team shares
+    every team in its workspace. The team share RPCs keep their signatures and
+    `team_collaborators` is dropped.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

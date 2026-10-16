@@ -34,9 +34,7 @@ beforeAll(async () => {
 });
 beforeEach(async () => {
   await login(null, "postgres");
-  await db.exec(
-    "delete from public.workspaces; delete from public.members; delete from public.team_collaborators"
-  );
+  await db.exec("delete from public.workspaces; delete from public.members");
   await login(owner);
   const teams = await db.query<{ id: string }>(
     "select id from public.teams where owner_id = auth.uid() and is_default"

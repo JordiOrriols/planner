@@ -6,6 +6,7 @@ import { applyMigrations, createMigratedDatabase } from "./support/migratedDatab
 const SHARED_WORKSPACES = "20261016180000_shared_workspaces.sql";
 const SETTINGS_ON_WORKSPACES = "20261016210000_planner_settings_live_on_workspaces.sql";
 const WORKSPACE_COLLABORATORS = "20261016220000_workspace_collaborators.sql";
+const LADDERS_SHARES = "20261016230000_ladders_shares_live_on_workspaces.sql";
 const owner = "11111111-1111-4111-8111-111111111111";
 const stranger = "33333333-3333-4333-8333-333333333333";
 const accounts = [
@@ -384,5 +385,123 @@ describe("Shared workspaces migration", () => {
     expect(await value<boolean>("select public.planner_has_access($1) as value", [roadmap])).toBe(
       false
     );
+  });
+
+  it("carries Ladders team shares over to their workspace with the least access they had", async () => {
+    db = await createMigratedDatabase(accounts, { until: LADDERS_SHARES });
+    await login(owner);
+    const [backend, frontend] = [await createTeam("Backend"), await createTeam("Frontend")];
+    const digital = (await value<string>(
+      "select (public.planner_create_linked_workspace('Digital')).id as value"
+    ))!;
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [
+      digital,
+      [backend, frontend],
+    ]);
+    await db.query("select public.share_team_by_email($1, 'stranger@example.com', 'editor')", [
+      backend,
+    ]);
+    await db.query("select public.share_team_by_email($1, 'Stranger@example.com', 'viewer')", [
+      frontend,
+    ]);
+
+    await login(null, "postgres");
+    await applyMigrations(db, { from: LADDERS_SHARES });
+
+    await login(owner);
+    expect(
+      (await db.query("select * from public.list_workspace_shares($1)", [digital])).rows
+    ).toEqual([
+      { user_id: stranger, email: "stranger@example.com", app: "ladders", access_level: "viewer" },
+    ]);
+    expect(
+      await value<string | null>("select to_regclass('public.team_collaborators')::text as value")
+    ).toBeNull();
+  });
+
+  it("shares every team of the workspace when one Ladders team is shared", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const [backend, frontend, lead] = [
+      await createTeam("Backend"),
+      await createTeam("Frontend"),
+      await createTeam("Lead"),
+    ];
+    const digital = (await value<string>(
+      "select (public.planner_create_linked_workspace('Digital')).id as value"
+    ))!;
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [
+      digital,
+      [backend, frontend],
+    ]);
+    await db.query("select public.share_team_by_email($1, 'stranger@example.com', 'viewer')", [
+      backend,
+    ]);
+    const visibleTeams = async () => {
+      await login(stranger);
+      const rows = (
+        await db!.query<{ name: string; access_level: string }>(
+          "select name, access_level from public.list_accessible_teams() where owner_id = $1",
+          [owner]
+        )
+      ).rows;
+      await login(owner);
+      return rows;
+    };
+    expect(await visibleTeams()).toEqual([
+      { name: "Backend", access_level: "viewer" },
+      { name: "Frontend", access_level: "viewer" },
+    ]);
+    // Every team of the workspace lists the same shares, and changing one changes them all.
+    expect(
+      (await db.query("select email, access_level from public.list_team_shares($1)", [frontend]))
+        .rows
+    ).toEqual([{ email: "stranger@example.com", access_level: "viewer" }]);
+    await db.query("select public.update_team_share($1, $2, 'editor')", [frontend, stranger]);
+    expect((await visibleTeams()).map((team) => team.access_level)).toEqual(["editor", "editor"]);
+    await expect(
+      db.query("select public.update_team_share($1, $2, 'viewer')", [lead, stranger])
+    ).rejects.toThrow(/team share not found/);
+
+    // A team that leaves the workspace takes on the sharing of the one it moves to.
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [digital, [frontend]]);
+    expect(await visibleTeams()).toEqual([{ name: "Frontend", access_level: "editor" }]);
+
+    await login(stranger);
+    await expect(
+      db.query("select public.share_team_by_email($1, 'owner@example.com', 'viewer')", [frontend])
+    ).rejects.toThrow(/team owner access required/);
+    await login(owner);
+    await db.query("select public.remove_team_share($1, $2)", [frontend, stranger]);
+    expect(await visibleTeams()).toEqual([]);
+  });
+
+  it("drops the shares of a team workspace once its only team moves out", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const lead = await createTeam("Lead");
+    await db.query("select public.share_team_by_email($1, 'stranger@example.com', 'viewer')", [
+      lead,
+    ]);
+    const roadmap = (await value<string>(
+      "select (public.planner_create_linked_workspace('Roadmap')).id as value"
+    ))!;
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [roadmap, [lead]]);
+
+    await login(null, "postgres");
+    expect(
+      (
+        await db.query(
+          "select w.name from public.workspace_collaborators c join public.workspaces w on w.id = c.workspace_id"
+        )
+      ).rows
+    ).toEqual([]);
+    expect(
+      (
+        await db.query("select name from public.workspaces where owner_id = $1 order by name", [
+          owner,
+        ])
+      ).rows
+    ).toEqual([{ name: "Default Team" }, { name: "Roadmap" }]);
   });
 });
