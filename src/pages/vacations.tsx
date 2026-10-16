@@ -8,7 +8,7 @@ import SquadVelocity from "@/components/organisms/squad-velocity";
 
 export default function Vacations() {
   const { t } = useTranslation();
-  const { members, linkedTeams, availability, refresh } = useWorkspace();
+  const { members, linkedTeams, availability, refresh, workspace, canEdit } = useWorkspace();
   const { repository } = useData();
   const [selected, setSelected] = useState("");
   const selectedMember = members.find((member) => member.id === selected) ?? members[0];
@@ -27,7 +27,17 @@ export default function Vacations() {
         members={assignable}
         linkedTeams={linkedTeams}
         availability={availability}
-        startDate={month}
+        startDate={new Date()}
+        sprintStart={workspace.sprint_start_date}
+        history={workspace.sprint_history}
+        {...(canEdit
+          ? {
+              onSaveCalibration: async (anchor, history) => {
+                await repository.setSprintCalibration(workspace.id, anchor, history);
+                await refresh();
+              },
+            }
+          : {})}
       />
       <section className="panel p-5 space-y-4" aria-label={t("vacations.calendarTitle")}>
         <h2 className="font-semibold">{t("vacations.calendarTitle")}</h2>

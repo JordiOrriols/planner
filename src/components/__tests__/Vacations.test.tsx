@@ -6,15 +6,23 @@ import userEvent from "@testing-library/user-event";
 import Vacations from "@/pages/vacations";
 import TeamConfiguration from "@/pages/team-configuration";
 
-const { setAvailability, clearAvailability, refresh, state } = vi.hoisted(() => ({
-  setAvailability: vi.fn(),
-  clearAvailability: vi.fn(),
-  refresh: vi.fn(),
-  state: { canEdit: true, isOwner: false },
-}));
+const { setAvailability, clearAvailability, setSprintCalibration, refresh, state } = vi.hoisted(
+  () => ({
+    setAvailability: vi.fn(),
+    clearAvailability: vi.fn(),
+    setSprintCalibration: vi.fn(),
+    refresh: vi.fn(),
+    state: { canEdit: true, isOwner: false },
+  })
+);
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({
-    repository: { setAvailability, clearAvailability, listTeams: async () => [] },
+    repository: {
+      setAvailability,
+      clearAvailability,
+      setSprintCalibration,
+      listTeams: async () => [],
+    },
   }),
 }));
 vi.mock("@/data/WorkspaceProvider", () => ({
@@ -39,8 +47,9 @@ vi.mock("@/data/WorkspaceProvider", () => ({
     ],
     linkedTeams: [{ id: "team", name: "Team" }],
     availability: [{ member_id: "grace", date: "2026-11-02", is_working: false }],
-    workspace: { id: "workspace" },
+    workspace: { id: "workspace", sprint_start_date: "2026-02-02", sprint_history: [] },
     isOwner: state.isOwner,
+    canEdit: state.canEdit,
     refresh,
   }),
 }));
@@ -61,6 +70,17 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Team vacations shared editor", () => {
+  it("saves calibration to the selected workspace and refreshes without moving with the calendar", async () => {
+    render(<Vacations />);
+    const description = screen.getByRole("region", { name: "Squad velocity" }).textContent;
+    await userEvent.click(screen.getByRole("button", { name: "Next month" }));
+    expect(screen.getByRole("region", { name: "Squad velocity" }).textContent).toBe(description);
+    await userEvent.click(screen.getByRole("button", { name: "Calibrate velocity" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save calibration" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(setSprintCalibration).toHaveBeenCalledExactlyOnceWith("workspace", "2026-02-02", []);
+  });
+
   it.each([false, true])("separates calendar from configuration for owner=%s", (isOwner) => {
     state.isOwner = isOwner;
     const rendered = render(<Vacations />);
@@ -128,5 +148,6 @@ describe("Team vacations shared editor", () => {
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
     expect(setAvailability).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
   });
 });

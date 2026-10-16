@@ -31,6 +31,10 @@ describe("Planner shared project navigation", () => {
       </MemoryRouter>
     );
     expect(screen.getByRole("heading", { name: "Planner" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Team configuration" })).toHaveAttribute(
+      "href",
+      "/team-configuration"
+    );
     const trigger = screen.getByRole("button", { name: "Switch project" });
     await userEvent.click(trigger);
     expect(screen.getByRole("menuitem", { name: "Ladders" })).toHaveAttribute(

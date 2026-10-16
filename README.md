@@ -131,7 +131,7 @@ Choose an existing workspace or **New workspace** from the same dropdown.
 - Workspace data is isolated by Row Level Security, including direct API calls.
 
 The team Vacations page shows squad velocity first, then the vacation calendar.
-Team linking and member planning roles are grouped under **Configuration** below them.
+Team linking and member planning roles are in the separate **Team configuration** tab.
 Use **Group by** to choose **Areas** (Backend, Frontend, Design, QA) or linked
 **Teams**, then select which groups to show in the adjacent multi-select dropdown.
 Several selected groups stack into one bar per week; one selected group uses a
@@ -173,6 +173,27 @@ or arrange an explicit UUID mapping before migrating old overrides.
 The Vacations tab contains sprint velocity and the shared vacation calendar.
 Team linking, member planning roles and personal vacation links live in the
 separate **Team configuration** tab, with the same owner/member permissions.
+
+Squad velocity uses exact two-week sprints, anchored by a start date saved on the
+workspace independently of the roadmap and calendar navigation. Use its gear
+button to set the cadence and add, edit or remove completed sprint results
+(start date and delivered story points). Results must follow the same 14-day
+cadence; zero points is valid. Editors can save calibration; viewers can see it.
+
+The shared calibration rate is **total delivered story points / total available
+person-weeks** across the recorded sprints. Availability is recomputed from the
+current linked roster, assigned roles, vacations, holidays and working overrides;
+it is not a historical roster snapshot. Keep that calendar accurate. Each chart
+segment is its team's or area's available person-weeks multiplied by this one
+workspace rate. Changing filters does not recalibrate the average. Without
+history the graph explicitly shows person-weeks, not invented story points.
+The forecast includes the current sprint and the following seven, but excludes
+any sprint extending beyond the verified holiday calendar. Changing vacation
+calendar months does not move the sprint forecast.
+
+Apply `20261016110000_planner_sprint_calibration.sql` before deploying this version.
+It adds workspace sprint settings and validates recorded dates/points while
+preserving existing workspace viewing/editing permissions.
 
 The app header is named **Planner**. **Roadmap** is the prioritized plan (the
 existing `/backlog` route remains valid). Feature Estimation first shows features

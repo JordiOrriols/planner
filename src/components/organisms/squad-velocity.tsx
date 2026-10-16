@@ -1,12 +1,14 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { buttonVariants } from "@jordiorriols/ui";
+import { Button, buttonVariants } from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
-import { Check, ChevronDown } from "@jordiorriols/ui/icons";
+import { Check, ChevronDown, Settings } from "@jordiorriols/ui/icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { ROLES, ROLE_LABELS, squadVelocity, fmtShortDate } from "@/lib/planning";
-import type { Availability, LinkedTeam, PlannerMember } from "@/types/planner";
+import { ROLES, ROLE_LABELS, fmtShortDate } from "@/lib/planning";
+import { calibratedRate, forecastSprints, sprintCapacity } from "@/lib/sprints";
+import VelocityCalibration from "@/components/organisms/velocity-calibration";
+import type { Availability, LinkedTeam, PlannerMember, SprintResult } from "@/types/planner";
 
 const AREA_COLORS = { backend: "#0369a1", frontend: "#38bdf8", design: "#d97706", qa: "#059669" };
 const TEAM_COLORS = [
@@ -31,13 +33,31 @@ export default function SquadVelocity({
   linkedTeams,
   availability,
   startDate,
+  sprintStart,
+  history,
+  onSaveCalibration,
 }: {
   members: PlannerMember[];
   linkedTeams: LinkedTeam[];
   availability: Availability[];
   startDate: Date;
+  sprintStart: string;
+  history: SprintResult[];
+  onSaveCalibration?: (anchor: string, history: SprintResult[]) => Promise<void>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [calibrating, setCalibrating] = useState(false);
+  let rate: number | null = null;
+  let sprints: ReturnType<typeof forecastSprints> = [];
+  let error: string | null = null;
+  try {
+    sprints = forecastSprints(sprintStart, startDate);
+    rate = calibratedRate(sprintStart, history, members, availability);
+  } catch (cause) {
+    error = cause instanceof Error ? cause.message : String(cause);
+  }
+  const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 });
+  const caption = rate === null ? t("velocity.capacityCaption") : t("velocity.forecastCaption");
 
   const [groupBy, setGroupBy] = useState<"areas" | "teams">("areas");
   const [excluded, setExcluded] = useState<{ areas: string[]; teams: string[] }>({
@@ -60,19 +80,17 @@ export default function SquadVelocity({
         }));
   const selected = options.filter((option) => !excluded[groupBy].includes(option.id));
   const allSelected = options.length > 0 && selected.length === options.length;
-  const weeks = squadVelocity([], availability, startDate, 16);
   const series = selected.map((option) => ({
     ...option,
-    weeks: squadVelocity(option.members, availability, startDate, 16),
+    values: sprints.map(({ start }) =>
+      Number((sprintCapacity(option.members, availability, start) * (rate ?? 1)).toFixed(2))
+    ),
   }));
-  const chartData = weeks.map((week, index) => ({
-    date: format(week.weekStart, "yyyy-MM-dd"),
-    label: fmtShortDate(week.weekStart),
+  const chartData = sprints.map((sprint, index) => ({
+    date: format(sprint.start, "yyyy-MM-dd"),
+    label: `${fmtShortDate(sprint.start)} – ${fmtShortDate(sprint.end)}`,
     ...Object.fromEntries(
-      series.map((item, seriesIndex) => [
-        `series${seriesIndex}`,
-        Number(item.weeks[index]!.capacity.toFixed(2)),
-      ])
+      series.map((item, seriesIndex) => [`series${seriesIndex}`, item.values[index]!])
     ),
   }));
   const selectionLabel = allSelected
@@ -86,8 +104,13 @@ export default function SquadVelocity({
         <div>
           <h2 className="font-semibold">{t("velocity.title")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            {t("velocity.description", { count: weeks.length })}
+            {sprints.length > 0 &&
+              t("velocity.sprintDescription", {
+                startDate: fmtShortDate(sprints[0]!.start),
+                endDate: fmtShortDate(sprints[sprints.length - 1]!.end),
+              })}
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid gap-1 text-xs text-muted-foreground">
@@ -175,9 +198,28 @@ export default function SquadVelocity({
               </DropdownMenu.Portal>
             </DropdownMenu.Root>
           </div>
+          {onSaveCalibration && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-9"
+              aria-label={t("velocity.calibration.open")}
+              onClick={() => setCalibrating(true)}
+            >
+              <Settings className="size-4" />
+            </Button>
+          )}
         </div>
       </div>
-      {!series.length ? (
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : !sprints.length ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          {t("velocity.noSprints")}
+        </p>
+      ) : !series.length ? (
         <p role="status" className="py-10 text-center text-sm text-muted-foreground">
           {options.length
             ? t("velocity.empty.selectionRequired")
@@ -189,7 +231,7 @@ export default function SquadVelocity({
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals />
-            <Tooltip />
+            <Tooltip formatter={(value) => number.format(Number(value))} />
             {series.map((item, index) => (
               <Bar
                 key={item.id}
@@ -202,6 +244,9 @@ export default function SquadVelocity({
             ))}
           </BarChart>
         </ResponsiveContainer>
+      )}
+      {!error && rate === null && (
+        <p className="mt-3 text-xs text-muted-foreground">{t("velocity.noHistory")}</p>
       )}
       {series.length > 0 && (
         <ul
@@ -220,29 +265,43 @@ export default function SquadVelocity({
           ))}
         </ul>
       )}
-      <table className="sr-only">
-        <caption>{t("velocity.tableCaption")}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{t("common.weekOf")}</th>
-            {series.map((item) => (
-              <th key={item.id} scope="col">
-                {item.name}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {chartData.map((week, index) => (
-            <tr key={week.date}>
-              <th scope="row">{week.date}</th>
-              {series.map((item) => (
-                <td key={item.id}>{Number(item.weeks[index]!.capacity.toFixed(2))}</td>
+      {!error && (
+        <div className="sr-only">
+          <table>
+            <caption>{caption}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{t("velocity.sprintOf")}</th>
+                {series.map((item) => (
+                  <th key={item.id} scope="col">
+                    {item.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.map((week, index) => (
+                <tr key={week.date}>
+                  <th scope="row">{week.date}</th>
+                  {series.map((item) => (
+                    <td key={item.id}>{item.values[index]}</td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </tbody>
+          </table>
+        </div>
+      )}
+      {calibrating && onSaveCalibration && (
+        <VelocityCalibration
+          anchor={sprintStart}
+          history={history}
+          members={members}
+          availability={availability}
+          onSave={onSaveCalibration}
+          onClose={() => setCalibrating(false)}
+        />
+      )}
     </section>
   );
 }
