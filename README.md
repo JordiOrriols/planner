@@ -27,6 +27,10 @@ there is no fake local persistence mode.
 
 Authentication views and form/session hooks come from `@jordiorriols/ui`.
 Planner does not duplicate login, signup, GitHub OAuth or password recovery.
+The page frame is shared too. `AppPage` paints the light `bg-page` canvas,
+`AppMain` sets the content width, and `AppNavigation` draws the header tabs.
+Header, tabs and `.panel` cards stay white (`bg-background`/`bg-card`), so
+every project has the same layout.
 Ladders teams and members provide the shared roster. Evaluation data and logic
 remain in Ladders.
 
