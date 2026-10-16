@@ -33,6 +33,7 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
+        projectId="planner"
         title={t("planner.name")}
         subtitle={t("planner.subtitle")}
         icon={<GanttChartSquare className="cadence-icon" />}
