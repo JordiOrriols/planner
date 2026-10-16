@@ -43,6 +43,21 @@ UI publishes a new patch version on every push to its `main` branch. Update with
 Shared Tailwind tokens are imported by `index.css`; keep its `@source`
 directives. Official Radix exports and the original UI Button are unchanged.
 
+### Localization
+
+All application-owned visible copy, accessible labels, tooltips and validation
+messages use i18next. Keep translations in `src/locales/{en,es,ca,fr,de,it}.json`,
+including complete interpolated sentences and plural forms rather than assembling
+English fragments in components. React views subscribe with `useTranslation`;
+planning helpers translate roles, holiday names and errors when used, not at
+module initialization. Dates, month names and weekdays follow the selected locale.
+The document language updates with the language selector.
+
+User-entered names/descriptions, URLs, identifiers and technical diagnostics are
+not translation keys. Preserve original service errors for diagnosis rather than
+silently replacing them. Locale parity/placeholder checks, six-language rendering
+tests and an inline-copy source guard protect this convention.
+
 The header icon opens UI's shared `ProjectSwitcher`. Project names, icons and
 canonical URLs live in UI's `PROJECTS` registry; adding a project requires one
 registry change, a UI release, and dependency updates/deployment in each app.
