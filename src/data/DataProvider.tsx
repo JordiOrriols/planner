@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useSupabaseAuth } from "@jordiorriols/ui/hooks";
+import { getAuthRedirectUrl } from "@jordiorriols/ui";
 import { supabase } from "./supabaseClient";
 import { createPlannerRepository, type PlannerRepository } from "./plannerRepository";
 
@@ -9,7 +10,7 @@ type DataContextValue = ReturnType<typeof useSupabaseAuth> & {
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const auth = useSupabaseAuth(supabase);
+  const auth = useSupabaseAuth(supabase, getAuthRedirectUrl("planner"));
   const repository = useMemo(
     () => (supabase && auth.user ? createPlannerRepository(supabase) : null),
     [auth.user]

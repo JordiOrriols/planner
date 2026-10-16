@@ -37,7 +37,7 @@ describe("Planner authentication composition", () => {
       await result.current.requestPasswordReset("member@example.com");
     });
     expect(auth.resetPasswordForEmail).toHaveBeenCalledWith("member@example.com", {
-      redirectTo: `${window.location.origin}${window.location.pathname}`,
+      redirectTo: `${window.location.origin}${window.location.pathname}?auth_app=planner`,
     });
     await act(async () => state.listener?.("PASSWORD_RECOVERY", { user: { id: "one" } }));
     expect(result.current.passwordRecovery).toBe(true);
