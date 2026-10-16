@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
@@ -23,6 +24,8 @@ export default function ProjectForm({
   onSave: (input: ProjectInput) => Promise<void>;
   initial: ProjectInput | null;
 }) {
+  const { t } = useTranslation();
+
   const [form, setForm] = useState<ProjectInput>(initial ?? EMPTY_PROJECT);
   const action = useAsyncAction();
   return (
@@ -31,9 +34,9 @@ export default function ProjectForm({
       onOpenChange={(value) => {
         if (!value && !action.busy) onClose();
       }}
-      title={initial ? "Edit feature" : "New feature"}
-      description="Roles run concurrently. Use whole numbers for people and weeks."
-      closeLabel="Close"
+      title={initial ? t("copy.editFeature") : t("copy.newFeature")}
+      description={t("copy.rolesRunConcurrentlyUseWholeNumbersForPeople")}
+      closeLabel={t("copy.close")}
     >
       <form
         className="space-y-4 max-h-[65vh] overflow-y-auto pr-1"
@@ -45,7 +48,7 @@ export default function ProjectForm({
           });
         }}
       >
-        <Label htmlFor="project-name">Name</Label>
+        <Label htmlFor="project-name">{t("copy.name")}</Label>
         <Input
           id="project-name"
           value={form.name}
@@ -54,7 +57,7 @@ export default function ProjectForm({
           maxLength={120}
           autoFocus
         />
-        <Label htmlFor="project-description">Description</Label>
+        <Label htmlFor="project-description">{t("copy.description")}</Label>
         <textarea
           id="project-description"
           className="field"
@@ -66,9 +69,9 @@ export default function ProjectForm({
         />
         <div className="rounded-xl border overflow-hidden">
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 text-xs font-medium">
-            <span>Role</span>
-            <span>People</span>
-            <span>Weeks</span>
+            <span>{t("copy.role")}</span>
+            <span>{t("copy.people2")}</span>
+            <span>{t("copy.weeks2")}</span>
           </div>
           {ROLES.map((role) => (
             <div key={role} className="grid grid-cols-3 gap-2 p-3 border-t items-center">
@@ -77,7 +80,7 @@ export default function ProjectForm({
                 {ROLE_LABELS[role]}
               </span>
               <Input
-                aria-label={`${ROLE_LABELS[role]} people`}
+                aria-label={t("copy.rolePeople", { role: ROLE_LABELS[role] })}
                 type="number"
                 min={0}
                 max={100}
@@ -92,7 +95,7 @@ export default function ProjectForm({
                 }
               />
               <Input
-                aria-label={`${ROLE_LABELS[role]} weeks`}
+                aria-label={t("copy.roleWeeks", { role: ROLE_LABELS[role] })}
                 type="number"
                 min={0}
                 max={104}
@@ -110,8 +113,11 @@ export default function ProjectForm({
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          Peak team: {peakDevs(form)} people · Ideal duration: {durationWeeks(form)} weeks · Effort:{" "}
-          {totalDevWeeks(form)} person-weeks
+          {t("copy.estimateSummary", {
+            people: peakDevs(form),
+            weeks: durationWeeks(form),
+            effort: totalDevWeeks(form),
+          })}
         </p>
         {action.error && (
           <p role="alert" className="text-destructive">
@@ -119,7 +125,11 @@ export default function ProjectForm({
           </p>
         )}
         <Button type="submit" disabled={action.busy}>
-          {action.busy ? "Saving..." : initial ? "Save changes" : "Create feature"}
+          {action.busy
+            ? t("copy.saving")
+            : initial
+              ? t("copy.saveChanges")
+              : t("copy.createFeature")}
         </Button>
       </form>
     </Modal>

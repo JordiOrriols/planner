@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, ConfirmDialog, EmptyState } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
@@ -10,6 +11,8 @@ import { useData } from "@/data/DataProvider";
 import type { Project } from "@/types/planner";
 
 export default function Estimation() {
+  const { t } = useTranslation();
+
   const { projects, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
@@ -20,14 +23,16 @@ export default function Estimation() {
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
   const backlog = projects.filter((project) => !project.in_backlog);
-  if (!repository) throw new Error("Sign in to manage projects");
+  if (!repository) throw new Error(t("copy.signInToManageProjects"));
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Feature estimation</h1>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+            {t("copy.featureEstimation")}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Estimate people and weeks per role. Prioritize features on the Roadmap page.
+            {t("copy.estimatePeopleAndWeeksPerRolePrioritizeFeatures")}
           </p>
         </div>
         {canEdit && (
@@ -38,19 +43,21 @@ export default function Estimation() {
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            New feature
+            {t("copy.newFeature")}
           </Button>
         )}
       </div>
       <div className="grid grid-cols-3 gap-3 max-w-lg">
-        <Metric label="Features" value={projects.length} />
+        <Metric label={t("copy.features")} value={projects.length} />
         <Metric
-          label="On roadmap"
+          label={t("copy.onRoadmap")}
           value={projects.filter((project) => project.in_backlog).length}
         />
         <Metric
-          label="Total effort"
-          value={`${projects.reduce((sum, project) => sum + totalDevWeeks(project), 0)} person-wks`}
+          label={t("copy.totalEffort")}
+          value={t("copy.effortValue", {
+            effort: projects.reduce((sum, project) => sum + totalDevWeeks(project), 0),
+          })}
         />
       </div>
       {action.error && (
@@ -60,24 +67,28 @@ export default function Estimation() {
       )}
       {!canEdit && (
         <p className="text-sm text-muted-foreground">
-          Workspace owners and editors manage feature estimates and priorities.
+          {t("copy.workspaceOwnersAndEditorsManageFeatureEstimatesAnd")}
         </p>
       )}
       {!projects.length ? (
         <EmptyState
           icon={<Calculator />}
-          title="No features yet"
-          description="Create your first estimate to start planning."
+          title={t("copy.noFeaturesYet")}
+          description={t("copy.createYourFirstEstimateToStartPlanning")}
         />
       ) : (
         <div className="space-y-8">
           {[
             {
-              name: "Roadmap",
-              description: "Prioritized features in roadmap order.",
+              name: t("copy.roadmap"),
+              description: t("copy.prioritizedFeaturesInRoadmapOrder"),
               features: roadmap,
             },
-            { name: "Backlog", description: "Not prioritized features.", features: backlog },
+            {
+              name: t("copy.backlog"),
+              description: t("copy.notPrioritizedFeatures"),
+              features: backlog,
+            },
           ].map((group) => (
             <section key={group.name} aria-label={group.name} className="space-y-4">
               <div>
@@ -85,7 +96,7 @@ export default function Estimation() {
                 <p className="text-sm text-muted-foreground">{group.description}</p>
               </div>
               {!group.features.length && (
-                <p className="text-sm text-muted-foreground">No features in this group.</p>
+                <p className="text-sm text-muted-foreground">{t("copy.noFeaturesInThisGroup")}</p>
               )}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {group.features.map((project) => (
@@ -119,10 +130,10 @@ export default function Estimation() {
       )}
       <ConfirmDialog
         isOpen={!!deleting}
-        title={`Delete ${deleting?.name ?? "project"}?`}
-        description="The estimate will be permanently removed."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("copy.delete2", { value1: deleting?.name ?? t("copy.feature") })}
+        description={t("copy.theEstimateWillBePermanentlyRemoved")}
+        confirmLabel={t("copy.delete3")}
+        cancelLabel={t("copy.cancel")}
         onCancel={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting || action.busy) return;

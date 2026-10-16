@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { Pencil, Trash2 } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,8 @@ export default function ProjectEstimateCard({
   disabled: boolean;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
+
   const peak = peakDevs(project);
   const dur = durationWeeks(project);
   const dw = totalDevWeeks(project);
@@ -50,7 +53,7 @@ export default function ProjectEstimateCard({
               variant="ghost"
               className="h-8 w-8"
               onClick={onEdit}
-              aria-label={`Edit ${project.name}`}
+              aria-label={t("copy.edit", { value1: project.name })}
               disabled={disabled}
             >
               <Pencil className="h-4 w-4" />
@@ -60,7 +63,7 @@ export default function ProjectEstimateCard({
               variant="ghost"
               className="h-8 w-8 text-destructive hover:text-destructive"
               onClick={onDelete}
-              aria-label={`Delete ${project.name}`}
+              aria-label={t("copy.delete", { value1: project.name })}
               disabled={disabled}
             >
               <Trash2 className="h-4 w-4" />
@@ -71,7 +74,7 @@ export default function ProjectEstimateCard({
 
       <div className="flex flex-wrap gap-1.5">
         {activeRoles.length === 0 && (
-          <span className="text-xs text-muted-foreground italic">No estimates yet</span>
+          <span className="text-xs text-muted-foreground italic">{t("copy.noEstimatesYet")}</span>
         )}
         {activeRoles.map((role) => (
           <span
@@ -79,15 +82,16 @@ export default function ProjectEstimateCard({
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium"
           >
             <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
-            {ROLE_LABELS[role]} · {project[`${role}_devs`]}×{project[`${role}_weeks`]}w
+            {ROLE_LABELS[role]} · {project[`${role}_devs`]}×{project[`${role}_weeks`]}
+            {t("copy.w")}
           </span>
         ))}
       </div>
 
       <div className="mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-border">
-        <Stat label="Peak team" value={`${peak}`} sub="people" />
-        <Stat label="Duration" value={`${dur}`} sub="weeks" />
-        <Stat label="Effort" value={`${dw}`} sub="person-wks" />
+        <Stat label={t("copy.peakTeam")} value={`${peak}`} sub={t("copy.people")} />
+        <Stat label={t("copy.duration")} value={`${dur}`} sub={t("copy.weeks")} />
+        <Stat label={t("copy.effort")} value={`${dw}`} sub={t("copy.personWks")} />
       </div>
     </article>
   );
