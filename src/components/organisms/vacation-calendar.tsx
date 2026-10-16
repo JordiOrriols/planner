@@ -60,7 +60,7 @@ export default function VacationCalendar({
         <h3 className="font-semibold">{fmtMonth(month)}</h3>
         <div className="flex gap-1">
           <Button
-            aria-label={t("copy.previousMonth")}
+            aria-label={t("vacationCalendar.navigation.previous")}
             size="icon"
             variant="ghost"
             onClick={() => {
@@ -70,7 +70,7 @@ export default function VacationCalendar({
             <ChevronLeft size={16} />
           </Button>
           <Button
-            aria-label={t("copy.nextMonth")}
+            aria-label={t("vacationCalendar.navigation.next")}
             size="icon"
             variant="ghost"
             onClick={() => {
@@ -84,8 +84,8 @@ export default function VacationCalendar({
       {!disabled && (
         <p role="status" className="text-sm mb-3 text-muted-foreground">
           {first
-            ? t("copy.selectTheLastDayOrApplyToThis")
-            : t("copy.selectTheFirstAndLastDayThenChoose")}{" "}
+            ? t("vacationCalendar.selection.chooseEnd")
+            : t("vacationCalendar.selection.chooseRange")}{" "}
           {selectedRange && (
             <button
               type="button"
@@ -94,14 +94,14 @@ export default function VacationCalendar({
                 onClearSelection?.();
               }}
             >
-              {t("copy.clearSelection")}
+              {t("vacationCalendar.selection.clear")}
             </button>
           )}
         </p>
       )}
       <div
         className="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs"
-        aria-label={t("copy.teamVacationLegend")}
+        aria-label={t("vacationCalendar.legend.label")}
       >
         {teamMembers.map((member, index) => (
           <span key={member.id} className="inline-flex items-center gap-1.5">
@@ -114,7 +114,7 @@ export default function VacationCalendar({
               {member.name.trim().charAt(0).toLocaleUpperCase()}
             </span>
             {member.name}
-            {member.id === selectedMember ? t("copy.selectedMemberSuffix") : ""}
+            {member.id === selectedMember ? t("vacationCalendar.legend.selectedSuffix") : ""}
           </span>
         ))}
       </div>
@@ -172,8 +172,8 @@ export default function VacationCalendar({
                   <span
                     key={member.id}
                     className="inline-flex min-w-0 items-center gap-1"
-                    title={t("copy.memberVacation", { name: member.name })}
-                    aria-label={t("copy.memberVacation", { name: member.name })}
+                    title={t("vacationCalendar.memberVacation", { memberName: member.name })}
+                    aria-label={t("vacationCalendar.memberVacation", { memberName: member.name })}
                   >
                     <span
                       className={cn(
@@ -196,7 +196,7 @@ export default function VacationCalendar({
       </div>
       {!hasHolidayCalendar(format(month, "yyyy-MM-dd")) && (
         <p role="alert" className="mt-3">
-          {t("copy.barcelonaHolidaysAreVerifiedOnlyFor2026And")}
+          {t("vacationCalendar.unverifiedYearNotice")}
         </p>
       )}
     </div>

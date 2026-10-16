@@ -15,7 +15,7 @@ export function EntryGate({ children }: { children: ReactNode }) {
   if (/^\/vacations\/[^/]+\/?$/.test(pathname)) return children;
 
   if (loading) {
-    return <AppSkeleton label={t("copy.loadingPlanner")} />;
+    return <AppSkeleton label={t("app.loading.planner")} />;
   }
 
   if (!user) return <WelcomePage />;

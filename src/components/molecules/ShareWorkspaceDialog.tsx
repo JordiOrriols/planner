@@ -11,7 +11,7 @@ export function ShareWorkspaceDialog({ onClose }: { onClose: () => void }) {
   const { repository, user } = useData();
   const { workspace, refresh } = useWorkspace();
   const { t } = useTranslation();
-  if (!repository) throw new Error(t("copy.signInBeforeSharingAWorkspace"));
+  if (!repository) throw new Error(t("workspace.errors.signInToShare"));
   const query = useQuery({
     queryKey: ["planner-workspace-shares", user?.id, workspace.id],
     queryFn: () => repository.listWorkspaceShares(workspace.id),

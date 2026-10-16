@@ -22,18 +22,16 @@ export default function VacationLink() {
     retry: false,
     queryFn: () => {
       if (!z.string().uuid().safeParse(token).success)
-        throw new Error(t("copy.invalidVacationLink"));
-      if (!repository) throw new Error(t("copy.supabaseNotConfigured"));
+        throw new Error(t("vacationLink.errors.invalidLink"));
+      if (!repository) throw new Error(t("vacationLink.errors.notConfigured"));
       return repository.loadVacation(token);
     },
   });
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-5">
-      <h1 className="text-3xl font-bold">{t("copy.yourPlannedVacations")}</h1>
-      <p className="text-muted-foreground">{t("copy.thisPersonalLinkLetsYouUpdateOnlyYour")}</p>
-      {query.isPending && (
-        <AppSkeleton label={t("copy.loadingVacationCalendar")} fullPage={false} />
-      )}
+      <h1 className="text-3xl font-bold">{t("vacationLink.title")}</h1>
+      <p className="text-muted-foreground">{t("vacationLink.description")}</p>
+      {query.isPending && <AppSkeleton label={t("vacationLink.loading")} fullPage={false} />}
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.data && repository && (
         <section className="panel p-5 space-y-4">

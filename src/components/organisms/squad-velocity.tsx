@@ -76,44 +76,44 @@ export default function SquadVelocity({
     ),
   }));
   const selectionLabel = allSelected
-    ? t(`copy.all_${groupBy}`)
+    ? t(`velocity.filters.all.${groupBy}`)
     : selected.length === 1
       ? selected[0]!.name
-      : t(`copy.selected_${groupBy}`, { count: selected.length });
+      : t(`velocity.filters.selected.${groupBy}`, { count: selected.length });
   return (
-    <section className="panel p-5" aria-label={t("copy.squadVelocity")}>
+    <section className="panel p-5" aria-label={t("velocity.title")}>
       <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
         <div>
-          <h2 className="font-semibold">{t("copy.squadVelocity")}</h2>
+          <h2 className="font-semibold">{t("velocity.title")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            {t("copy.velocityDescription", { count: weeks.length })}
+            {t("velocity.description", { count: weeks.length })}
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid gap-1 text-xs text-muted-foreground">
-            {t("copy.groupBy")}
+            {t("velocity.filters.groupBy")}
             <span className="relative">
               <select
                 className={`${SELECTOR} appearance-none pr-8`}
-                aria-label={t("copy.velocityGrouping")}
+                aria-label={t("velocity.filters.groupingLabel")}
                 value={groupBy}
                 onChange={(event) => {
                   if (event.target.value === "areas" || event.target.value === "teams")
                     setGroupBy(event.target.value);
                 }}
               >
-                <option value="areas">{t("copy.areas")}</option>
-                <option value="teams">{t("copy.teams")}</option>
+                <option value="areas">{t("velocity.filters.areas")}</option>
+                <option value="teams">{t("velocity.filters.teams")}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
             </span>
           </label>
           <div className="grid gap-1 text-xs text-muted-foreground">
-            <span>{t(`copy.show_${groupBy}`)}</span>
+            <span>{t(`velocity.filters.show.${groupBy}`)}</span>
             <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger
                 className={SELECTOR}
-                aria-label={t(`copy.selectVelocity_${groupBy}`)}
+                aria-label={t(`velocity.filters.selectLabel.${groupBy}`)}
                 disabled={!options.length}
               >
                 <span className="min-w-0 truncate">{selectionLabel}</span>
@@ -141,7 +141,7 @@ export default function SquadVelocity({
                         <Check className="size-4" />
                       </DropdownMenu.ItemIndicator>
                     </span>
-                    {t(`copy.all_${groupBy}`)}
+                    {t(`velocity.filters.all.${groupBy}`)}
                   </DropdownMenu.CheckboxItem>
                   <DropdownMenu.Separator className="my-1 h-px bg-border" />
                   {options.map((option) => (
@@ -180,8 +180,8 @@ export default function SquadVelocity({
       {!series.length ? (
         <p role="status" className="py-10 text-center text-sm text-muted-foreground">
           {options.length
-            ? t("copy.selectAtLeastOneAreaOrTeamTo")
-            : t("copy.linkATeamInConfigurationToShowTeam")}
+            ? t("velocity.empty.selectionRequired")
+            : t("velocity.empty.teamRequired")}
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
@@ -205,7 +205,7 @@ export default function SquadVelocity({
       )}
       {series.length > 0 && (
         <ul
-          aria-label={t("copy.velocityLegend")}
+          aria-label={t("velocity.legend")}
           className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground"
         >
           {series.map((item) => (
@@ -221,10 +221,10 @@ export default function SquadVelocity({
         </ul>
       )}
       <table className="sr-only">
-        <caption>{t("copy.weeklyAvailablePersonWeeks")}</caption>
+        <caption>{t("velocity.tableCaption")}</caption>
         <thead>
           <tr>
-            <th scope="col">{t("copy.weekOf")}</th>
+            <th scope="col">{t("common.weekOf")}</th>
             {series.map((item) => (
               <th key={item.id} scope="col">
                 {item.name}

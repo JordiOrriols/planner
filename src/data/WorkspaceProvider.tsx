@@ -30,7 +30,7 @@ interface WorkspaceContextValue {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 export function useWorkspace() {
   const value = useContext(WorkspaceContext);
-  if (!value) throw new Error(i18n.t("copy.workspaceproviderIsRequired"));
+  if (!value) throw new Error(i18n.t("workspace.errors.providerRequired"));
   return value;
 }
 
@@ -48,7 +48,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     queryKey: directoryKey,
     enabled: !!repository,
     queryFn: async () => {
-      if (!repository) throw new Error(t("copy.signInBeforeLoadingWorkspaces"));
+      if (!repository) throw new Error(t("workspace.errors.signInToLoad"));
       return { workspaces: await repository.listWorkspaces() };
     },
   });
@@ -59,7 +59,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     queryKey: ["planner-workspace", user?.id, workspace?.id],
     enabled: !!workspace && !!repository,
     queryFn: () => {
-      if (!repository || !workspace) throw new Error(t("copy.selectWorkspace"));
+      if (!repository || !workspace) throw new Error(t("workspace.select"));
       return repository.loadWorkspace(workspace.id);
     },
   });
@@ -69,17 +69,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       client.invalidateQueries({ queryKey: ["planner-workspace", user?.id] }),
     ]);
   }
-  if (!repository || !user) throw new Error(t("copy.signInBeforeOpeningPlanner"));
+  if (!repository || !user) throw new Error(t("workspace.errors.signInToOpen"));
   if (directory.isPending || (workspace && data.isPending))
-    return <AppSkeleton label={t("copy.loadingYourWorkspace")} />;
+    return <AppSkeleton label={t("workspace.loading")} />;
   if (directory.error || data.error)
     return (
       <div className="p-8 space-y-4">
         <p role="alert">{(directory.error ?? data.error)?.message}</p>
-        <p>{t("copy.confirmThePlannerMigrationIsInstalledInYour")}</p>
-        <Button onClick={() => void refresh()}>{t("copy.retry")}</Button>
+        <p>{t("workspace.errors.migrationRequired")}</p>
+        <Button onClick={() => void refresh()}>{t("common.actions.retry")}</Button>
         <Button variant="ghost" onClick={() => void action.run(signOut)}>
-          {t("copy.signOut")}
+          {t("common.actions.signOut")}
         </Button>
         {action.error && <p role="alert">{action.error}</p>}
       </div>
@@ -87,12 +87,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   if (creating || !workspace || !data.data)
     return (
       <main className="max-w-xl mx-auto p-8 space-y-6">
-        <h1 className="text-2xl font-semibold">{t("copy.yourPlanningWorkspace")}</h1>
-        <p className="text-muted-foreground">
-          {t("copy.createAPlanningWorkspaceThenLinkYourExisting")}
-        </p>
+        <h1 className="text-2xl font-semibold">{t("workspace.create.title")}</h1>
+        <p className="text-muted-foreground">{t("workspace.create.description")}</p>
         <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
-          {t("copy.signOut")}
+          {t("common.actions.signOut")}
         </Button>
         {action.error && (
           <p role="alert" className="text-destructive">
@@ -112,7 +110,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             });
           }}
         >
-          <Label htmlFor="workspace-name">{t("copy.workspaceName")}</Label>
+          <Label htmlFor="workspace-name">{t("workspace.create.name")}</Label>
           <Input
             id="workspace-name"
             value={name}
@@ -121,7 +119,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             maxLength={120}
           />
           <Button type="submit" disabled={action.busy}>
-            {t("copy.createWorkspace")}
+            {t("workspace.create.submit")}
           </Button>
           {!!workspace && (
             <Button
@@ -130,7 +128,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
               onClick={() => setCreating(false)}
               disabled={action.busy}
             >
-              {t("copy.cancel")}
+              {t("common.actions.cancel")}
             </Button>
           )}
         </form>

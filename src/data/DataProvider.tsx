@@ -20,7 +20,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 }
 
 const unavailable = async (): Promise<never> => {
-  throw new Error(i18n.t("copy.authenticationIsNotConfigured"));
+  throw new Error(i18n.t("app.errors.authNotConfigured"));
 };
 const fallback: DataContextValue = {
   authEnabled: false,

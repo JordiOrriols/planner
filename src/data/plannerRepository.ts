@@ -11,7 +11,7 @@ const workspaceSchema = z.object({
   name: z.string(),
   plan_start_date: z.string().refine(
     (value) => z.string().date().safeParse(value).success,
-    () => ({ message: i18n.t("copy.invalidWorkspacePlanStartDate") })
+    () => ({ message: i18n.t("workspace.errors.invalidPlanStart") })
   ),
 });
 const memberSchema = z.object({
@@ -107,8 +107,7 @@ export function createPlannerRepository(client: SupabaseClient) {
       rpc("planner_remove_workspace_share", { workspace, account }),
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
-      if (!hasHolidayCalendar(date))
-        throw new Error(i18n.t("copy.chooseAStartDateInAVerifiedHoliday"));
+      if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));
       const { data, error } = await client
         .from("planner_workspaces")
         .update({ plan_start_date: date })
@@ -166,7 +165,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .select("id")
         .single();
       if (error) throw new Error(error.message, { cause: error });
-      if (!data) throw new Error(i18n.t("copy.projectWasNotDeleted"));
+      if (!data) throw new Error(i18n.t("planning.errors.featureNotDeleted"));
     },
     async setDelivered(workspace: string, id: string, delivered: boolean) {
       const { data, error } = await client
@@ -198,9 +197,9 @@ export function createPlannerRepository(client: SupabaseClient) {
         rpcList("planner_vacation_team_list", availabilitySchema, { token }),
       ]);
       const member = z.array(vacationMemberSchema).parse(identity)[0];
-      if (!member) throw new Error(i18n.t("copy.invalidVacationLink"));
+      if (!member) throw new Error(i18n.t("vacationLink.errors.invalidLink"));
       if (!members.some((item) => item.id === member.id))
-        throw new Error(i18n.t("copy.theVacationCalendarDidNotIncludeItsMember"));
+        throw new Error(i18n.t("vacationLink.errors.missingMember"));
       return { member, members, availability };
     },
     saveVacation: (token: string, start: string, end: string, working: boolean) =>

@@ -40,7 +40,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <h3 className="text-sm font-medium text-red-800 mb-2">
-            {t("copy.componentError", { name: name || t("copy.component") })}
+            {t("app.errors.componentTitle", {
+              componentName: name || t("app.errors.componentFallbackName"),
+            })}
           </h3>
           <p className="text-xs text-red-600">{error.message}</p>
         </div>

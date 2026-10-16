@@ -23,17 +23,15 @@ export default function Estimation() {
     .filter((project) => project.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
   const backlog = projects.filter((project) => !project.in_backlog);
-  if (!repository) throw new Error(t("copy.signInToManageProjects"));
+  if (!repository) throw new Error(t("estimation.errors.signInRequired"));
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4 items-end">
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            {t("copy.featureEstimation")}
+            {t("estimation.title")}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {t("copy.estimatePeopleAndWeeksPerRolePrioritizeFeatures")}
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">{t("estimation.description")}</p>
         </div>
         {canEdit && (
           <Button
@@ -43,19 +41,19 @@ export default function Estimation() {
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            {t("copy.newFeature")}
+            {t("featureForm.createTitle")}
           </Button>
         )}
       </div>
       <div className="grid grid-cols-3 gap-3 max-w-lg">
-        <Metric label={t("copy.features")} value={projects.length} />
+        <Metric label={t("estimation.metrics.features")} value={projects.length} />
         <Metric
-          label={t("copy.onRoadmap")}
+          label={t("estimation.metrics.onRoadmap")}
           value={projects.filter((project) => project.in_backlog).length}
         />
         <Metric
-          label={t("copy.totalEffort")}
-          value={t("copy.effortValue", {
+          label={t("estimation.metrics.totalEffort")}
+          value={t("estimation.metrics.effortValue", {
             effort: projects.reduce((sum, project) => sum + totalDevWeeks(project), 0),
           })}
         />
@@ -66,27 +64,25 @@ export default function Estimation() {
         </p>
       )}
       {!canEdit && (
-        <p className="text-sm text-muted-foreground">
-          {t("copy.workspaceOwnersAndEditorsManageFeatureEstimatesAnd")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("estimation.readOnlyNotice")}</p>
       )}
       {!projects.length ? (
         <EmptyState
           icon={<Calculator />}
-          title={t("copy.noFeaturesYet")}
-          description={t("copy.createYourFirstEstimateToStartPlanning")}
+          title={t("estimation.empty.title")}
+          description={t("estimation.empty.description")}
         />
       ) : (
         <div className="space-y-8">
           {[
             {
-              name: t("copy.roadmap"),
-              description: t("copy.prioritizedFeaturesInRoadmapOrder"),
+              name: t("roadmap.title"),
+              description: t("estimation.groups.roadmapDescription"),
               features: roadmap,
             },
             {
-              name: t("copy.backlog"),
-              description: t("copy.notPrioritizedFeatures"),
+              name: t("estimation.groups.backlog"),
+              description: t("estimation.groups.backlogDescription"),
               features: backlog,
             },
           ].map((group) => (
@@ -96,7 +92,7 @@ export default function Estimation() {
                 <p className="text-sm text-muted-foreground">{group.description}</p>
               </div>
               {!group.features.length && (
-                <p className="text-sm text-muted-foreground">{t("copy.noFeaturesInThisGroup")}</p>
+                <p className="text-sm text-muted-foreground">{t("estimation.groups.empty")}</p>
               )}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {group.features.map((project) => (
@@ -130,10 +126,10 @@ export default function Estimation() {
       )}
       <ConfirmDialog
         isOpen={!!deleting}
-        title={t("copy.delete2", { value1: deleting?.name ?? t("copy.feature") })}
-        description={t("copy.theEstimateWillBePermanentlyRemoved")}
-        confirmLabel={t("copy.delete3")}
-        cancelLabel={t("copy.cancel")}
+        title={t("estimation.delete.title", { featureName: deleting?.name ?? t("common.feature") })}
+        description={t("estimation.delete.description")}
+        confirmLabel={t("common.actions.delete")}
+        cancelLabel={t("common.actions.cancel")}
         onCancel={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting || action.busy) return;

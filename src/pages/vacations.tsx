@@ -19,7 +19,7 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
   const query = useQuery({
     queryKey: ["planner-ladders-teams", user?.id, workspace.id],
     queryFn: () => {
-      if (!repository) throw new Error(t("copy.signInBeforeLoadingTeams"));
+      if (!repository) throw new Error(t("teamConfiguration.errors.signInToLoad"));
       return repository.listTeams();
     },
   });
@@ -34,20 +34,18 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
       onSubmit={(event) => {
         event.preventDefault();
         void action.run(async () => {
-          if (!repository) throw new Error(t("copy.signInBeforeLinkingTeams"));
+          if (!repository) throw new Error(t("teamConfiguration.errors.signInToLink"));
           await repository.setWorkspaceTeams(workspace.id, selected);
           await refresh();
         });
       }}
     >
-      <h3 className="font-semibold">{t("copy.laddersTeams")}</h3>
-      <p className="text-sm text-muted-foreground">
-        {t("copy.linkOneOrMoreTeamsTheirCurrentMembers")}
-      </p>
+      <h3 className="font-semibold">{t("teamConfiguration.teams.title")}</h3>
+      <p className="text-sm text-muted-foreground">{t("teamConfiguration.teams.description")}</p>
       {query.isPending && (
         <div
           role="status"
-          aria-label={t("copy.loadingTeams")}
+          aria-label={t("teamConfiguration.teams.loading")}
           aria-busy="true"
           className="space-y-2"
         >
@@ -57,7 +55,7 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
       )}
       {query.error && <p role="alert">{query.error.message}</p>}
       {!query.isPending && !query.error && !teams.size && (
-        <p>{t("copy.createATeamInLaddersUsingTheSame")}</p>
+        <p>{t("teamConfiguration.teams.empty")}</p>
       )}
       {[...teams.values()].map((team) => (
         <label key={team.id} className="flex gap-2 items-center">
@@ -73,13 +71,15 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
           />
           {team.name}
           {!team.canLink && (
-            <span className="text-sm text-muted-foreground">{t("copy.viewOnly")}</span>
+            <span className="text-sm text-muted-foreground">
+              {t("teamConfiguration.teams.viewOnly")}
+            </span>
           )}
         </label>
       ))}
       {action.error && <p role="alert">{action.error}</p>}
       <Button disabled={action.busy || query.isPending || !!query.error} type="submit">
-        {t("copy.saveLinkedTeams")}
+        {t("teamConfiguration.teams.save")}
       </Button>
     </form>
   );
@@ -95,30 +95,30 @@ export default function Vacations() {
   const [month, setMonth] = useState(new Date());
   const [copiedMember, setCopiedMember] = useState<string | null>(null);
   const action = useAsyncAction();
-  if (!repository) throw new Error(t("copy.signInBeforeOpeningVacations"));
+  if (!repository) throw new Error(t("vacations.errors.signInRequired"));
   const assignable = members.filter((member) => member.role !== null);
   const unassigned = members.length - assignable.length;
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-      <h1 className="text-3xl font-bold">{t("copy.teamVacations")}</h1>
-      <p className="text-muted-foreground">
-        {t("copy.barcelonaWorkingCalendarPlanningRolesBelongToLadders")}
-      </p>
-      {!!unassigned && <p role="status">{t("copy.unassignedMembers", { count: unassigned })}</p>}
+      <h1 className="text-3xl font-bold">{t("vacations.title")}</h1>
+      <p className="text-muted-foreground">{t("vacations.description")}</p>
+      {!!unassigned && (
+        <p role="status">{t("vacations.unassignedNotice", { count: unassigned })}</p>
+      )}
       <SquadVelocity
         members={assignable}
         linkedTeams={linkedTeams}
         availability={availability}
         startDate={month}
       />
-      <section className="panel p-5 space-y-4" aria-label={t("copy.vacationCalendar")}>
-        <h2 className="font-semibold">{t("copy.vacationCalendar")}</h2>
+      <section className="panel p-5 space-y-4" aria-label={t("vacations.calendarTitle")}>
+        <h2 className="font-semibold">{t("vacations.calendarTitle")}</h2>
         {selectedMember ? (
           <>
             <label className="block">
-              {t("copy.member")}
+              {t("vacations.member")}
               <select
-                aria-label={t("copy.member")}
+                aria-label={t("vacations.member")}
                 className="field"
                 value={selectedMember.id}
                 onChange={(event) => setSelected(event.target.value)}
@@ -158,7 +158,7 @@ export default function Vacations() {
       </section>
       <section className="space-y-4" aria-labelledby="vacations-configuration">
         <h2 id="vacations-configuration" className="text-xl font-semibold">
-          {t("copy.configuration")}
+          {t("vacations.configurationTitle")}
         </h2>
         {isOwner && (
           <TeamPicker
@@ -167,8 +167,8 @@ export default function Vacations() {
           />
         )}
         <div className="panel p-5 space-y-3">
-          <h3 className="font-semibold">{t("copy.teamMembers")}</h3>
-          {!members.length && <p>{t("copy.noMembersInLinkedTeamsLinkALadders")}</p>}
+          <h3 className="font-semibold">{t("teamConfiguration.members.title")}</h3>
+          {!members.length && <p>{t("teamConfiguration.members.empty")}</p>}
           {members.map((member) => (
             <div key={member.id} className="flex flex-wrap items-center gap-3">
               <span className="font-medium">{member.name}</span>
@@ -177,7 +177,7 @@ export default function Vacations() {
               </span>
               <select
                 className="field w-auto"
-                aria-label={t("copy.planningRoleFor", { value1: member.name })}
+                aria-label={t("teamConfiguration.members.roleLabel", { memberName: member.name })}
                 value={member.role ?? ""}
                 disabled={!member.can_edit || action.busy}
                 onChange={(event) => {
@@ -188,7 +188,7 @@ export default function Vacations() {
                   });
                 }}
               >
-                <option value="">{t("copy.unassigned")}</option>
+                <option value="">{t("teamConfiguration.members.unassigned")}</option>
                 {ROLES.map((role) => (
                   <option key={role} value={role}>
                     {ROLE_LABELS[role]}
@@ -208,12 +208,12 @@ export default function Vacations() {
                     })
                   }
                 >
-                  {t("copy.copyMemberVacationLink", { name: member.name })}
+                  {t("teamConfiguration.members.copyLink", { memberName: member.name })}
                 </Button>
               )}
               {copiedMember === member.id && (
                 <span role="status" className="text-sm">
-                  {t("copy.vacationLinkCopied")}
+                  {t("teamConfiguration.members.linkCopied")}
                 </span>
               )}
             </div>

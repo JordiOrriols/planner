@@ -450,225 +450,355 @@
     "addMembersToSeeOverview": "Aggiungi membri per vedere la panoramica del team",
     "currentNotSet": "Non impostato"
   },
-  "copy": {
-    "somethingWentWrong": "Qualcosa è andato storto",
-    "tryAgain": "Riprova",
-    "loadingPage": "Caricamento della pagina",
-    "loadingPlanner": "Caricamento di Planner",
-    "signInBeforeSharingAWorkspace": "Accedi prima di condividere un workspace",
-    "youCannotEditThisMemberSAvailability": "Non puoi modificare la disponibilità di questa persona.",
-    "selectDatesOnTheCalendarFirst": "Seleziona prima le date nel calendario.",
-    "chooseDatesInAVerifiedHolidayYear2026": "Scegli date di un anno con festività verificate (2026 o 2027).",
-    "chooseADateRangeOfAtMost366": "Scegli un intervallo di massimo 366 giorni.",
-    "vacations": "Vacanze",
-    "workingDay": "Giorno lavorativo",
-    "workingDayRemovesSavedVacationsInTheSelected": "Il giorno lavorativo rimuove le ferie salvate nell'intervallo selezionato. Weekend e festività mantengono il calendario abituale.",
-    "onlyALaddersTeamOwnerEditorCanEdit": "Solo un proprietario o editor del team Ladders può modificare questo membro. I membri possono usare il proprio link personale per le ferie.",
-    "grayWaitingPaused": "Grigio · in attesa / in pausa",
-    "delivered": "Consegnato",
-    "dragFeatureNamesToReorderOrUseArrow": "Trascina i nomi delle funzionalità per riordinarli o usa Freccia su / Freccia giù. Passa il cursore sulle barre per i dettagli. Fai clic destro su una riga (o premi Maiusc+F10) per le azioni di consegna e rimozione.",
-    "today": "Oggi: {{value1}}",
-    "today2": "Oggi",
-    "featurePriority": "Funzionalità · priorità",
-    "weekOf": "Settimana del",
-    "scheduleRow": "Riga di pianificazione: {{value1}}",
-    "reorder": "Riordina {{value1}}",
-    "notCompleted": "non completato",
-    "undoDelivery": "Annulla consegna",
-    "markDelivered": "Segna come consegnato",
-    "removeFromRoadmap": "Rimuovi dalla roadmap",
-    "availablePersonWeeks": "Settimane-persona disponibili",
-    "allocatedPersonWeeks": "Settimane-persona assegnate",
-    "edit": "Modifica {{value1}}",
-    "delete": "Elimina {{value1}}",
-    "noEstimatesYet": "Nessuna stima",
-    "w": "sett.",
-    "peakTeam": "Picco del team",
-    "people": "persone",
-    "duration": "Durata",
-    "weeks": "settimane",
-    "effort": "Impegno",
-    "personWks": "sett.-pers.",
-    "editFeature": "Modifica funzionalità",
-    "newFeature": "Nuova funzionalità",
-    "rolesRunConcurrentlyUseWholeNumbersForPeople": "I ruoli vengono eseguiti in parallelo. Inserisci numeri interi per persone e settimane.",
-    "close": "Chiudi",
-    "name": "Nome",
-    "description": "Descrizione",
-    "role": "Ruolo",
-    "people2": "Persone",
-    "weeks2": "Settimane",
-    "personWeeks": "Settimane-persona",
-    "saving": "Salvataggio...",
-    "saveChanges": "Salva le modifiche",
-    "createFeature": "Crea funzionalità",
-    "squadVelocity": "Velocità del team",
-    "groupBy": "Raggruppa per",
-    "velocityGrouping": "Raggruppamento della velocità",
-    "areas": "Aree",
-    "teams": "Team",
-    "selectAtLeastOneAreaOrTeamTo": "Seleziona almeno un'area o un team per mostrare la velocità.",
-    "linkATeamInConfigurationToShowTeam": "Collega un team in Configurazione per mostrarne la velocità.",
-    "velocityLegend": "Legenda della velocità",
-    "weeklyAvailablePersonWeeks": "Settimane-persona disponibili ogni settimana",
-    "previousMonth": "Mese precedente",
-    "nextMonth": "Mese successivo",
-    "selectTheLastDayOrApplyToThis": "Seleziona l'ultimo giorno oppure applica a questo giorno.",
-    "selectTheFirstAndLastDayThenChoose": "Seleziona il primo e l'ultimo giorno, poi scegli Ferie o Giorno lavorativo.",
-    "clearSelection": "Cancella selezione",
-    "teamVacationLegend": "Legenda ferie del team",
-    "barcelonaHolidaysAreVerifiedOnlyFor2026And": "Le festività di Barcellona sono verificate solo per il 2026 e il 2027. Aggiorna il calendario prima di pianificare quest'anno.",
-    "authenticationIsNotConfigured": "L'autenticazione non è configurata",
-    "workspaceproviderIsRequired": "È necessario WorkspaceProvider",
-    "signInBeforeOpeningPlanner": "Accedi prima di aprire Planner",
-    "loadingYourWorkspace": "Caricamento del tuo workspace...",
-    "confirmThePlannerMigrationIsInstalledInYour": "Verifica che la migrazione di Planner sia installata nel tuo progetto Supabase.",
-    "retry": "Riprova",
-    "signOut": "Esci",
-    "yourPlanningWorkspace": "Il tuo workspace di pianificazione",
-    "createAPlanningWorkspaceThenLinkYourExisting": "Crea un workspace di pianificazione, poi collega i team Ladders esistenti dalla pagina Ferie.",
-    "workspaceName": "Nome del workspace",
-    "createWorkspace": "Crea workspace",
-    "cancel": "Annulla",
-    "invalidWorkspacePlanStartDate": "Data di inizio del piano del workspace non valida",
-    "chooseAStartDateInAVerifiedHoliday": "Scegli una data iniziale in un anno con festività verificate (2026 o 2027).",
-    "projectWasNotDeleted": "Il progetto non è stato eliminato.",
-    "invalidVacationLink": "Link ferie non valido",
-    "theVacationCalendarDidNotIncludeItsMember": "Il calendario ferie non includeva il membro. Ricarica la pagina.",
-    "newYearSDay": "Capodanno",
-    "epiphanyReyes": "Epifania (Reyes)",
-    "goodFriday": "Venerdì santo",
-    "easterMonday": "Lunedì dell'Angelo",
-    "labourDay": "Festa dei lavoratori",
-    "whitMonday": "Lunedì di Pentecoste",
-    "santJoan": "San Giovanni",
-    "assumptionOfMary": "Assunzione di Maria",
-    "laDiadaCatalonia": "La Diada (Catalogna)",
-    "laMercBarcelona": "La Mercè (Barcellona)",
-    "hispanicDay": "Festa nazionale spagnola",
-    "immaculateConception": "Immacolata Concezione",
-    "christmasDay": "Natale",
-    "santEsteve": "Santo Stefano",
-    "epiphany": "Epifania",
-    "laDiada": "La Diada",
-    "laMerce": "La Mercè",
-    "allSaints": "Ognissanti",
-    "constitutionDay": "Festa della Costituzione",
-    "barcelonaHolidaysAreNotVerifiedFor": "Le festività di Barcellona non sono verificate per {{value1}}",
-    "setBothPeopleAndWeeksForOrLeave": "Imposta sia il numero di persone sia quello di settimane per {{value1}}, oppure lascia entrambi a zero.",
-    "chooseAValidCalendarDate": "Scegli una data di calendario valida.",
-    "barcelonaHolidaysAreNotVerifiedFor2": "Le festività di Barcellona non sono verificate per {{value1}}.",
-    "noEstimatesSet": "Nessuna stima impostata",
-    "noCapacity": "Nessuna capacità {{value1}}",
-    "notCompletedWithinTheVerifiedPlanningHorizon": "Non completato entro l'orizzonte di pianificazione verificato",
-    "signInToManageTheRoadmap": "Accedi per gestire la roadmap",
-    "workspaceEditAccessIsRequiredToChangeThe": "Per modificare l'inizio del piano serve l'accesso in modifica al workspace.",
-    "roadmap": "Roadmap",
-    "priorityAllocatesAvailablePeopleByRoleEachDay": "La priorità assegna ogni giorno le persone disponibili per ruolo. Ruoli e funzionalità possono sovrapporsi quando c'è capacità.",
-    "addFeature": "Aggiungi funzionalità",
-    "squadSize": "Dimensione del team",
-    "planStarts": "Inizio del piano",
-    "cancelEditingPlanStart": "Annulla modifica inizio piano",
-    "editPlanStart": "Modifica inizio piano",
-    "roadmapFinishes": "Fine della roadmap",
-    "barcelonaHolidaysVerifiedFor20262027APerson": "Festività di Barcellona verificate per il 2026–2027. Una settimana-persona equivale a cinque giorni lavorativi; le ferie allungano le previsioni. Le stime non sono impegni di consegna.",
-    "theForecastStopsAtTheEndOfThe": "La previsione termina alla fine del calendario delle festività verificate.",
-    "noFeaturesOnTheRoadmap": "Nessuna funzionalità nella roadmap",
-    "chooseWhichFeaturesToPrioritizeOnThisRoadmap": "Scegli quali funzionalità dare priorità in questa roadmap.",
-    "workspaceOwnersAndEditorsPrioritizeFeaturesOnThis": "I proprietari e gli editor del workspace assegnano le priorità alle funzionalità di questa roadmap.",
-    "featureSchedule": "Pianificazione delle funzionalità",
-    "addFeatureToRoadmap": "Aggiungi alla roadmap",
-    "chooseExistingFeaturesAddingAFeaturePlacesIt": "Scegli funzionalità esistenti. Aggiungendone una, verrà posizionata in fondo all'elenco delle priorità.",
-    "addFeatureToRoadmap2": "Aggiungi alla roadmap: {{value1}}",
-    "allFeaturesAreAlreadyOnTheRoadmap": "Tutte le funzionalità sono già nella roadmap.",
-    "createAFeatureFirstThenAddItTo": "Crea prima una funzionalità, poi aggiungila alla roadmap.",
-    "createANewFeature": "Crea una nuova funzionalità",
-    "signInToManageProjects": "Accedi per gestire i progetti",
-    "featureEstimation": "Stima delle funzionalità",
-    "estimatePeopleAndWeeksPerRolePrioritizeFeatures": "Stima persone e settimane per ruolo. Assegna priorità alle funzionalità nella pagina Roadmap.",
-    "features": "Funzionalità",
-    "onRoadmap": "Nella roadmap",
-    "totalEffort": "Impegno totale",
-    "workspaceOwnersAndEditorsManageFeatureEstimatesAnd": "I proprietari e gli editor del workspace gestiscono stime e priorità delle funzionalità.",
-    "noFeaturesYet": "Nessuna funzionalità",
-    "createYourFirstEstimateToStartPlanning": "Crea la tua prima stima per iniziare a pianificare.",
-    "prioritizedFeaturesInRoadmapOrder": "Funzionalità ordinate secondo le priorità della roadmap.",
-    "backlog": "Backlog",
-    "notPrioritizedFeatures": "Funzionalità non prioritarie.",
-    "noFeaturesInThisGroup": "Nessuna funzionalità in questo gruppo.",
-    "delete2": "Eliminare {{value1}}?",
-    "theEstimateWillBePermanentlyRemoved": "La stima verrà rimossa definitivamente.",
-    "delete3": "Elimina",
-    "yourPlannedVacations": "Le tue ferie pianificate",
-    "thisPersonalLinkLetsYouUpdateOnlyYour": "Questo link personale ti permette di aggiornare solo la tua disponibilità. Le modifiche si applicano a tutti i workspace di pianificazione collegati. Puoi anche vedere le ferie del tuo team attuale, ma non modificarle. Mantieni privato questo link.",
-    "loadingVacationCalendar": "Caricamento del calendario ferie...",
-    "laddersTeams": "Team Ladders",
-    "linkOneOrMoreTeamsTheirCurrentMembers": "Collega uno o più team. I membri attuali e le loro ferie sono condivisi tra i workspace. Crea o sposta i membri in Ladders, non qui.",
-    "loadingTeams": "Caricamento dei team...",
-    "createATeamInLaddersUsingTheSame": "Crea prima un team in Ladders usando lo stesso account.",
-    "viewOnly": "(sola lettura)",
-    "saveLinkedTeams": "Salva i team collegati",
-    "signInBeforeOpeningVacations": "Accedi prima di aprire Ferie",
-    "teamVacations": "Ferie del team",
-    "barcelonaWorkingCalendarPlanningRolesBelongToLadders": "Calendario lavorativo di Barcellona. I ruoli di pianificazione appartengono ai membri Ladders e sono condivisi in tutti i workspace; non modificano le qualifiche professionali.",
-    "vacationCalendar": "Calendario ferie",
-    "member": "Membro",
-    "configuration": "Configurazione",
-    "teamMembers": "Membri del team",
-    "noMembersInLinkedTeamsLinkALadders": "Nessun membro nei team collegati. Collega un team Ladders per iniziare.",
-    "planningRoleFor": "Ruolo di pianificazione di {{value1}}",
-    "unassigned": "Non assegnato",
-    "vacationLinkCopied": "Link ferie copiato",
-    "featureNameRequired": "Il nome della funzionalità è obbligatorio.",
-    "estimateBounds": "Le stime di {{role}} devono essere numeri interi tra 0 e 100 persone / 104 settimane.",
-    "rolePeople": "Persone {{role}}",
-    "roleWeeks": "Settimane {{role}}",
-    "estimateSummary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona",
-    "effortValue": "{{effort}} sett.-pers.",
-    "peopleCount_one": "{{count}} persona",
-    "peopleCount_other": "{{count}} persone",
-    "notFullyScheduled": "Non pianificato completamente",
-    "forecastCompleted": "Pianificazione · {{completed}}/{{total}} completate nella previsione",
-    "all_areas": "Tutte le aree",
-    "all_teams": "Tutti i team",
-    "selected_areas_one": "{{count}} area selezionata",
-    "selected_areas_other": "{{count}} aree selezionate",
-    "selected_teams_one": "{{count}} team selezionato",
-    "selected_teams_other": "{{count}} team selezionati",
-    "velocityDescription_one": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossima settimana verificata: {{count}}.",
-    "velocityDescription_other": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossime {{count}} settimane verificate.",
-    "show_areas": "Aree da mostrare",
-    "show_teams": "Team da mostrare",
-    "selectVelocity_areas": "Seleziona aree di velocità",
-    "selectVelocity_teams": "Seleziona team di velocità",
-    "selectedMemberSuffix": " (tu / selezionato)",
-    "memberVacation": "{{name}}: ferie",
-    "topSuffix": " (in alto)",
-    "bottomSuffix": " (in basso)",
-    "fullHeightSuffix": " (altezza intera)",
-    "reorderHelp": "{{name}} — trascina per riordinare o usa Freccia su / Freccia giù",
-    "projectSpan": "{{name}}: dal {{start}} al {{end}}{{status}}",
-    "deliveredSuffix": " · Consegnato",
-    "roleSpan": "{{name}} · {{role}}: dal {{start}} al {{end}} · {{requested}} · {{effort}} settimane-persona{{partial}}",
-    "peopleRequested_one": "{{count}} persona richiesta",
-    "peopleRequested_other": "{{count}} persone richieste",
-    "partialForecastSuffix": " (previsione parziale)",
-    "componentError": "Errore in {{name}}",
-    "component": "Componente",
-    "signInBeforeLoadingWorkspaces": "Accedi prima di caricare i workspace",
-    "selectWorkspace": "Seleziona un workspace",
-    "supabaseNotConfigured": "Supabase non è configurato. Contatta il proprietario del team.",
-    "signInBeforeLoadingTeams": "Accedi prima di caricare i team",
-    "signInBeforeLinkingTeams": "Accedi prima di collegare i team",
-    "unassignedMembers_one": "{{count}} membro non ha un ruolo di pianificazione ed è escluso dalla capacità del team.",
-    "unassignedMembers_other": "{{count}} membri non hanno un ruolo di pianificazione e sono esclusi dalla capacità del team.",
-    "copyMemberVacationLink": "Copia il link ferie di {{name}}",
-    "feature": "funzionalità"
-  },
   "planningRoles": {
     "backend": "Backend",
     "frontend": "Frontend",
     "design": "Design",
     "qa": "QA"
+  },
+  "app": {
+    "actions": {
+      "tryAgain": "Riprova"
+    },
+    "errors": {
+      "authNotConfigured": "L'autenticazione non è configurata",
+      "componentFallbackName": "Componente",
+      "componentTitle": "Errore in {{componentName}}",
+      "title": "Qualcosa è andato storto"
+    },
+    "loading": {
+      "page": "Caricamento della pagina",
+      "planner": "Caricamento di Planner"
+    }
+  },
+  "common": {
+    "actions": {
+      "cancel": "Annulla",
+      "close": "Chiudi",
+      "delete": "Elimina",
+      "retry": "Riprova",
+      "signOut": "Esci"
+    },
+    "feature": "funzionalità",
+    "units": {
+      "people": "persone",
+      "personWeeks": "Settimane-persona",
+      "personWeeksShort": "sett.-pers.",
+      "weeks": "settimane",
+      "weeksShort": "sett."
+    },
+    "weekOf": "Settimana del"
+  },
+  "workspace": {
+    "create": {
+      "description": "Crea un workspace di pianificazione, poi collega i team Ladders esistenti dalla pagina Ferie.",
+      "name": "Nome del workspace",
+      "submit": "Crea workspace",
+      "title": "Il tuo workspace di pianificazione"
+    },
+    "errors": {
+      "invalidPlanStart": "Data di inizio del piano del workspace non valida",
+      "migrationRequired": "Verifica che la migrazione di Planner sia installata nel tuo progetto Supabase.",
+      "providerRequired": "È necessario WorkspaceProvider",
+      "signInToLoad": "Accedi prima di caricare i workspace",
+      "signInToOpen": "Accedi prima di aprire Planner",
+      "signInToShare": "Accedi prima di condividere un workspace"
+    },
+    "loading": "Caricamento del tuo workspace...",
+    "select": "Seleziona un workspace"
+  },
+  "estimation": {
+    "delete": {
+      "description": "La stima verrà rimossa definitivamente.",
+      "title": "Eliminare {{featureName}}?"
+    },
+    "description": "Stima persone e settimane per ruolo. Assegna priorità alle funzionalità nella pagina Roadmap.",
+    "empty": {
+      "description": "Crea la tua prima stima per iniziare a pianificare.",
+      "title": "Nessuna funzionalità"
+    },
+    "errors": {
+      "signInRequired": "Accedi per gestire i progetti"
+    },
+    "groups": {
+      "backlog": "Backlog",
+      "backlogDescription": "Funzionalità non prioritarie.",
+      "empty": "Nessuna funzionalità in questo gruppo.",
+      "roadmapDescription": "Funzionalità ordinate secondo le priorità della roadmap."
+    },
+    "metrics": {
+      "effortValue": "{{effort}} sett.-pers.",
+      "features": "Funzionalità",
+      "onRoadmap": "Nella roadmap",
+      "totalEffort": "Impegno totale"
+    },
+    "readOnlyNotice": "I proprietari e gli editor del workspace gestiscono stime e priorità delle funzionalità.",
+    "title": "Stima delle funzionalità"
+  },
+  "featureForm": {
+    "actions": {
+      "create": "Crea funzionalità",
+      "save": "Salva le modifiche",
+      "saving": "Salvataggio..."
+    },
+    "columns": {
+      "people": "Persone",
+      "role": "Ruolo",
+      "weeks": "Settimane"
+    },
+    "createTitle": "Nuova funzionalità",
+    "description": "I ruoli vengono eseguiti in parallelo. Inserisci numeri interi per persone e settimane.",
+    "editTitle": "Modifica funzionalità",
+    "fields": {
+      "description": "Descrizione",
+      "name": "Nome",
+      "rolePeople": "Persone {{role}}",
+      "roleWeeks": "Settimane {{role}}"
+    },
+    "summary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona"
+  },
+  "featureCard": {
+    "actions": {
+      "delete": "Elimina {{featureName}}",
+      "edit": "Modifica {{featureName}}"
+    },
+    "metrics": {
+      "duration": "Durata",
+      "effort": "Impegno",
+      "peakTeam": "Picco del team"
+    },
+    "noEstimates": "Nessuna stima"
+  },
+  "roadmap": {
+    "actions": {
+      "addFeature": "Aggiungi funzionalità"
+    },
+    "addFeature": {
+      "addLabel": "Aggiungi alla roadmap: {{featureName}}",
+      "allIncluded": "Tutte le funzionalità sono già nella roadmap.",
+      "create": "Crea una nuova funzionalità",
+      "description": "Scegli funzionalità esistenti. Aggiungendone una, verrà posizionata in fondo all'elenco delle priorità.",
+      "noEstimates": "Crea prima una funzionalità, poi aggiungila alla roadmap.",
+      "title": "Aggiungi alla roadmap"
+    },
+    "calendarLimitNotice": "La previsione termina alla fine del calendario delle festività verificate.",
+    "calendarNotice": "Festività di Barcellona verificate per il 2026–2027. Una settimana-persona equivale a cinque giorni lavorativi; le ferie allungano le previsioni. Le stime non sono impegni di consegna.",
+    "dates": {
+      "cancelEditing": "Annulla modifica inizio piano",
+      "editStart": "Modifica inizio piano",
+      "finish": "Fine della roadmap",
+      "incomplete": "Non pianificato completamente",
+      "start": "Inizio del piano"
+    },
+    "description": "La priorità assegna ogni giorno le persone disponibili per ruolo. Ruoli e funzionalità possono sovrapporsi quando c'è capacità.",
+    "empty": {
+      "editableDescription": "Scegli quali funzionalità dare priorità in questa roadmap.",
+      "readOnlyDescription": "I proprietari e gli editor del workspace assegnano le priorità alle funzionalità di questa roadmap.",
+      "title": "Nessuna funzionalità nella roadmap"
+    },
+    "errors": {
+      "editAccessRequired": "Per modificare l'inizio del piano serve l'accesso in modifica al workspace.",
+      "signInRequired": "Accedi per gestire la roadmap"
+    },
+    "metrics": {
+      "peopleCount_one": "{{count}} persona",
+      "peopleCount_other": "{{count}} persone",
+      "squadSize": "Dimensione del team"
+    },
+    "schedule": {
+      "label": "Pianificazione delle funzionalità",
+      "summary": "Pianificazione · {{completedFeatures}}/{{totalFeatures}} completate nella previsione"
+    },
+    "title": "Roadmap"
+  },
+  "gantt": {
+    "actions": {
+      "markDelivered": "Segna come consegnato",
+      "remove": "Rimuovi dalla roadmap",
+      "undoDelivery": "Annulla consegna"
+    },
+    "bar": {
+      "deliveredSuffix": " · Consegnato",
+      "incomplete": "non completato",
+      "partialSuffix": " (previsione parziale)",
+      "peopleRequested_one": "{{count}} persona richiesta",
+      "peopleRequested_other": "{{count}} persone richieste",
+      "projectSpan": "{{featureName}}: dal {{startDate}} al {{endDate}}{{deliveryStatus}}",
+      "roleSpan": "{{featureName}} · {{role}}: dal {{startDate}} al {{endDate}} · {{requestedPeople}} · {{effort}} settimane-persona{{forecastStatus}}"
+    },
+    "capacity": {
+      "allocated": "Settimane-persona assegnate",
+      "available": "Settimane-persona disponibili"
+    },
+    "columns": {
+      "featurePriority": "Funzionalità · priorità"
+    },
+    "interactionHelp": "Trascina i nomi delle funzionalità per riordinarli o usa Freccia su / Freccia giù. Passa il cursore sulle barre per i dettagli. Fai clic destro su una riga (o premi Maiusc+F10) per le azioni di consegna e rimozione.",
+    "legend": {
+      "bottomSuffix": " (in basso)",
+      "delivered": "Consegnato",
+      "fullHeightSuffix": " (altezza intera)",
+      "paused": "Grigio · in attesa / in pausa",
+      "topSuffix": " (in alto)"
+    },
+    "row": {
+      "label": "Riga di pianificazione: {{featureName}}",
+      "reorder": "Riordina {{featureName}}",
+      "reorderHelp": "{{featureName}} — trascina per riordinare o usa Freccia su / Freccia giù"
+    },
+    "today": {
+      "label": "Oggi: {{date}}",
+      "text": "Oggi"
+    }
+  },
+  "vacations": {
+    "calendarTitle": "Calendario ferie",
+    "configurationTitle": "Configurazione",
+    "description": "Calendario lavorativo di Barcellona. I ruoli di pianificazione appartengono ai membri Ladders e sono condivisi in tutti i workspace; non modificano le qualifiche professionali.",
+    "errors": {
+      "signInRequired": "Accedi prima di aprire Ferie"
+    },
+    "member": "Membro",
+    "title": "Ferie del team",
+    "unassignedNotice_one": "{{count}} membro non ha un ruolo di pianificazione ed è escluso dalla capacità del team.",
+    "unassignedNotice_other": "{{count}} membri non hanno un ruolo di pianificazione e sono esclusi dalla capacità del team."
+  },
+  "teamConfiguration": {
+    "errors": {
+      "signInToLink": "Accedi prima di collegare i team",
+      "signInToLoad": "Accedi prima di caricare i team"
+    },
+    "members": {
+      "copyLink": "Copia il link ferie di {{memberName}}",
+      "empty": "Nessun membro nei team collegati. Collega un team Ladders per iniziare.",
+      "linkCopied": "Link ferie copiato",
+      "roleLabel": "Ruolo di pianificazione di {{memberName}}",
+      "title": "Membri del team",
+      "unassigned": "Non assegnato"
+    },
+    "teams": {
+      "description": "Collega uno o più team. I membri attuali e le loro ferie sono condivisi tra i workspace. Crea o sposta i membri in Ladders, non qui.",
+      "empty": "Crea prima un team in Ladders usando lo stesso account.",
+      "loading": "Caricamento dei team...",
+      "save": "Salva i team collegati",
+      "title": "Team Ladders",
+      "viewOnly": "(sola lettura)"
+    }
+  },
+  "availabilityEditor": {
+    "actions": {
+      "vacations": "Vacanze",
+      "workingDay": "Giorno lavorativo"
+    },
+    "errors": {
+      "editAccessRequired": "Non puoi modificare la disponibilità di questa persona.",
+      "rangeTooLong": "Scegli un intervallo di massimo 366 giorni.",
+      "selectionRequired": "Seleziona prima le date nel calendario.",
+      "unverifiedDates": "Scegli date di un anno con festività verificate (2026 o 2027)."
+    },
+    "readOnlyNotice": "Solo un proprietario o editor del team Ladders può modificare questo membro. I membri possono usare il proprio link personale per le ferie.",
+    "workingDayHelp": "Il giorno lavorativo rimuove le ferie salvate nell'intervallo selezionato. Weekend e festività mantengono il calendario abituale."
+  },
+  "vacationCalendar": {
+    "legend": {
+      "label": "Legenda ferie del team",
+      "selectedSuffix": " (tu / selezionato)"
+    },
+    "memberVacation": "{{memberName}}: ferie",
+    "navigation": {
+      "next": "Mese successivo",
+      "previous": "Mese precedente"
+    },
+    "selection": {
+      "chooseEnd": "Seleziona l'ultimo giorno oppure applica a questo giorno.",
+      "chooseRange": "Seleziona il primo e l'ultimo giorno, poi scegli Ferie o Giorno lavorativo.",
+      "clear": "Cancella selezione"
+    },
+    "unverifiedYearNotice": "Le festività di Barcellona sono verificate solo per il 2026 e il 2027. Aggiorna il calendario prima di pianificare quest'anno."
+  },
+  "vacationLink": {
+    "description": "Questo link personale ti permette di aggiornare solo la tua disponibilità. Le modifiche si applicano a tutti i workspace di pianificazione collegati. Puoi anche vedere le ferie del tuo team attuale, ma non modificarle. Mantieni privato questo link.",
+    "errors": {
+      "invalidLink": "Link ferie non valido",
+      "missingMember": "Il calendario ferie non includeva il membro. Ricarica la pagina.",
+      "notConfigured": "Supabase non è configurato. Contatta il proprietario del team."
+    },
+    "loading": "Caricamento del calendario ferie...",
+    "title": "Le tue ferie pianificate"
+  },
+  "velocity": {
+    "description_one": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossima settimana verificata: {{count}}.",
+    "description_other": "Settimane-persona disponibili (cinque giorni lavorativi per persona), prossime {{count}} settimane verificate.",
+    "empty": {
+      "selectionRequired": "Seleziona almeno un'area o un team per mostrare la velocità.",
+      "teamRequired": "Collega un team in Configurazione per mostrarne la velocità."
+    },
+    "filters": {
+      "all": {
+        "areas": "Tutte le aree",
+        "teams": "Tutti i team"
+      },
+      "areas": "Aree",
+      "groupBy": "Raggruppa per",
+      "groupingLabel": "Raggruppamento della velocità",
+      "selected": {
+        "areas_one": "{{count}} area selezionata",
+        "areas_other": "{{count}} aree selezionate",
+        "teams_one": "{{count}} team selezionato",
+        "teams_other": "{{count}} team selezionati"
+      },
+      "selectLabel": {
+        "areas": "Seleziona aree di velocità",
+        "teams": "Seleziona team di velocità"
+      },
+      "show": {
+        "areas": "Aree da mostrare",
+        "teams": "Team da mostrare"
+      },
+      "teams": "Team"
+    },
+    "legend": "Legenda della velocità",
+    "tableCaption": "Settimane-persona disponibili ogni settimana",
+    "title": "Velocità del team"
+  },
+  "planning": {
+    "errors": {
+      "featureNotDeleted": "Il progetto non è stato eliminato."
+    },
+    "unscheduled": {
+      "horizonExceeded": "Non completato entro l'orizzonte di pianificazione verificato",
+      "noEstimates": "Nessuna stima impostata",
+      "noRoleCapacity": "Nessuna capacità {{roles}}"
+    },
+    "validation": {
+      "estimateBounds": "Le stime di {{role}} devono essere numeri interi tra 0 e 100 persone / 104 settimane.",
+      "featureNameRequired": "Il nome della funzionalità è obbligatorio.",
+      "invalidDate": "Scegli una data di calendario valida.",
+      "rolePairRequired": "Imposta sia il numero di persone sia quello di settimane per {{role}}, oppure lascia entrambi a zero.",
+      "unverifiedStart": "Scegli una data iniziale in un anno con festività verificate (2026 o 2027).",
+      "unverifiedWorkingYear": "Le festività di Barcellona non sono verificate per {{year}}.",
+      "unverifiedYear": "Le festività di Barcellona non sono verificate per {{year}}"
+    }
+  },
+  "holidays": {
+    "allSaints": "Ognissanti",
+    "assumption": "Assunzione di Maria",
+    "christmas": "Natale",
+    "constitution": "Festa della Costituzione",
+    "diada": "La Diada",
+    "diadaCatalonia": "La Diada (Catalogna)",
+    "easterMonday": "Lunedì dell'Angelo",
+    "epiphany": "Epifania",
+    "epiphanyReyes": "Epifania (Reyes)",
+    "goodFriday": "Venerdì santo",
+    "hispanicDay": "Festa nazionale spagnola",
+    "immaculateConception": "Immacolata Concezione",
+    "labourDay": "Festa dei lavoratori",
+    "merce": "La Mercè",
+    "merceBarcelona": "La Mercè (Barcellona)",
+    "newYear": "Capodanno",
+    "santEsteve": "Santo Stefano",
+    "santJoan": "San Giovanni",
+    "whitMonday": "Lunedì di Pentecoste"
   }
 }

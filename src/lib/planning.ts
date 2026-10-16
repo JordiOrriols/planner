@@ -57,7 +57,7 @@ export const fmtMonth = (date: Date, compact = false) =>
   }).format(date);
 
 export function validateProject(input: ProjectInput) {
-  if (!input.name.trim()) throw new Error(i18n.t("copy.featureNameRequired"));
+  if (!input.name.trim()) throw new Error(i18n.t("planning.validation.featureNameRequired"));
   for (const role of ROLES) {
     const devs = roleDevs(input, role),
       weeks = roleWeeks(input, role);
@@ -69,18 +69,16 @@ export function validateProject(input: ProjectInput) {
       devs > 100 ||
       weeks > 104
     )
-      throw new Error(i18n.t("copy.estimateBounds", { role: ROLE_LABELS[role] }));
+      throw new Error(i18n.t("planning.validation.estimateBounds", { role: ROLE_LABELS[role] }));
     if ((devs === 0) !== (weeks === 0))
-      throw new Error(
-        i18n.t("copy.setBothPeopleAndWeeksForOrLeave", { value1: ROLE_LABELS[role] })
-      );
+      throw new Error(i18n.t("planning.validation.rolePairRequired", { role: ROLE_LABELS[role] }));
   }
 }
 
 export function parseDate(value: string): Date {
   const date = parseISO(value);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !isValid(date) || format(date, "yyyy-MM-dd") !== value)
-    throw new Error(i18n.t("copy.chooseAValidCalendarDate"));
+    throw new Error(i18n.t("planning.validation.invalidDate"));
   return date;
 }
 
@@ -93,7 +91,7 @@ export function isWorking(
   const override = availability.find((item) => item.member_id === member.id && item.date === key);
   if (!hasHolidayCalendar(key))
     throw new Error(
-      i18n.t("copy.barcelonaHolidaysAreNotVerifiedFor2", { value1: date.getFullYear() })
+      i18n.t("planning.validation.unverifiedWorkingYear", { year: date.getFullYear() })
     );
   return override?.is_working ?? (date.getDay() !== 0 && date.getDay() !== 6 && !isHoliday(key));
 }
@@ -162,7 +160,7 @@ export function computeSchedule(
   horizon = 52
 ) {
   if (!isValid(startDate) || !hasHolidayCalendar(format(startDate, "yyyy-MM-dd")))
-    throw new Error(i18n.t("copy.chooseAStartDateInAVerifiedHoliday"));
+    throw new Error(i18n.t("planning.validation.unverifiedStart"));
   const weeks = squadVelocity(members, availability, startDate, horizon);
   const sorted = [...projects]
     .filter((p) => p.in_backlog)
@@ -188,10 +186,10 @@ export function computeSchedule(
       })),
       reason:
         totalDevWeeks(project) === 0
-          ? i18n.t("copy.noEstimatesSet")
+          ? i18n.t("planning.unscheduled.noEstimates")
           : missing.length
-            ? i18n.t("copy.noCapacity", {
-                value1: missing.map((role) => ROLE_LABELS[role]).join(", "),
+            ? i18n.t("planning.unscheduled.noRoleCapacity", {
+                roles: missing.map((role) => ROLE_LABELS[role]).join(", "),
               })
             : null,
     };
@@ -256,7 +254,7 @@ export function computeSchedule(
   });
   for (const item of schedule) {
     if (!item.complete && !item.reason)
-      item.reason = i18n.t("copy.notCompletedWithinTheVerifiedPlanningHorizon");
+      item.reason = i18n.t("planning.unscheduled.horizonExceeded");
   }
   const finalWeek = weeks.at(-1);
   return {

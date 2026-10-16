@@ -84,26 +84,24 @@ export default function GanttChart({
             {ROLE_LABELS[role]}
             {t(
               role === "backend"
-                ? "copy.topSuffix"
+                ? "gantt.legend.topSuffix"
                 : role === "frontend"
-                  ? "copy.bottomSuffix"
-                  : "copy.fullHeightSuffix"
+                  ? "gantt.legend.bottomSuffix"
+                  : "gantt.legend.fullHeightSuffix"
             )}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-slate-400/40" />
-          {t("copy.grayWaitingPaused")}
+          {t("gantt.legend.paused")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-emerald-600" />
-          {t("copy.delivered")}
+          {t("gantt.legend.delivered")}
         </span>
       </div>
       {onReorder && (
-        <p className="mb-2 text-[11px] text-muted-foreground">
-          {t("copy.dragFeatureNamesToReorderOrUseArrow")}
-        </p>
+        <p className="mb-2 text-[11px] text-muted-foreground">{t("gantt.interactionHelp")}</p>
       )}
       <div className="overflow-x-auto">
         <div className="relative" style={{ minWidth: Math.max(720, N * 28 + 220) }}>
@@ -111,20 +109,20 @@ export default function GanttChart({
             <div className="absolute inset-y-0 left-[220px] right-0 pointer-events-none z-[5]">
               <div
                 role="img"
-                aria-label={t("copy.today", { value1: fmtDate(today) })}
-                title={t("copy.today", { value1: fmtDate(today) })}
+                aria-label={t("gantt.today.label", { date: fmtDate(today) })}
+                title={t("gantt.today.label", { date: fmtDate(today) })}
                 className="absolute inset-y-0 w-0.5 bg-blue-500"
                 style={{ left: `${((todayOffset + 0.5) / (N * 7)) * 100}%` }}
               >
                 <span className="absolute top-0 -translate-x-1/2 rounded bg-blue-500 px-1 text-[9px] font-medium text-white">
-                  {t("copy.today2")}
+                  {t("gantt.today.text")}
                 </span>
               </div>
             </div>
           )}
           <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
             <div className="sticky left-0 bg-card z-10 px-2 py-1.5 text-xs font-semibold">
-              {t("copy.featurePriority")}
+              {t("gantt.columns.featurePriority")}
             </div>
             {monthGroups.map((g) => (
               <div
@@ -137,7 +135,7 @@ export default function GanttChart({
             ))}
           </div>
           <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
-            <div className="sticky left-0 bg-card z-10 text-xs px-2">{t("copy.weekOf")}</div>
+            <div className="sticky left-0 bg-card z-10 text-xs px-2">{t("common.weekOf")}</div>
             {weeks.map((w, i) => (
               <div
                 key={i}
@@ -165,7 +163,7 @@ export default function GanttChart({
                   <ContextMenu.Trigger asChild disabled={!onRemove && !onDeliveredChange}>
                     <div
                       tabIndex={onRemove || onDeliveredChange ? 0 : undefined}
-                      aria-label={t("copy.scheduleRow", { value1: s.project.name })}
+                      aria-label={t("gantt.row.label", { featureName: s.project.name })}
                       onKeyDown={(event) => {
                         if (
                           (!onRemove && !onDeliveredChange) ||
@@ -218,8 +216,8 @@ export default function GanttChart({
                           <button
                             type="button"
                             className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
-                            aria-label={t("copy.reorder", { value1: s.project.name })}
-                            title={t("copy.reorderHelp", { name: s.project.name })}
+                            aria-label={t("gantt.row.reorder", { featureName: s.project.name })}
+                            title={t("gantt.row.reorderHelp", { featureName: s.project.name })}
                             draggable={!disabled}
                             disabled={disabled}
                             onDragStart={(event) => {
@@ -272,17 +270,21 @@ export default function GanttChart({
                         >
                           <div
                             role="group"
-                            aria-label={t("copy.projectSpan", {
-                              name: s.project.name,
-                              start: fmtDate(s.start),
-                              end: s.end ? fmtDate(s.end) : t("copy.notCompleted"),
-                              status: s.project.delivered ? t("copy.deliveredSuffix") : "",
+                            aria-label={t("gantt.bar.projectSpan", {
+                              featureName: s.project.name,
+                              startDate: fmtDate(s.start),
+                              endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
+                              deliveryStatus: s.project.delivered
+                                ? t("gantt.bar.deliveredSuffix")
+                                : "",
                             })}
-                            title={t("copy.projectSpan", {
-                              name: s.project.name,
-                              start: fmtDate(s.start),
-                              end: s.end ? fmtDate(s.end) : t("copy.notCompleted"),
-                              status: s.project.delivered ? t("copy.deliveredSuffix") : "",
+                            title={t("gantt.bar.projectSpan", {
+                              featureName: s.project.name,
+                              startDate: fmtDate(s.start),
+                              endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
+                              deliveryStatus: s.project.delivered
+                                ? t("gantt.bar.deliveredSuffix")
+                                : "",
                             })}
                             className={cn(
                               "absolute inset-y-1 overflow-hidden rounded ring-1 ring-inset",
@@ -300,16 +302,18 @@ export default function GanttChart({
                                 workRuns(roleSchedule).map((run) => {
                                   const { role } = roleSchedule;
                                   const people = roleDevs(s.project, role);
-                                  const label = t("copy.roleSpan", {
-                                    name: s.project.name,
+                                  const label = t("gantt.bar.roleSpan", {
+                                    featureName: s.project.name,
                                     role: ROLE_LABELS[role],
-                                    start: fmtDate(run.start),
-                                    end: fmtDate(run.end),
-                                    requested: t("copy.peopleRequested", { count: people }),
+                                    startDate: fmtDate(run.start),
+                                    endDate: fmtDate(run.end),
+                                    requestedPeople: t("gantt.bar.peopleRequested", {
+                                      count: people,
+                                    }),
                                     effort: (run.personDays / 5).toFixed(1),
-                                    partial: roleSchedule.complete
+                                    forecastStatus: roleSchedule.complete
                                       ? ""
-                                      : t("copy.partialForecastSuffix"),
+                                      : t("gantt.bar.partialSuffix"),
                                   });
                                   return (
                                     <div
@@ -352,7 +356,9 @@ export default function GanttChart({
                           disabled={disabled}
                           onSelect={() => onDeliveredChange(s.project.id, !s.project.delivered)}
                         >
-                          {s.project.delivered ? t("copy.undoDelivery") : t("copy.markDelivered")}
+                          {s.project.delivered
+                            ? t("gantt.actions.undoDelivery")
+                            : t("gantt.actions.markDelivered")}
                         </ContextMenu.Item>
                       )}
                       {onRemove && (
@@ -361,7 +367,7 @@ export default function GanttChart({
                           disabled={disabled}
                           onSelect={() => onRemove(s.project.id)}
                         >
-                          {t("copy.removeFromRoadmap")}
+                          {t("gantt.actions.remove")}
                         </ContextMenu.Item>
                       )}
                     </ContextMenu.Content>
@@ -377,7 +383,7 @@ export default function GanttChart({
               style={{ gridTemplateColumns: columns }}
             >
               <div className="sticky left-0 bg-card z-10 px-2 py-1 font-medium">
-                {t("copy.availablePersonWeeks")}
+                {t("gantt.capacity.available")}
               </div>
               {weeks.map((week, index) => (
                 <div key={index} className="text-center py-1 border-l">
@@ -385,7 +391,7 @@ export default function GanttChart({
                 </div>
               ))}
               <div className="sticky left-0 bg-card z-10 px-2 py-1 font-medium">
-                {t("copy.allocatedPersonWeeks")}
+                {t("gantt.capacity.allocated")}
               </div>
               {weeks.map((week, index) => (
                 <div key={index} className="text-center py-1 border-l">

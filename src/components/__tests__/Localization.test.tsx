@@ -22,10 +22,12 @@ describe("Planner localization", () => {
       await i18n.changeLanguage(language);
       const t = i18n.getFixedT(language);
       const form = render(<ProjectForm open initial={null} onClose={vi.fn()} onSave={vi.fn()} />);
-      expect(screen.getByRole("heading", { name: t("copy.newFeature") })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: t("featureForm.createTitle") })
+      ).toBeInTheDocument();
       expect(
         screen.getByRole("spinbutton", {
-          name: t("copy.rolePeople", { role: t("planningRoles.design") }),
+          name: t("featureForm.fields.rolePeople", { role: t("planningRoles.design") }),
         })
       ).toBeInTheDocument();
       form.unmount();
@@ -40,14 +42,18 @@ describe("Planner localization", () => {
           disabled={false}
         />
       );
-      expect(screen.getByRole("button", { name: t("copy.previousMonth") })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: t("vacationCalendar.navigation.previous") })
+      ).toBeInTheDocument();
       const month = new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(
         new Date(2026, 9, 1)
       );
       expect(screen.getByRole("heading", { name: month })).toBeInTheDocument();
-      expect(holidayName("2026-10-12")).toBe(t("copy.hispanicDay"));
+      expect(holidayName("2026-10-12")).toBe(t("holidays.hispanicDay"));
       expect(ROLE_LABELS.design).toBe(t("planningRoles.design"));
-      expect(() => validateProject(EMPTY_PROJECT)).toThrow(t("copy.featureNameRequired"));
+      expect(() => validateProject(EMPTY_PROJECT)).toThrow(
+        t("planning.validation.featureNameRequired")
+      );
       expect(fmtDate(new Date(2026, 9, 12))).toBe(
         new Intl.DateTimeFormat(language, {
           month: "short",
@@ -57,7 +63,9 @@ describe("Planner localization", () => {
       );
       expect(document.documentElement.lang).toBe(language);
       if (language !== "en")
-        expect(t("copy.newFeature")).not.toBe(i18n.getFixedT("en")("copy.newFeature"));
+        expect(t("featureForm.createTitle")).not.toBe(
+          i18n.getFixedT("en")("featureForm.createTitle")
+        );
     }
   );
 
@@ -74,8 +82,12 @@ describe("Planner localization", () => {
     await act(async () => {
       await i18n.changeLanguage("es");
     });
-    expect(screen.getByRole("heading", { name: i18n.t("copy.editFeature") })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: i18n.t("copy.name") })).toHaveValue("User feature");
+    expect(
+      screen.getByRole("heading", { name: i18n.t("featureForm.editTitle") })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: i18n.t("featureForm.fields.name") })).toHaveValue(
+      "User feature"
+    );
     expect(holidayName("2026-10-12")).not.toBe(oldHoliday);
   });
 });

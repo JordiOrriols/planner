@@ -22,9 +22,9 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
   return (
     <div className="p-8 space-y-4">
-      <h1>{t("copy.somethingWentWrong")}</h1>
+      <h1>{t("app.errors.title")}</h1>
       <p role="alert">{error instanceof Error ? error.message : String(error)}</p>
-      <Button onClick={resetErrorBoundary}>{t("copy.tryAgain")}</Button>
+      <Button onClick={resetErrorBoundary}>{t("app.actions.tryAgain")}</Button>
     </div>
   );
 }
@@ -37,7 +37,7 @@ export default function App() {
         <DataProvider>
           <PasswordResetDialog />
           <EntryGate>
-            <Suspense fallback={<AppSkeleton label={t("copy.loadingPage")} />}>
+            <Suspense fallback={<AppSkeleton label={t("app.loading.page")} />}>
               <Routes>
                 <Route path="/vacations/:token" element={<VacationLink />} />
                 <Route

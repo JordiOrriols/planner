@@ -31,15 +31,15 @@ export function AvailabilityEditor({
   const action = useAsyncAction();
   function apply(working: boolean) {
     void action.run(async () => {
-      if (!canEdit) throw new Error(t("copy.youCannotEditThisMemberSAvailability"));
-      if (!range) throw new Error(t("copy.selectDatesOnTheCalendarFirst"));
+      if (!canEdit) throw new Error(t("availabilityEditor.errors.editAccessRequired"));
+      if (!range) throw new Error(t("availabilityEditor.errors.selectionRequired"));
       const end = range.end ?? range.start;
       const first = parseDate(range.start),
         last = parseDate(end);
       if (!hasHolidayCalendar(range.start) || !hasHolidayCalendar(end))
-        throw new Error(t("copy.chooseDatesInAVerifiedHolidayYear2026"));
+        throw new Error(t("availabilityEditor.errors.unverifiedDates"));
       if (last < first || differenceInCalendarDays(last, first) > 365)
-        throw new Error(t("copy.chooseADateRangeOfAtMost366"));
+        throw new Error(t("availabilityEditor.errors.rangeTooLong"));
       await save(range.start, end, working);
       setRange({ start: range.start, end });
     });
@@ -61,20 +61,18 @@ export function AvailabilityEditor({
       />
       <div className="flex flex-wrap gap-2">
         <Button disabled={!canEdit || action.busy || !range} onClick={() => apply(false)}>
-          {t("copy.vacations")}
+          {t("availabilityEditor.actions.vacations")}
         </Button>
         <Button
           variant="outline"
           disabled={!canEdit || action.busy || !range}
           onClick={() => apply(true)}
         >
-          {t("copy.workingDay")}
+          {t("availabilityEditor.actions.workingDay")}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t("copy.workingDayRemovesSavedVacationsInTheSelected")}
-      </p>
-      {!canEdit && <p>{t("copy.onlyALaddersTeamOwnerEditorCanEdit")}</p>}
+      <p className="text-xs text-muted-foreground">{t("availabilityEditor.workingDayHelp")}</p>
+      {!canEdit && <p>{t("availabilityEditor.readOnlyNotice")}</p>}
       {action.error && <p role="alert">{action.error}</p>}
     </div>
   );
