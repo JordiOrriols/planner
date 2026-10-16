@@ -1,6 +1,6 @@
-# Cadence / Planner
+# Planner
 
-Workspace-based feature estimation, rough backlog scheduling and team
+Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 
 ## Start locally
@@ -43,6 +43,37 @@ UI publishes a new patch version on every push to its `main` branch. Update with
 Shared Tailwind tokens are imported by `index.css`; keep its `@source`
 directives. Official Radix exports and the original UI Button are unchanged.
 
+The header icon opens UI's shared `ProjectSwitcher`. Project names, icons and
+canonical URLs live in UI's `PROJECTS` registry; adding a project requires one
+registry change, a UI release, and dependency updates/deployment in each app.
+Authentication, workspace loading and route loading reuse UI's accessible
+`AppSkeleton`, with reduced-motion-aware pulsing `Skeleton` blocks.
+
+### Shared Supabase authentication redirects
+
+Signup, OAuth and recovery explicitly use `?auth_app=planner` on the current
+deployment's base URL. A callback addressed to another registered app is forwarded
+before creating the Supabase client, so the correct origin exchanges the PKCE code.
+
+In Supabase **Authentication → URL Configuration**, keep one Site URL as a default
+and add these Redirect URLs:
+
+- `https://planner.jordiorriols.cat/`
+- `https://planner.jordiorriols.cat/?auth_app=planner`
+- `https://ladders.jordiorriols.cat/`
+- `https://ladders.jordiorriols.cat/?auth_app=ladders`
+- Approved development URLs, including
+  `http://127.0.0.1:5176/?auth_app=planner` and each Ladders development base URL
+  with `?auth_app=ladders`.
+
+For subpath deployments, include the complete pathname and query.
+Keep verification/recovery email templates using `{{ .ConfirmationURL }}`;
+custom templates must preserve the supplied `{{ .RedirectTo }}` instead of
+hard-coding `{{ .SiteURL }}`. Reissue old emails without an app marker.
+The allow-list must accept the tagged URLs: otherwise Supabase may fall back to
+Site URL before the marker reaches either app. Dashboard settings are not changed
+by deploying the apps.
+
 ## Workspaces and access
 
 The workspace dropdown and **Share** sit opposite the page tabs in the tab bar.
@@ -51,7 +82,7 @@ Choose an existing workspace or **New workspace** from the same dropdown.
 - A verified signed-in user creates a workspace and links one or more existing
   Ladders teams on **Vacations**. Linking a new team requires team edit access.
 - Workspace owners and explicitly shared editors manage feature estimates,
-  backlog priorities, delivery status and the plan start date.
+  roadmap priorities, delivery status and the plan start date.
 - Owners use **Share** beside the workspace selector to add a registered account
   by email with **View** or **Edit** access, change permissions or remove a share.
   This reuses the same UI package dialog and form hook as Ladders team sharing.
@@ -84,9 +115,8 @@ as scheduling, and excludes members without planning roles.
 
 Copy **Vacations** from a Ladders member's share menu, or **Copy vacation link**
 in Planner. The URL is `#/vacations/<vacation-token>` on the Planner application.
-Configure Ladders' `VITE_PLANNER_URL` with Planner's full deployed base URL,
-including any GitHub Pages subpath. Local Ladders development can use Planner
-on `http://127.0.0.1:5176`; production has no guessed-host fallback.
+Ladders uses the shared UI project registry for this URL, just like the header
+project switcher. No separate environment variable is needed.
 
 These permanent, private bearer links let members update only their own
 availability without signing in. They also show read-only names and vacation
@@ -130,21 +160,21 @@ but must be edited to whole numbers before they can be scheduled.
 - **Effort** is the sum of `people × weeks` across roles.
 - **Ideal duration** is design weeks + the longer backend/frontend estimate + QA weeks.
 - **Peak team** is the sum of requested people across roles.
-- Only projects explicitly added to the backlog are scheduled.
-- Add existing estimates on Backlog Plan using **Add projects**.
-  Estimation has no backlog toggle; the picker links there when a new feature is needed.
+- Only features explicitly added to the roadmap are scheduled.
+- Add existing estimates on Roadmap using **Add feature**.
+  Estimation has no roadmap toggle; the picker links there when a new feature is needed.
 - Reorder by dragging the project names on the left of the schedule. Keyboard
   users can focus a name and press Arrow Up / Arrow Down.
 - Right-click anywhere on a schedule row, including its name or bar, for
-  **Mark delivered** / **Undo delivery** and **Remove from schedule**.
+  **Mark delivered** / **Undo delivery** and **Remove from roadmap**.
   Keyboard users can focus the row and press Shift+F10 or the context menu key.
   Removal keeps the feature estimate. These menus use the UI package's Radix exports.
 - Workspace owners and editors can mark a project **Delivered** (or undo it).
   This persists a delivery status and turns its entire existing bar green;
-  it does not release capacity or change forecast dates or backlog priority.
+  it does not release capacity or change forecast dates or roadmap priority.
 - A blue **Today** line spans the chart at the current local calendar day, when
   that day is inside the displayed forecast. It updates automatically across midnight.
-- Daily available capacity is allocated by role and backlog priority.
+- Daily available capacity is allocated by role and roadmap priority.
 - Different roles and projects can overlap when capacity allows. If only one
   backend person is available for a two-person estimate, completion takes longer.
 - Design finishes before development starts. Backend and frontend then start
@@ -198,7 +228,7 @@ project with approval:
    identity. Supersedes owner-only project/start-date writes without changing
    linked-team editing permissions.
 9. `20261016092000_planner_restore_working_calendar.sql`: changes Working Day
-   saves to remove vacations while preserving the default calendar. Pending approval/application.
+   saves to remove vacations while preserving the default calendar. Applied with approval.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this
@@ -220,16 +250,10 @@ database. Docker is not required for these tests.
 
 ### Authentication redirect configuration
 
-In Supabase Authentication → URL Configuration, retain Ladders' Site URL and
-existing redirect URLs. Ensure these additional Planner redirects are allowed:
-
-- `http://127.0.0.1:5176`
-- `http://localhost:5176`
-- The exact deployed Planner base URL, including any GitHub Pages subpath.
-
-Email/password sign-in uses the existing accounts. GitHub and emailed recovery
-also require the Planner URL in that allow-list. Do not replace Ladders' Site URL
-or OAuth provider configuration. No auth configuration was pushed by this work.
+See **Shared Supabase authentication redirects** above for the complete
+app-tagged redirect allow-list and email-template requirements. Preserve existing
+Ladders URLs and the OAuth provider callback; the apps still use the same accounts.
+No authentication dashboard configuration was pushed by this work.
 
 The copied Ladders Umami website ID has been removed; configure Planner's own
 analytics identity before enabling it with `loadUmami({ websiteId })` from
