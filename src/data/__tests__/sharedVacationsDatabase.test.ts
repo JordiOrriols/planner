@@ -70,7 +70,7 @@ describe("Registered-account workspace sharing", () => {
       "update public.workspaces set sprint_start_date=$2,sprint_history=$3 where id=$1",
       [workspace, "2026-02-02", JSON.stringify(history)]
     );
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
     await login(viewer);
@@ -86,7 +86,7 @@ describe("Registered-account workspace sharing", () => {
       ).rows
     ).toHaveLength(0);
     await login(owner);
-    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+    await db.query("select public.update_workspace_share($1,$2,'planner','editor')", [
       workspace,
       viewer,
     ]);
@@ -145,7 +145,7 @@ describe("Registered-account workspace sharing", () => {
       ])
     ).rejects.toThrow();
 
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
     await login(viewer);
@@ -166,7 +166,7 @@ describe("Registered-account workspace sharing", () => {
     expect((await db.query("select id from public.projects")).rows).toHaveLength(0);
 
     await login(owner);
-    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+    await db.query("select public.update_workspace_share($1,$2,'planner','editor')", [
       workspace,
       viewer,
     ]);
@@ -215,10 +215,10 @@ describe("Registered-account workspace sharing", () => {
   it("preserves existing linked-team viewing after revoking an explicit editor share", async () => {
     await link();
     await db.query("select public.share_team_by_email($1,'viewer@example.com','viewer')", [team]);
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','editor')", [
       workspace,
     ]);
-    await db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer]);
+    await db.query("select public.remove_workspace_share($1,$2,'planner')", [workspace, viewer]);
     await login(viewer);
     expect(
       (
@@ -232,11 +232,16 @@ describe("Registered-account workspace sharing", () => {
 
   it("shares by normalized email, changes permissions, and revokes workspace discovery", async () => {
     await link();
-    await db.query("select public.planner_share_workspace($1,' VIEWER@example.com ','viewer')", [
+    await db.query("select public.share_workspace($1,' VIEWER@example.com ','planner','viewer')", [
       workspace,
     ]);
     expect(
-      (await db.query("select * from public.planner_list_workspace_shares($1)", [workspace])).rows
+      (
+        await db.query(
+          "select user_id, email, access_level from public.list_workspace_shares($1)",
+          [workspace]
+        )
+      ).rows
     ).toEqual([{ user_id: viewer, email: "viewer@example.com", access_level: "viewer" }]);
     await login(viewer);
     expect(
@@ -249,7 +254,7 @@ describe("Registered-account workspace sharing", () => {
       (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
     ).toEqual([{ allowed: false }]);
     await login(owner);
-    await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
+    await db.query("select public.update_workspace_share($1,$2,'planner','editor')", [
       workspace,
       viewer,
     ]);
@@ -258,7 +263,7 @@ describe("Registered-account workspace sharing", () => {
       (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
     ).toEqual([{ allowed: true }]);
     await login(owner);
-    await db.query("select public.planner_update_workspace_share($1,$2,'viewer')", [
+    await db.query("select public.update_workspace_share($1,$2,'planner','viewer')", [
       workspace,
       viewer,
     ]);
@@ -267,7 +272,7 @@ describe("Registered-account workspace sharing", () => {
       (await db.query("select public.planner_can_edit_workspace($1) as allowed", [workspace])).rows
     ).toEqual([{ allowed: false }]);
     await login(owner);
-    await db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer]);
+    await db.query("select public.remove_workspace_share($1,$2,'planner')", [workspace, viewer]);
     await login(viewer);
     expect(
       (await db.exec("select id from public.workspaces where owner_id <> auth.uid()"))[0]!.rows
@@ -279,7 +284,7 @@ describe("Registered-account workspace sharing", () => {
 
   it("allows editors to manage features, schedule and start, not ownership, sharing or team data", async () => {
     await link();
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','editor')", [
       workspace,
     ]);
     await login(viewer);
@@ -312,11 +317,11 @@ describe("Registered-account workspace sharing", () => {
     await expect(
       db.query("update public.workspaces set owner_id=$2 where id=$1", [workspace, viewer])
     ).rejects.toThrow(/permission denied for table workspaces/);
+    await expect(db.query("select public.list_workspace_shares($1)", [workspace])).rejects.toThrow(
+      /owner access required/
+    );
     await expect(
-      db.query("select public.planner_list_workspace_shares($1)", [workspace])
-    ).rejects.toThrow(/owner access required/);
-    await expect(
-      db.query("select public.planner_share_workspace($1,'stranger@example.com','editor')", [
+      db.query("select public.share_workspace($1,'stranger@example.com','planner','editor')", [
         workspace,
       ])
     ).rejects.toThrow(/owner access required/);
@@ -340,7 +345,7 @@ describe("Registered-account workspace sharing", () => {
   });
 
   it("denies viewer writes, outsider reads and anonymous sharing", async () => {
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
     const project = (
@@ -384,7 +389,7 @@ describe("Registered-account workspace sharing", () => {
     ).toEqual([]);
     await login(null, "anon");
     await expect(
-      db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+      db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
         workspace,
       ])
     ).rejects.toThrow(/permission denied/);
@@ -393,32 +398,40 @@ describe("Registered-account workspace sharing", () => {
   it("rejects unknown/self accounts, invalid permissions, and non-owner share changes", async () => {
     for (const email of ["missing@example.com", "owner@example.com"])
       await expect(
-        db.query("select public.planner_share_workspace($1,$2,'viewer')", [workspace, email])
+        db.query("select public.share_workspace($1,$2,'planner','viewer')", [workspace, email])
       ).rejects.toThrow(/User not found/);
     for (const access of ["owner", null])
       await expect(
-        db.query("select public.planner_share_workspace($1,'viewer@example.com',$2)", [
+        db.query("select public.share_workspace($1,'viewer@example.com','planner',$2)", [
           workspace,
           access,
         ])
       ).rejects.toThrow(/Invalid access/);
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','editor')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','editor')", [
       workspace,
     ]);
-    await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
+    await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
     expect(
-      (await db.query("select * from public.planner_list_workspace_shares($1)", [workspace])).rows
+      (
+        await db.query(
+          "select user_id, email, access_level from public.list_workspace_shares($1)",
+          [workspace]
+        )
+      ).rows
     ).toHaveLength(1);
     await login(viewer);
     await expect(
-      db.query("select public.planner_update_workspace_share($1,$2,'editor')", [workspace, viewer])
+      db.query("select public.update_workspace_share($1,$2,'planner','editor')", [
+        workspace,
+        viewer,
+      ])
     ).rejects.toThrow(/owner access required/);
     await expect(
-      db.query("select public.planner_remove_workspace_share($1,$2)", [workspace, viewer])
+      db.query("select public.remove_workspace_share($1,$2,'planner')", [workspace, viewer])
     ).rejects.toThrow(/owner access required/);
-    await expect(db.exec("select * from public.planner_workspace_collaborators")).rejects.toThrow(
+    await expect(db.exec("select * from public.workspace_collaborators")).rejects.toThrow(
       /permission denied/
     );
   });

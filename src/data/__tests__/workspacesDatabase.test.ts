@@ -5,6 +5,7 @@ import { applyMigrations, createMigratedDatabase } from "./support/migratedDatab
 
 const SHARED_WORKSPACES = "20261016180000_shared_workspaces.sql";
 const SETTINGS_ON_WORKSPACES = "20261016210000_planner_settings_live_on_workspaces.sql";
+const WORKSPACE_COLLABORATORS = "20261016220000_workspace_collaborators.sql";
 const owner = "11111111-1111-4111-8111-111111111111";
 const stranger = "33333333-3333-4333-8333-333333333333";
 const accounts = [
@@ -294,5 +295,94 @@ describe("Shared workspaces migration", () => {
     await expect(
       db.query("delete from public.workspaces where owner_id = $1 returning id", [owner])
     ).resolves.toMatchObject({ rows: [] });
+  });
+
+  it("carries Planner shares over to workspace collaborators for Planner", async () => {
+    db = await createMigratedDatabase(accounts, { until: WORKSPACE_COLLABORATORS });
+    await login(owner);
+    const roadmap = (await value<string>(
+      "select (public.planner_create_linked_workspace('Roadmap')).id as value"
+    ))!;
+    await db.query("select public.planner_share_workspace($1, 'stranger@example.com', 'editor')", [
+      roadmap,
+    ]);
+
+    await login(null, "postgres");
+    await applyMigrations(db, { from: WORKSPACE_COLLABORATORS });
+
+    await login(owner);
+    expect(
+      (await db.query("select * from public.list_workspace_shares($1)", [roadmap])).rows
+    ).toEqual([
+      { user_id: stranger, email: "stranger@example.com", app: "planner", access_level: "editor" },
+    ]);
+    expect(
+      await value<string | null>(
+        "select to_regclass('public.planner_workspace_collaborators')::text as value"
+      )
+    ).toBeNull();
+  });
+
+  it("shares a workspace per app, so another app's share grants no Planner access", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const roadmap = (await value<string>(
+      "select (public.planner_create_linked_workspace('Roadmap')).id as value"
+    ))!;
+    await db.query("select public.share_workspace($1, 'stranger@example.com', 'pulse', 'editor')", [
+      roadmap,
+    ]);
+    await expect(
+      db.query("select public.share_workspace($1, 'stranger@example.com', 'mail', 'viewer')", [
+        roadmap,
+      ])
+    ).rejects.toThrow(/Invalid app/);
+
+    await login(stranger);
+    expect(await value<boolean>("select public.planner_has_access($1) as value", [roadmap])).toBe(
+      false
+    );
+    await expect(db.query("select * from public.workspace_collaborators")).rejects.toThrow(
+      /permission denied/
+    );
+    await expect(
+      db.query("select public.share_workspace($1, 'owner@example.com', 'planner', 'viewer')", [
+        roadmap,
+      ])
+    ).rejects.toThrow(/owner access required/);
+
+    await login(owner);
+    await db.query(
+      "select public.share_workspace($1, 'stranger@example.com', 'planner', 'viewer')",
+      [roadmap]
+    );
+    await db.query("select public.update_workspace_share($1, $2, 'pulse', 'viewer')", [
+      roadmap,
+      stranger,
+    ]);
+    expect(
+      (await db.query("select app, access_level from public.list_workspace_shares($1)", [roadmap]))
+        .rows
+    ).toEqual([
+      { app: "planner", access_level: "viewer" },
+      { app: "pulse", access_level: "viewer" },
+    ]);
+    await login(stranger);
+    expect(await value<boolean>("select public.planner_has_access($1) as value", [roadmap])).toBe(
+      true
+    );
+    expect(
+      await value<boolean>("select public.planner_can_edit_workspace($1) as value", [roadmap])
+    ).toBe(false);
+
+    await login(owner);
+    await db.query("select public.remove_workspace_share($1, $2, 'planner')", [roadmap, stranger]);
+    await expect(
+      db.query("select public.remove_workspace_share($1, $2, 'planner')", [roadmap, stranger])
+    ).rejects.toThrow(/share not found/);
+    await login(stranger);
+    expect(await value<boolean>("select public.planner_has_access($1) as value", [roadmap])).toBe(
+      false
+    );
   });
 });

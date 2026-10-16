@@ -14,7 +14,7 @@ async function login(id: string) {
   await db.exec("set role authenticated");
 }
 async function shareWithTeammate(access: "viewer" | "editor") {
-  await db.query("select public.planner_share_workspace($1,'member@example.com',$2)", [
+  await db.query("select public.share_workspace($1,'member@example.com','planner',$2)", [
     workspace,
     access,
   ]);
@@ -177,9 +177,9 @@ describe("Planner migration and real PostgreSQL permissions", () => {
   it("denies anonymous access and refuses unverified workspace creation", async () => {
     await db.exec("reset role; set role anon");
     await expect(db.query("select * from public.workspaces")).rejects.toThrow(/permission denied/);
-    await expect(
-      db.query("select public.planner_list_workspace_shares($1)", [workspace])
-    ).rejects.toThrow(/permission denied/);
+    await expect(db.query("select public.list_workspace_shares($1)", [workspace])).rejects.toThrow(
+      /permission denied/
+    );
     await db.exec("reset role");
     await db.query("update auth.users set email_confirmed_at = null where id=$1", [stranger]);
     await login(stranger);

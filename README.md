@@ -322,6 +322,11 @@ project with approval:
 16. `20261016210000_planner_settings_live_on_workspaces.sql`: plan and sprint
     settings move onto `workspaces` and `planner_workspaces` is dropped. Deleting a
     workspace moves its teams into workspaces of their own.
+17. `20261016220000_workspace_collaborators.sql`: one `workspace_collaborators`
+    table shares a workspace per app (Ladders, Planner, Pulse) as viewer or editor,
+    through `share_workspace`, `update_workspace_share`, `remove_workspace_share`
+    and `list_workspace_shares`. Planner shares move there and
+    `planner_workspace_collaborators` is dropped.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

@@ -61,15 +61,31 @@ describe("Planner repository", () => {
     await repository.updateWorkspaceShare(workspace.id, workspace.owner_id, "viewer");
     await repository.removeWorkspaceShare(workspace.id, workspace.owner_id);
     expect(fetch.mock.calls.map((call) => JSON.parse(String(call[1]?.body)))).toEqual([
-      { workspace: workspace.id, account_email: "ada@example.com", access: "editor" },
-      { workspace: workspace.id, account: workspace.owner_id, access: "viewer" },
-      { workspace: workspace.id, account: workspace.owner_id },
+      {
+        workspace: workspace.id,
+        account_email: "ada@example.com",
+        app_name: "planner",
+        access: "editor",
+      },
+      {
+        workspace: workspace.id,
+        account: workspace.owner_id,
+        app_name: "planner",
+        access: "viewer",
+      },
+      { workspace: workspace.id, account: workspace.owner_id, app_name: "planner" },
     ]);
-    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_share_workspace");
-    expect(String(fetch.mock.calls[1]?.[0])).toContain("/rpc/planner_update_workspace_share");
-    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/planner_remove_workspace_share");
-    const share = { user_id: workspace.owner_id, email: "ada@example.com", access_level: "viewer" };
-    fetch.mockResolvedValue(response([share]));
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/share_workspace");
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("/rpc/update_workspace_share");
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/remove_workspace_share");
+    const share = {
+      user_id: workspace.owner_id,
+      email: "ada@example.com",
+      app: "planner",
+      access_level: "viewer",
+    };
+    // Shares for other apps on the same workspace stay out of Planner's list.
+    fetch.mockResolvedValue(response([share, { ...share, app: "ladders" }]));
     expect(await repository.listWorkspaceShares(workspace.id)).toEqual([share]);
     fetch.mockResolvedValue(response([{ ...share, access_level: "owner" }]));
     await expect(repository.listWorkspaceShares(workspace.id)).rejects.toThrow();

@@ -71,9 +71,11 @@ const teamSchema = z.object({
 });
 const linkedTeamSchema = teamSchema.pick({ id: true, name: true });
 const vacationMemberSchema = memberSchema.pick({ id: true, name: true, role: true });
+const APP = "planner";
 const workspaceShareSchema = z.object({
   user_id: z.string().uuid(),
   email: z.string().email(),
+  app: z.string(),
   access_level: z.enum(["viewer", "editor"]),
 });
 
@@ -127,14 +129,16 @@ export function createPlannerRepository(client: SupabaseClient) {
   }
   return {
     listWorkspaces: () => list("workspaces", workspaceSchema),
-    listWorkspaceShares: (workspace: string) =>
-      rpcList("planner_list_workspace_shares", workspaceShareSchema, { workspace }),
+    listWorkspaceShares: async (workspace: string) =>
+      (await rpcList("list_workspace_shares", workspaceShareSchema, { workspace })).filter(
+        (share) => share.app === APP
+      ),
     shareWorkspace: (workspace: string, email: string, access: WorkspaceAccess) =>
-      rpc("planner_share_workspace", { workspace, account_email: email, access }),
+      rpc("share_workspace", { workspace, account_email: email, app_name: APP, access }),
     updateWorkspaceShare: (workspace: string, account: string, access: WorkspaceAccess) =>
-      rpc("planner_update_workspace_share", { workspace, account, access }),
+      rpc("update_workspace_share", { workspace, account, app_name: APP, access }),
     removeWorkspaceShare: (workspace: string, account: string) =>
-      rpc("planner_remove_workspace_share", { workspace, account }),
+      rpc("remove_workspace_share", { workspace, account, app_name: APP }),
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
       if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));
