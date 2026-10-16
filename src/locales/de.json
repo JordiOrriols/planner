@@ -684,12 +684,11 @@
       "unassigned": "Nicht zugewiesen"
     },
     "teams": {
-      "description": "Verknüpfe ein oder mehrere Teams. Ihre aktuellen Mitglieder und deren Urlaub werden arbeitsbereichsübergreifend geteilt. Erstelle oder verschiebe Mitglieder in Ladders, nicht hier.",
+      "description": "Wähle die Teams, die zu diesem Arbeitsbereich gehören. Ein Team lebt nur in einem Arbeitsbereich, deshalb verschiebt die Auswahl hier es aus seinem aktuellen. Erstelle oder verschiebe Mitglieder in Ladders, nicht hier.",
       "empty": "Erstelle zuerst mit demselben Konto ein Team in Ladders.",
       "loading": "Teams werden geladen...",
       "save": "Verknüpfte Teams speichern",
-      "title": "Ladders-Teams",
-      "viewOnly": "(schreibgeschützt)"
+      "title": "Ladders-Teams"
     }
   },
   "availabilityEditor": {

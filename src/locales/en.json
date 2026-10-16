@@ -684,12 +684,11 @@
       "unassigned": "Unassigned"
     },
     "teams": {
-      "description": "Link one or more teams. Their current members and vacations are shared across workspaces. Create or move members in Ladders, not here.",
+      "description": "Choose the teams that belong to this workspace. A team lives in one workspace only, so choosing it here moves it out of the one it is in now. Create or move members in Ladders, not here.",
       "empty": "Create a team in Ladders using the same account first.",
       "loading": "Loading teams...",
       "save": "Save linked teams",
-      "title": "Ladders teams",
-      "viewOnly": "(view only)"
+      "title": "Ladders teams"
     }
   },
   "availabilityEditor": {

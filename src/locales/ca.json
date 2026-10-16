@@ -685,12 +685,11 @@
       "unassigned": "Sense assignar"
     },
     "teams": {
-      "description": "Enllaça un o més equips. Els membres actuals i les vacances es comparteixen entre espais de treball. Crea o mou membres a Ladders, no aquí.",
+      "description": "Tria els equips que pertanyen a aquest espai de treball. Un equip només viu en un espai de treball, així que triar-lo aquí el treu del que és ara. Crea o mou membres a Ladders, no aquí.",
       "empty": "Crea primer un equip a Ladders amb el mateix compte.",
       "loading": "Carregant els equips...",
       "save": "Desa els equips enllaçats",
-      "title": "Equips de Ladders",
-      "viewOnly": "(només lectura)"
+      "title": "Equips de Ladders"
     }
   },
   "availabilityEditor": {

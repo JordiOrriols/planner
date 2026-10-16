@@ -6,22 +6,31 @@ import userEvent from "@testing-library/user-event";
 import Vacations from "@/pages/vacations";
 import TeamConfiguration from "@/pages/team-configuration";
 
-const { setAvailability, clearAvailability, setSprintCalibration, refresh, state } = vi.hoisted(
-  () => ({
-    setAvailability: vi.fn(),
-    clearAvailability: vi.fn(),
-    setSprintCalibration: vi.fn(),
-    refresh: vi.fn(),
-    state: { canEdit: true, isOwner: false },
-  })
-);
+const {
+  setAvailability,
+  clearAvailability,
+  setSprintCalibration,
+  setWorkspaceTeams,
+  listTeams,
+  refresh,
+  state,
+} = vi.hoisted(() => ({
+  setAvailability: vi.fn(),
+  setWorkspaceTeams: vi.fn(),
+  listTeams: vi.fn(),
+  clearAvailability: vi.fn(),
+  setSprintCalibration: vi.fn(),
+  refresh: vi.fn(),
+  state: { canEdit: true, isOwner: false },
+}));
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({
     repository: {
       setAvailability,
       clearAvailability,
       setSprintCalibration,
-      listTeams: async () => [],
+      setWorkspaceTeams,
+      listTeams,
     },
   }),
 }));
@@ -65,6 +74,8 @@ beforeEach(() => {
   state.canEdit = true;
   state.isOwner = false;
   setAvailability.mockResolvedValue(undefined);
+  setWorkspaceTeams.mockResolvedValue(undefined);
+  listTeams.mockResolvedValue([]);
   refresh.mockResolvedValue(undefined);
 });
 afterEach(() => vi.useRealTimers());
@@ -106,6 +117,30 @@ describe("Team vacations shared editor", () => {
     } else {
       expect(screen.queryByRole("button", { name: "Save linked teams" })).not.toBeInTheDocument();
     }
+  });
+
+  it("offers only the owner's own teams to move into the workspace and saves the choice", async () => {
+    state.isOwner = true;
+    listTeams.mockResolvedValue([
+      { id: "team", name: "Team", access_level: "owner" },
+      { id: "mine", name: "Mine", access_level: "owner" },
+      { id: "shared", name: "Shared with me", access_level: "editor" },
+      { id: "watched", name: "Watched", access_level: "viewer" },
+    ]);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TeamConfiguration />
+      </QueryClientProvider>
+    );
+    const mine = await screen.findByRole("checkbox", { name: "Mine" });
+    expect(screen.getByRole("checkbox", { name: "Team" })).toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: "Shared with me" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Watched" })).not.toBeInTheDocument();
+    expect(screen.getByText(/moves it out of the one it is in now/)).toBeVisible();
+    await userEvent.click(mine);
+    await userEvent.click(screen.getByRole("button", { name: "Save linked teams" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(setWorkspaceTeams).toHaveBeenCalledExactlyOnceWith("workspace", ["team", "mine"]);
   });
 
   it("uses highlighted calendar ranges and one-click actions for the selected member", async () => {

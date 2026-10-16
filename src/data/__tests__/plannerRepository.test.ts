@@ -61,15 +61,31 @@ describe("Planner repository", () => {
     await repository.updateWorkspaceShare(workspace.id, workspace.owner_id, "viewer");
     await repository.removeWorkspaceShare(workspace.id, workspace.owner_id);
     expect(fetch.mock.calls.map((call) => JSON.parse(String(call[1]?.body)))).toEqual([
-      { workspace: workspace.id, account_email: "ada@example.com", access: "editor" },
-      { workspace: workspace.id, account: workspace.owner_id, access: "viewer" },
-      { workspace: workspace.id, account: workspace.owner_id },
+      {
+        workspace: workspace.id,
+        account_email: "ada@example.com",
+        app_name: "planner",
+        access: "editor",
+      },
+      {
+        workspace: workspace.id,
+        account: workspace.owner_id,
+        app_name: "planner",
+        access: "viewer",
+      },
+      { workspace: workspace.id, account: workspace.owner_id, app_name: "planner" },
     ]);
-    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_share_workspace");
-    expect(String(fetch.mock.calls[1]?.[0])).toContain("/rpc/planner_update_workspace_share");
-    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/planner_remove_workspace_share");
-    const share = { user_id: workspace.owner_id, email: "ada@example.com", access_level: "viewer" };
-    fetch.mockResolvedValue(response([share]));
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/share_workspace");
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("/rpc/update_workspace_share");
+    expect(String(fetch.mock.calls[2]?.[0])).toContain("/rpc/remove_workspace_share");
+    const share = {
+      user_id: workspace.owner_id,
+      email: "ada@example.com",
+      app: "planner",
+      access_level: "viewer",
+    };
+    // Shares for other apps on the same workspace stay out of Planner's list.
+    fetch.mockResolvedValue(response([share, { ...share, app: "ladders" }]));
     expect(await repository.listWorkspaceShares(workspace.id)).toEqual([share]);
     fetch.mockResolvedValue(response([{ ...share, access_level: "owner" }]));
     await expect(repository.listWorkspaceShares(workspace.id)).rejects.toThrow();
@@ -89,7 +105,7 @@ describe("Planner repository", () => {
       ...workspace,
       plan_start_date: "2026-02-02",
     });
-    expect(String(fetch.mock.calls[0]?.[0])).toContain(`/planner_workspaces?id=eq.${workspace.id}`);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`/workspaces?id=eq.${workspace.id}`);
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       plan_start_date: "2026-02-02",
     });
@@ -152,13 +168,16 @@ describe("Planner repository", () => {
       priority: 0,
       delivered: true,
     };
-    fetch.mockResolvedValue(response(project));
+    const { main_project_id: projectId, ...feature } = project;
+    const row = { ...feature, project_id: projectId };
+    fetch.mockResolvedValue(response(row));
     expect(await repository.setDelivered(workspace.id, project.id, true)).toEqual(project);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
     const url = String(fetch.mock.calls[0]?.[0]);
     expect(url).toContain(`id=eq.${project.id}`);
     expect(url).toContain(`workspace_id=eq.${workspace.id}`);
-    fetch.mockResolvedValue(response({ ...project, delivered: false }));
+    fetch.mockResolvedValue(response({ ...row, delivered: false }));
     expect((await repository.setDelivered(workspace.id, project.id, false)).delivered).toBe(false);
     fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
     await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow(
@@ -292,10 +311,39 @@ describe("Planner repository", () => {
     expect(fetch).not.toHaveBeenCalled();
     fetch.mockResolvedValue(response(null));
     await repository.reorder(workspace.id, ["one", "two"]);
-    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_reorder_projects");
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_reorder_features");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       workspace: workspace.id,
-      project_ids: ["one", "two"],
+      feature_ids: ["one", "two"],
     });
+  });
+  it("stores a feature's project as project_id and reads it back as the app's main project", async () => {
+    const { fetch, response, repository } = setup();
+    const project = "33333333-3333-4333-8333-333333333333";
+    const input = { ...EMPTY_PROJECT, name: " Checkout ", main_project_id: project };
+    const { main_project_id: _, ...feature } = input;
+    fetch.mockResolvedValue(
+      response({
+        ...feature,
+        name: "Checkout",
+        project_id: project,
+        id: workspace.owner_id,
+        workspace_id: workspace.id,
+        in_backlog: false,
+        delivered: false,
+        priority: 0,
+      })
+    );
+    const saved = await repository.saveProject(workspace.id, input);
+    expect(saved).toMatchObject({ name: "Checkout", main_project_id: project });
+    expect(saved).not.toHaveProperty("project_id");
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
+    expect(body).toMatchObject({
+      name: "Checkout",
+      project_id: project,
+      workspace_id: workspace.id,
+    });
+    expect(body).not.toHaveProperty("main_project_id");
   });
 });

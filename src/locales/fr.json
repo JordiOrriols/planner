@@ -684,12 +684,11 @@
       "unassigned": "Non attribué"
     },
     "teams": {
-      "description": "Associez une ou plusieurs équipes. Leurs membres actuels et leurs vacances sont partagés entre les espaces de travail. Créez ou déplacez les membres dans Ladders, pas ici.",
+      "description": "Choisissez les équipes qui appartiennent à cet espace de travail. Une équipe ne vit que dans un seul espace de travail, donc la choisir ici la retire de celui où elle se trouve. Créez ou déplacez les membres dans Ladders, pas ici.",
       "empty": "Créez d’abord une équipe dans Ladders avec le même compte.",
       "loading": "Chargement des équipes...",
       "save": "Enregistrer les équipes associées",
-      "title": "Équipes Ladders",
-      "viewOnly": "(lecture seule)"
+      "title": "Équipes Ladders"
     }
   },
   "availabilityEditor": {

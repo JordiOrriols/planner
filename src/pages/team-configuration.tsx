@@ -21,9 +21,9 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
   });
   const [selected, setSelected] = useState(linkedTeams.map((team) => team.id));
   const action = useAsyncAction();
-  const teams = new Map(linkedTeams.map((team) => [team.id, { ...team, canLink: true }]));
-  for (const team of query.data ?? [])
-    teams.set(team.id, { ...team, canLink: team.access_level !== "viewer" });
+  // A team lives in one workspace, and only its owner can move it here.
+  const teams = new Map(linkedTeams.map((team) => [team.id, team]));
+  for (const team of query.data ?? []) if (team.access_level === "owner") teams.set(team.id, team);
   return (
     <form
       className="panel p-5 space-y-3"
@@ -53,7 +53,7 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
           <input
             type="checkbox"
             checked={selected.includes(team.id)}
-            disabled={action.busy || (!team.canLink && !linkedTeams.some((t) => t.id === team.id))}
+            disabled={action.busy}
             onChange={(event) =>
               setSelected((ids) =>
                 event.target.checked ? [...ids, team.id] : ids.filter((id) => id !== team.id)
@@ -61,11 +61,6 @@ function TeamPicker({ linkedTeams }: { linkedTeams: LinkedTeam[] }) {
             }
           />
           {team.name}
-          {!team.canLink && (
-            <span className="text-sm text-muted-foreground">
-              {t("teamConfiguration.teams.viewOnly")}
-            </span>
-          )}
         </label>
       ))}
       {action.error && <p role="alert">{action.error}</p>}

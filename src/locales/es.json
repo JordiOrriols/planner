@@ -685,12 +685,11 @@
       "unassigned": "Sin asignar"
     },
     "teams": {
-      "description": "Vincula uno o varios equipos. Sus miembros actuales y sus vacaciones se comparten entre los espacios de trabajo. Crea o mueve miembros en Ladders, no aquí.",
+      "description": "Elige los equipos que pertenecen a este espacio de trabajo. Un equipo solo vive en un espacio de trabajo, así que elegirlo aquí lo saca del que está ahora. Crea o mueve miembros en Ladders, no aquí.",
       "empty": "Crea primero un equipo en Ladders con la misma cuenta.",
       "loading": "Cargando equipos...",
       "save": "Guardar equipos vinculados",
-      "title": "Equipos de Ladders",
-      "viewOnly": "(solo lectura)"
+      "title": "Equipos de Ladders"
     }
   },
   "availabilityEditor": {
