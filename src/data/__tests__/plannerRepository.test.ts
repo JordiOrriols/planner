@@ -116,36 +116,34 @@ describe("Planner repository", () => {
     fetch.mockResolvedValue(response(null));
     await expect(repository.setPlanStart(workspace.id, "2026-02-02")).rejects.toThrow();
   });
-  it("trims, scopes and validates main project writes before requesting", async () => {
+  it("trims, scopes and validates project writes before requesting", async () => {
     const { fetch, response, repository } = setup();
-    const mainProject = {
+    const project = {
       id: "33333333-3333-4333-8333-333333333333",
       workspace_id: workspace.id,
       name: "Payments",
     };
     for (const name of ["", "   ", "x".repeat(81)]) {
-      await expect(repository.createMainProject(workspace.id, name)).rejects.toThrow();
-      await expect(
-        repository.renameMainProject(workspace.id, mainProject.id, name)
-      ).rejects.toThrow();
+      await expect(repository.createProject(workspace.id, name)).rejects.toThrow();
+      await expect(repository.renameProject(workspace.id, project.id, name)).rejects.toThrow();
     }
     expect(fetch).not.toHaveBeenCalled();
-    fetch.mockImplementation(async () => response(mainProject));
-    expect(await repository.createMainProject(workspace.id, "  Payments ")).toEqual(mainProject);
+    fetch.mockImplementation(async () => response(project));
+    expect(await repository.createProject(workspace.id, "  Payments ")).toEqual(project);
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       workspace_id: workspace.id,
       name: "Payments",
     });
-    await repository.renameMainProject(workspace.id, mainProject.id, " Billing ");
-    expect(String(fetch.mock.calls[1]?.[0])).toContain(`id=eq.${mainProject.id}`);
+    await repository.renameProject(workspace.id, project.id, " Billing ");
+    expect(String(fetch.mock.calls[1]?.[0])).toContain(`id=eq.${project.id}`);
     expect(String(fetch.mock.calls[1]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
     expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({ name: "Billing" });
     fetch.mockImplementation(async () => new Response(null, { status: 204 }));
-    await repository.deleteMainProject(workspace.id, mainProject.id);
+    await repository.deleteProject(workspace.id, project.id);
     expect(fetch.mock.calls[2]?.[1]?.method).toBe("DELETE");
     expect(String(fetch.mock.calls[2]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
-    fetch.mockImplementation(async () => response({ ...mainProject, id: "not-a-uuid" }));
-    await expect(repository.createMainProject(workspace.id, "Payments")).rejects.toThrow();
+    fetch.mockImplementation(async () => response({ ...project, id: "not-a-uuid" }));
+    await expect(repository.createProject(workspace.id, "Payments")).rejects.toThrow();
   });
   it("converts plain PostgREST failures into visible error messages", async () => {
     const { fetch, response, repository } = setup();
@@ -168,8 +166,7 @@ describe("Planner repository", () => {
       priority: 0,
       delivered: true,
     };
-    const { main_project_id: projectId, ...estimates } = feature;
-    const row = { ...estimates, project_id: projectId };
+    const row = feature;
     fetch.mockResolvedValue(response(row));
     expect(await repository.setDelivered(workspace.id, feature.id, true)).toEqual(feature);
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
@@ -317,14 +314,13 @@ describe("Planner repository", () => {
       feature_ids: ["one", "two"],
     });
   });
-  it("stores a feature's project as project_id and reads it back as the app's main project", async () => {
+  it("stores and reads a feature's project_id without a compatibility mapping", async () => {
     const { fetch, response, repository } = setup();
     const project = "33333333-3333-4333-8333-333333333333";
-    const input = { ...EMPTY_FEATURE, name: " Checkout ", main_project_id: project };
-    const { main_project_id: _, ...feature } = input;
+    const input = { ...EMPTY_FEATURE, name: " Checkout ", project_id: project };
     fetch.mockResolvedValue(
       response({
-        ...feature,
+        ...input,
         name: "Checkout",
         project_id: project,
         id: workspace.owner_id,
@@ -335,8 +331,7 @@ describe("Planner repository", () => {
       })
     );
     const saved = await repository.saveFeature(workspace.id, input);
-    expect(saved).toMatchObject({ name: "Checkout", main_project_id: project });
-    expect(saved).not.toHaveProperty("project_id");
+    expect(saved).toMatchObject({ name: "Checkout", project_id: project });
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
     expect(body).toMatchObject({
@@ -344,6 +339,5 @@ describe("Planner repository", () => {
       project_id: project,
       workspace_id: workspace.id,
     });
-    expect(body).not.toHaveProperty("main_project_id");
   });
 });

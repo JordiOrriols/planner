@@ -8,7 +8,7 @@ import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 import type { CapacityWeek, ScheduledFeature, ScheduledRole } from "@/lib/planning";
-import type { MainProject } from "@/types/planner";
+import type { Project } from "@/types/planner";
 
 function workRuns(role: ScheduledRole) {
   const runs: { start: Date; end: Date; personDays: number }[] = [];
@@ -36,7 +36,7 @@ function workRuns(role: ScheduledRole) {
 export default function GanttChart({
   weeks,
   schedule,
-  mainProjects = [],
+  projects = [],
   onReorder,
   onRemove,
   onDeliveredChange,
@@ -44,7 +44,7 @@ export default function GanttChart({
 }: {
   weeks: CapacityWeek[];
   schedule: ScheduledFeature[];
-  mainProjects?: MainProject[];
+  projects?: Project[];
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
   onDeliveredChange?: (id: string, delivered: boolean) => void;
@@ -60,13 +60,13 @@ export default function GanttChart({
     return () => clearInterval(timer);
   }, []);
   const N = weeks.length;
-  const mainProjectNames = new Map(mainProjects.map((item) => [item.id, item.name]));
+  const projectNames = new Map(projects.map((item) => [item.id, item.name]));
   const groupByProject = schedule.some(
-    (item) => item.feature.main_project_id && mainProjectNames.has(item.feature.main_project_id)
+    (item) => item.feature.project_id && projectNames.has(item.feature.project_id)
   );
   const projectKey = (item: ScheduledFeature) =>
-    item.feature.main_project_id && mainProjectNames.has(item.feature.main_project_id)
-      ? item.feature.main_project_id
+    item.feature.project_id && projectNames.has(item.feature.project_id)
+      ? item.feature.project_id
       : null;
   const columns = `220px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
   const todayOffset = weeks[0] ? differenceInCalendarDays(today, weeks[0].weekStart) : -1;
@@ -167,7 +167,7 @@ export default function GanttChart({
               const spanWeeks =
                 s.startIdx != null && s.endIdx != null ? (s.endIdx - s.startIdx + 1) * 7 : 0;
               const groupKey = projectKey(s);
-              const groupName = groupKey ? mainProjectNames.get(groupKey)! : t("mainProjects.none");
+              const groupName = groupKey ? projectNames.get(groupKey)! : t("projects.none");
               const startsGroup =
                 groupByProject && (idx === 0 || projectKey(schedule[idx - 1]!) !== groupKey);
               return (

@@ -34,13 +34,13 @@ describe("Feature form footer actions", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("assigns or clears the feature's main project from the workspace list", async () => {
+  it("assigns or clears the feature's project from the workspace list", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <FeatureForm
         open
-        initial={{ ...EMPTY_FEATURE, name: "Checkout", main_project_id: "growth" }}
-        mainProjects={[
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "growth" }}
+        projects={[
           { id: "payments", workspace_id: "workspace", name: "Payments" },
           { id: "growth", workspace_id: "workspace", name: "Growth" },
         ]}
@@ -48,7 +48,7 @@ describe("Feature form footer actions", () => {
         onClose={vi.fn()}
       />
     );
-    const select = screen.getByLabelText("Main project");
+    const select = screen.getByLabelText("Project");
     expect(select).toHaveValue("growth");
     expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
       "No project",
@@ -58,27 +58,25 @@ describe("Feature form footer actions", () => {
     await userEvent.selectOptions(select, "Payments");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>
-      expect(onSave).toHaveBeenLastCalledWith(
-        expect.objectContaining({ main_project_id: "payments" })
-      )
+      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ project_id: "payments" }))
     );
   });
 
-  it("saves features without a main project as null", async () => {
+  it("saves features without a project as null", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <FeatureForm
         open
-        initial={{ ...EMPTY_FEATURE, name: "Checkout", main_project_id: "payments" }}
-        mainProjects={[{ id: "payments", workspace_id: "workspace", name: "Payments" }]}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "payments" }}
+        projects={[{ id: "payments", workspace_id: "workspace", name: "Payments" }]}
         onSave={onSave}
         onClose={vi.fn()}
       />
     );
-    await userEvent.selectOptions(screen.getByLabelText("Main project"), "No project");
+    await userEvent.selectOptions(screen.getByLabelText("Project"), "No project");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>
-      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ main_project_id: null }))
+      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ project_id: null }))
     );
   });
 

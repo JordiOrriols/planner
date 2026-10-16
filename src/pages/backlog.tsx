@@ -13,8 +13,7 @@ import { useData } from "@/data/DataProvider";
 export default function Backlog() {
   const { t } = useTranslation();
 
-  const { features, mainProjects, members, availability, workspace, canEdit, refresh } =
-    useWorkspace();
+  const { features, projects, members, availability, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
@@ -170,7 +169,7 @@ export default function Backlog() {
             })}
           </h2>
           <GanttChart
-            mainProjects={mainProjects}
+            projects={projects}
             weeks={result?.weeks ?? []}
             schedule={
               result?.schedule ??

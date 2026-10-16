@@ -555,7 +555,7 @@
       "name": "Name",
       "rolePeople": "{{role}} Personen",
       "roleWeeks": "{{role}} Wochen",
-      "mainProject": "Hauptprojekt"
+      "project": "Projekt"
     },
     "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen"
   },
@@ -835,7 +835,7 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Pfingstmontag"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projekte",
     "manage": "Projekte verwalten",
     "description": "Ordne Features ihrem Hauptprojekt zu. Beim Löschen eines Projekts bleiben seine Features erhalten und landen unter Kein Projekt.",

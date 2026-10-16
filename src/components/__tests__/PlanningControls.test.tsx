@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import Backlog from "@/pages/backlog";
 import Estimation from "@/pages/estimation";
 import FeatureForm from "@/components/organisms/feature-form";
-import { EMPTY_FEATURE, type MainProject, type Feature } from "@/types/planner";
+import { EMPTY_FEATURE, type Project, type Feature } from "@/types/planner";
 
 const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
@@ -18,7 +18,7 @@ const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = v
     isOwner: true,
     canEditOverride: null as boolean | null,
     features: [] as Feature[],
-    mainProjects: [] as MainProject[],
+    projects: [] as Project[],
     planStart: "2026-10-15",
   },
 }));
@@ -47,7 +47,7 @@ beforeEach(() => {
   state.isOwner = true;
   state.canEditOverride = null;
   state.planStart = "2026-10-15";
-  state.mainProjects = [];
+  state.projects = [];
   setPlanStart.mockImplementation(async (_id: string, date: string) => {
     state.planStart = date;
   });
@@ -143,11 +143,11 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.queryByText(/microproject/i)).not.toBeInTheDocument();
   });
 
-  it("labels features with their main project and lets only editors manage projects", async () => {
-    state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
+  it("labels features with their project and lets only editors manage projects", async () => {
+    state.projects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
     state.features = state.features.map((feature) => ({
       ...feature,
-      main_project_id: "payments",
+      project_id: "payments",
     }));
     const rendered = render(<Estimation />);
     expect(screen.getByRole("heading", { name: "PaymentsCheckout" })).toBeVisible();
@@ -160,12 +160,12 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.queryByRole("button", { name: "Manage projects" })).not.toBeInTheDocument();
   });
 
-  it("groups roadmap rows under main project headings in priority order", () => {
-    state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
+  it("groups roadmap rows under project headings in priority order", () => {
+    state.projects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
     state.features = state.features.map((feature) => ({
       ...feature,
       in_backlog: true,
-      main_project_id: "payments",
+      project_id: "payments",
     }));
     renderBacklog();
     expect(screen.getByRole("heading", { name: "Project: Payments" })).toBeVisible();

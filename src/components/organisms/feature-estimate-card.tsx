@@ -9,14 +9,14 @@ import { ROLE_COLORS } from "@/config/roleColors";
 
 export default function FeatureEstimateCard({
   feature,
-  mainProjectName,
+  projectName,
   onEdit,
   onDelete,
   disabled,
   readOnly,
 }: {
   feature: Feature;
-  mainProjectName?: string | undefined;
+  projectName?: string | undefined;
   onEdit: () => void;
   onDelete: () => void;
   disabled: boolean;
@@ -41,9 +41,9 @@ export default function FeatureEstimateCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="flex min-w-0 items-center gap-2 font-heading font-semibold text-[15px] tracking-tight">
-            {mainProjectName && (
+            {projectName && (
               <span className="shrink-0 rounded-md bg-brand/10 px-2 py-0.5 text-[11px] font-medium tracking-normal text-brand">
-                {mainProjectName}
+                {projectName}
               </span>
             )}
             <span className="truncate">{feature.name}</span>

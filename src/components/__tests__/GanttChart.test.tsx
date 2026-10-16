@@ -56,8 +56,8 @@ function renderSchedule(features: Feature[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
-  it("keeps priority order and adds a project heading whenever the main project changes", () => {
-    const mainProjects = [
+  it("keeps priority order and adds a project heading whenever the project changes", () => {
+    const projects = [
       { id: "payments", workspace_id: "workspace", name: "Payments" },
       { id: "growth", workspace_id: "workspace", name: "Growth" },
     ];
@@ -66,12 +66,10 @@ describe("role-aware Gantt allocations", () => {
       id: name,
       name,
       priority: index,
-      main_project_id: [`payments`, "payments", null, "growth", "payments"][index]!,
+      project_id: [`payments`, "payments", null, "growth", "payments"][index]!,
     }));
     const result = computeSchedule(features, members, [], parseISO("2026-02-02"), 12);
-    render(
-      <GanttChart weeks={result.weeks} schedule={result.schedule} mainProjects={mainProjects} />
-    );
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} projects={projects} />);
     const order = screen
       .getAllByRole("heading")
       .concat(screen.getAllByLabelText(/^Schedule row:/))

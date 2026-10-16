@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@/i18n";
-import MainProjectsManager from "@/components/organisms/main-projects-manager";
+import ProjectsManager from "@/components/organisms/projects-manager";
 
 const projects = [
   { id: "payments", workspace_id: "workspace", name: "Payments" },
   { id: "growth", workspace_id: "workspace", name: "Growth" },
 ];
 
-function setup(overrides: Partial<React.ComponentProps<typeof MainProjectsManager>> = {}) {
+function setup(overrides: Partial<React.ComponentProps<typeof ProjectsManager>> = {}) {
   const props = {
     open: true,
     onClose: vi.fn(),
@@ -20,11 +20,11 @@ function setup(overrides: Partial<React.ComponentProps<typeof MainProjectsManage
     onDelete: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
-  render(<MainProjectsManager {...props} />);
+  render(<ProjectsManager {...props} />);
   return props;
 }
 
-describe("Main projects manager", () => {
+describe("Projects manager", () => {
   it("creates a project and clears the name field", async () => {
     const props = setup();
     const name = screen.getByLabelText("New project name");

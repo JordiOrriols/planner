@@ -119,11 +119,11 @@ describe("Feature estimate breakdown", () => {
     }
   );
 
-  it("shows the main project label before the feature title only when assigned", () => {
+  it("shows the project label before the feature title only when assigned", () => {
     const { rerender } = render(
       <FeatureEstimateCard
         feature={feature}
-        mainProjectName="Payments"
+        projectName="Payments"
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         disabled={false}

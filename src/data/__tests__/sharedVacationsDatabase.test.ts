@@ -111,8 +111,8 @@ describe("Registered-account workspace sharing", () => {
     ).toHaveLength(0);
   });
 
-  it("shares main projects with workspace editors and keeps features in their own workspace", async () => {
-    const mainProject = (
+  it("shares projects with workspace editors and keeps features in their own workspace", async () => {
+    const project = (
       await db.query<{ id: string }>(
         "insert into public.projects(workspace_id,name) values($1,'Payments') returning id",
         [workspace]
@@ -128,7 +128,7 @@ describe("Registered-account workspace sharing", () => {
     const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name,project_id) values($1,'Checkout',$2) returning id",
-        [workspace, mainProject]
+        [workspace, project]
       )
     ).rows[0]!.id;
     const otherWorkspace = (
@@ -139,7 +139,7 @@ describe("Registered-account workspace sharing", () => {
     await expect(
       db.query("insert into public.features(workspace_id,name,project_id) values($1,'Leak',$2)", [
         otherWorkspace,
-        mainProject,
+        project,
       ])
     ).rejects.toThrow();
 
@@ -153,7 +153,7 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.projects set name='Renamed' where id=$1 returning id", [
-          mainProject,
+          project,
         ])
       ).rows
     ).toHaveLength(0);
@@ -172,12 +172,12 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.projects set name='Billing' where id=$1 returning name", [
-          mainProject,
+          project,
         ])
       ).rows
     ).toEqual([{ name: "Billing" }]);
     expect(
-      (await db.query("delete from public.projects where id=$1 returning id", [mainProject])).rows
+      (await db.query("delete from public.projects where id=$1 returning id", [project])).rows
     ).toHaveLength(1);
     expect(
       (await db.query("select workspace_id,project_id from public.features where id=$1", [feature]))

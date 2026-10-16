@@ -555,7 +555,7 @@
       "name": "Nome",
       "rolePeople": "Persone {{role}}",
       "roleWeeks": "Settimane {{role}}",
-      "mainProject": "Progetto principale"
+      "project": "Progetto"
     },
     "summary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona"
   },
@@ -835,7 +835,7 @@
     "santJoan": "San Giovanni",
     "whitMonday": "Lunedì di Pentecoste"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Progetti",
     "manage": "Gestisci progetti",
     "description": "Raggruppa le funzionalità sotto il loro progetto principale. Eliminando un progetto, le sue funzionalità restano e passano a Nessun progetto.",

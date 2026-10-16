@@ -556,7 +556,7 @@
       "name": "Nom",
       "rolePeople": "Persones de {{role}}",
       "roleWeeks": "Setmanes de {{role}}",
-      "mainProject": "Projecte principal"
+      "project": "Projecte"
     },
     "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona"
   },
@@ -836,7 +836,7 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Dilluns de Pentecosta"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projectes",
     "manage": "Gestiona els projectes",
     "description": "Agrupa les funcionalitats sota el seu projecte principal. En suprimir un projecte, les seves funcionalitats es conserven i passen a Sense projecte.",

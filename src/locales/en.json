@@ -555,7 +555,7 @@
       "name": "Name",
       "rolePeople": "{{role}} people",
       "roleWeeks": "{{role}} weeks",
-      "mainProject": "Main project"
+      "project": "Project"
     },
     "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks"
   },
@@ -835,7 +835,7 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Whit Monday"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projects",
     "manage": "Manage projects",
     "description": "Group features under the main project they belong to. Deleting a project keeps its features and moves them to No project.",

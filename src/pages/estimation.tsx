@@ -5,7 +5,7 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { Plus, Calculator, FolderKanban } from "@jordiorriols/ui/icons";
 import FeatureForm from "@/components/organisms/feature-form";
 import FeatureEstimateCard from "@/components/organisms/feature-estimate-card";
-import MainProjectsManager from "@/components/organisms/main-projects-manager";
+import ProjectsManager from "@/components/organisms/projects-manager";
 import { totalDevWeeks } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
@@ -14,14 +14,14 @@ import type { Feature } from "@/types/planner";
 export default function Estimation() {
   const { t } = useTranslation();
 
-  const { features, mainProjects, workspace, canEdit, refresh } = useWorkspace();
+  const { features, projects, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Feature | null>(null);
   const [deleting, setDeleting] = useState<Feature | null>(null);
   const [managingProjects, setManagingProjects] = useState(false);
-  const mainProjectNames = new Map(mainProjects.map((item) => [item.id, item.name]));
+  const projectNames = new Map(projects.map((item) => [item.id, item.name]));
   const roadmap = features
     .filter((feature) => feature.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -40,7 +40,7 @@ export default function Estimation() {
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setManagingProjects(true)}>
               <FolderKanban className="h-4 w-4 mr-2" />
-              {t("mainProjects.manage")}
+              {t("projects.manage")}
             </Button>
             <Button
               onClick={() => {
@@ -108,10 +108,8 @@ export default function Estimation() {
                   <FeatureEstimateCard
                     key={feature.id}
                     feature={feature}
-                    mainProjectName={
-                      feature.main_project_id
-                        ? mainProjectNames.get(feature.main_project_id)
-                        : undefined
+                    projectName={
+                      feature.project_id ? projectNames.get(feature.project_id) : undefined
                     }
                     disabled={action.busy}
                     readOnly={!canEdit}
@@ -132,7 +130,7 @@ export default function Estimation() {
           open
           onClose={() => setFormOpen(false)}
           initial={editing}
-          mainProjects={mainProjects}
+          projects={projects}
           onSave={async (input) => {
             await repository.saveFeature(workspace.id, input, editing?.id);
             await refresh();
@@ -140,20 +138,20 @@ export default function Estimation() {
         />
       )}
       {managingProjects && (
-        <MainProjectsManager
+        <ProjectsManager
           open
           onClose={() => setManagingProjects(false)}
-          projects={mainProjects}
+          projects={projects}
           onCreate={async (name) => {
-            await repository.createMainProject(workspace.id, name);
+            await repository.createProject(workspace.id, name);
             await refresh();
           }}
           onRename={async (id, name) => {
-            await repository.renameMainProject(workspace.id, id, name);
+            await repository.renameProject(workspace.id, id, name);
             await refresh();
           }}
           onDelete={async (id) => {
-            await repository.deleteMainProject(workspace.id, id);
+            await repository.deleteProject(workspace.id, id);
             await refresh();
           }}
         />

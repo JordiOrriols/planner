@@ -3,7 +3,7 @@ import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
-import { EMPTY_FEATURE, type MainProject, type FeatureInput } from "@/types/planner";
+import { EMPTY_FEATURE, type Project, type FeatureInput } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
@@ -12,9 +12,9 @@ export default function FeatureForm({
   onClose,
   onSave,
   initial,
-  mainProjects = [],
+  projects = [],
 }: {
-  mainProjects?: MainProject[];
+  projects?: Project[];
   open: boolean;
   onClose: () => void;
   onSave: (input: FeatureInput) => Promise<void>;
@@ -65,17 +65,17 @@ export default function FeatureForm({
           maxLength={120}
           autoFocus
         />
-        <Label htmlFor="project-main-project">{t("featureForm.fields.mainProject")}</Label>
+        <Label htmlFor="project-main-project">{t("featureForm.fields.project")}</Label>
         <select
           id="project-main-project"
           className="field"
-          value={form.main_project_id ?? ""}
+          value={form.project_id ?? ""}
           onChange={(event) =>
-            setForm((previous) => ({ ...previous, main_project_id: event.target.value || null }))
+            setForm((previous) => ({ ...previous, project_id: event.target.value || null }))
           }
         >
-          <option value="">{t("mainProjects.none")}</option>
-          {mainProjects.map((feature) => (
+          <option value="">{t("projects.none")}</option>
+          {projects.map((feature) => (
             <option key={feature.id} value={feature.id}>
               {feature.name}
             </option>
