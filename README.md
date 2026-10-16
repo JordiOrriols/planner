@@ -338,6 +338,16 @@ analytics identity before enabling it with `loadUmami({ websiteId })` from
 `@jordiorriols/ui` at boot (not a `<script>` tag), which skips automated
 browsers so e2e runs never reach Umami.
 
+## Database backup
+
+Run `npm run db:backup` before any schema change. It needs Docker Desktop and
+the Supabase CLI linked to the project. It writes `roles.sql`, `schema.sql`,
+`data.sql` (all schemas, including `auth`), the migration list and
+`SHA256SUMS` to `backups/<UTC timestamp>/`. Set `BACKUP_DIR` to write
+elsewhere. Backups hold personal data, so the folder is gitignored and the
+files are readable only by you. The script prints the restore command when it
+finishes.
+
 ## Checks
 
 ```bash

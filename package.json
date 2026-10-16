@@ -18,6 +18,7 @@
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "unused": "knip --production",
+    "db:backup": "scripts/backup-db.sh",
     "prepare": "husky"
   },
   "dependencies": {
