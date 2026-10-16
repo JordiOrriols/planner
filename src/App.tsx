@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
@@ -17,22 +18,26 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
 });
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="p-8 space-y-4">
-      <h1>Something went wrong</h1>
+      <h1>{t("copy.somethingWentWrong")}</h1>
       <p role="alert">{error instanceof Error ? error.message : String(error)}</p>
-      <Button onClick={resetErrorBoundary}>Try again</Button>
+      <Button onClick={resetErrorBoundary}>{t("copy.tryAgain")}</Button>
     </div>
   );
 }
 export default function App() {
+  const { t } = useTranslation();
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <QueryClientProvider client={queryClient}>
         <DataProvider>
           <PasswordResetDialog />
           <EntryGate>
-            <Suspense fallback={<AppSkeleton label="Loading page" />}>
+            <Suspense fallback={<AppSkeleton label={t("copy.loadingPage")} />}>
               <Routes>
                 <Route path="/vacations/:token" element={<VacationLink />} />
                 <Route

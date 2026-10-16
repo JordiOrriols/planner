@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import React, { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useSupabaseAuth } from "@jordiorriols/ui/hooks";
 import { getAuthRedirectUrl } from "@jordiorriols/ui";
@@ -19,7 +20,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 }
 
 const unavailable = async (): Promise<never> => {
-  throw new Error("Authentication is not configured");
+  throw new Error(i18n.t("copy.authenticationIsNotConfigured"));
 };
 const fallback: DataContextValue = {
   authEnabled: false,
