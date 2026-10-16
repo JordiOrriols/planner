@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createClient, redirectAuthCallback } = vi.hoisted(() => ({
+const { createClient, redirectAuthCallback, takeAuthCallback } = vi.hoisted(() => ({
   createClient: vi.fn(() => ({ auth: {} })),
   redirectAuthCallback: vi.fn(() => false),
+  takeAuthCallback: vi.fn(() => ({ kind: "code", code: "abc" })),
 }));
 vi.mock("@supabase/supabase-js", () => ({ createClient }));
-vi.mock("@jordiorriols/ui", () => ({ redirectAuthCallback }));
+vi.mock("@jordiorriols/ui", () => ({ redirectAuthCallback, takeAuthCallback }));
 
 describe("Planner auth callback initialization", () => {
   beforeEach(() => {
@@ -17,16 +18,20 @@ describe("Planner auth callback initialization", () => {
   });
   afterEach(() => vi.unstubAllEnvs());
 
-  it("checks the destination before creating the PKCE client", async () => {
-    const { supabase } = await import("../supabaseClient");
+  it("checks the destination and takes the link out of the URL before creating the client", async () => {
+    const { supabase, authCallback } = await import("../supabaseClient");
     expect(redirectAuthCallback).toHaveBeenCalledWith("planner");
     expect(redirectAuthCallback.mock.invocationCallOrder[0]).toBeLessThan(
+      takeAuthCallback.mock.invocationCallOrder[0]!
+    );
+    expect(takeAuthCallback.mock.invocationCallOrder[0]).toBeLessThan(
       createClient.mock.invocationCallOrder[0]!
     );
+    expect(authCallback).toEqual({ kind: "code", code: "abc" });
     expect(createClient).toHaveBeenCalledWith(
       "https://example.supabase.co",
       "test-publishable-key",
-      { auth: { flowType: "pkce", persistSession: true, detectSessionInUrl: true } }
+      { auth: { flowType: "pkce", persistSession: true, detectSessionInUrl: false } }
     );
     expect(supabase).not.toBeNull();
   });
@@ -36,5 +41,6 @@ describe("Planner auth callback initialization", () => {
     const { supabase } = await import("../supabaseClient");
     expect(supabase).toBeNull();
     expect(createClient).not.toHaveBeenCalled();
+    expect(takeAuthCallback).not.toHaveBeenCalled();
   });
 });

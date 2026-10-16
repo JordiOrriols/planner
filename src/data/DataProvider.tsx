@@ -2,7 +2,7 @@ import i18n from "@/i18n";
 import React, { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useSupabaseAuth } from "@jordiorriols/ui/hooks";
 import { createWorkspaceApi, getAuthRedirectUrl, type WorkspaceApi } from "@jordiorriols/ui";
-import { supabase } from "./supabaseClient";
+import { authCallback, supabase } from "./supabaseClient";
 import { createPlannerRepository, type PlannerRepository } from "./plannerRepository";
 
 type DataContextValue = ReturnType<typeof useSupabaseAuth> & {
@@ -12,7 +12,7 @@ type DataContextValue = ReturnType<typeof useSupabaseAuth> & {
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const auth = useSupabaseAuth(supabase, getAuthRedirectUrl("planner"));
+  const auth = useSupabaseAuth(supabase, getAuthRedirectUrl("planner"), authCallback);
   const repository = useMemo(
     () => (supabase && auth.user ? createPlannerRepository(supabase) : null),
     [auth.user]
@@ -37,6 +37,7 @@ const fallback: DataContextValue = {
   loading: false,
   passwordRecovery: false,
   authError: null,
+  linkError: null,
   repository: null,
   workspaceApi: null,
   signIn: unavailable,

@@ -18,7 +18,7 @@ const { auth, state } = vi.hoisted(() => {
     },
   };
 });
-vi.mock("../supabaseClient", () => ({ supabase: { auth } }));
+vi.mock("../supabaseClient", () => ({ supabase: { auth }, authCallback: null }));
 
 describe("Planner authentication composition", () => {
   it("creates the Planner repository and shared workspace API only after shared authentication restores a user", async () => {

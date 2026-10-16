@@ -403,7 +403,8 @@
     "passwordsDoNotMatch": "Les contrasenyes no coincideixen.",
     "checkEmail": "Reviseu el vostre email per confirmar el compte.",
     "switchToSignUp": "No teniu compte? Creeu-ne un",
-    "switchToSignIn": "Ja teniu compte? Inicieu sessió"
+    "switchToSignIn": "Ja teniu compte? Inicieu sessió",
+    "linkFailed": "Aquest enllaç no ha funcionat: {{message}}. Demana'n un de nou des d'Iniciar sessió."
   },
   "pageMessage": {
     "notFound": "Aquest enllaç no és vàlid o ja no està disponible.",

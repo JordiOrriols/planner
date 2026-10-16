@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { redirectAuthCallback } from "@jordiorriols/ui";
+import { redirectAuthCallback, takeAuthCallback } from "@jordiorriols/ui";
 
 const redirecting = redirectAuthCallback("planner");
+/** Taken out of the URL before the hash router reads it; completed by useSupabaseAuth. */
+export const authCallback = redirecting ? null : takeAuthCallback();
 
 const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
 const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
@@ -11,6 +13,6 @@ const publishableKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as strin
 export const supabase: SupabaseClient | null =
   url && publishableKey && !redirecting
     ? createClient(url, publishableKey, {
-        auth: { flowType: "pkce", persistSession: true, detectSessionInUrl: true },
+        auth: { flowType: "pkce", persistSession: true, detectSessionInUrl: false },
       })
     : null;

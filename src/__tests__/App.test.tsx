@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import App from "../App";
 import "../i18n";
 
-vi.mock("@/data/supabaseClient", () => ({ supabase: null }));
+vi.mock("@/data/supabaseClient", () => ({ supabase: null, authCallback: null }));
 describe("Planner entry", () => {
   it("renders the planning welcome page and explicit configuration error", async () => {
     render(

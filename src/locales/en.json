@@ -402,7 +402,8 @@
     "passwordsDoNotMatch": "Passwords do not match.",
     "checkEmail": "Check your email to confirm your account.",
     "switchToSignUp": "No account? Create one",
-    "switchToSignIn": "Already have an account? Sign in"
+    "switchToSignIn": "Already have an account? Sign in",
+    "linkFailed": "This link did not work: {{message}}. Ask for a new one from Sign in."
   },
   "pageMessage": {
     "notFound": "This link is not valid or is no longer available.",

@@ -8,7 +8,7 @@ import { AppIcon } from "@/components/atoms/AppIcon";
 
 export function WelcomePage() {
   const { t } = useTranslation();
-  const { authEnabled, authError } = useData();
+  const { authEnabled, authError, linkError } = useData();
   const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
   const [open, setOpen] = useState(false);
   return (
@@ -36,6 +36,7 @@ export function WelcomePage() {
       notice={
         <>
           {authError && <p role="alert">{authError}</p>}
+          {linkError && <p role="alert">{t("auth.linkFailed", { message: linkError })}</p>}
           {!authEnabled && <p role="alert">{t("planner.welcome.authUnavailable")}</p>}
         </>
       }
