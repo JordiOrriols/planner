@@ -1,30 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import {
-  Calculator,
-  GanttChartSquare,
-  CalendarDays,
-  ChevronDown,
-  Check,
-  Plus,
-  Settings,
-} from "@jordiorriols/ui/icons";
-import { DropdownMenu } from "@jordiorriols/ui/radix";
+import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
   AppHeader,
   AppMain,
   AppNavigation,
   AppNavigationItem,
   AppPage,
-  Button,
   LanguageSelector,
-  buttonVariants,
+  WorkspaceBar,
+  getWorkspaceLabels,
 } from "@jordiorriols/ui";
 import { useTranslation } from "react-i18next";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
-import { ShareWorkspaceDialog } from "@/components/molecules/ShareWorkspaceDialog";
 import { AppIcon } from "@/components/atoms/AppIcon";
 
 const NAV = [
@@ -37,9 +27,7 @@ const NAV = [
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
   const { signOut, user } = useData();
-  const { workspace, workspaces, selectWorkspace, isOwner, canEdit, createWorkspace } =
-    useWorkspace();
-  const [sharing, setSharing] = useState(false);
+  const { workspace, workspaces, workspaceApi, selectWorkspace, refresh } = useWorkspace();
   const action = useAsyncAction();
   return (
     <AppPage>
@@ -72,67 +60,19 @@ export default function AppLayout() {
           <AppNavigation
             label={t("planner.pages")}
             actions={
-              <>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger
-                    className={buttonVariants({ variant: "outline", size: "sm" })}
-                    aria-label={t("planner.workspace")}
-                    title={workspace.name}
-                  >
-                    <span className="max-w-32 truncate sm:max-w-48">{workspace.name}</span>
-                    <span className="hidden sm:inline text-xs text-muted-foreground">
-                      {t(isOwner ? "planner.owner" : canEdit ? "teams.editor" : "teams.viewer")}
-                    </span>
-                    <ChevronDown className="size-4" />
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Portal>
-                    <DropdownMenu.Content
-                      align="end"
-                      sideOffset={4}
-                      className="z-50 min-w-56 max-h-80 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-lg"
-                    >
-                      <DropdownMenu.RadioGroup
-                        value={workspace.id}
-                        onValueChange={(id) => {
-                          setSharing(false);
-                          selectWorkspace(id);
-                        }}
-                      >
-                        {workspaces.map((item) => (
-                          <DropdownMenu.RadioItem
-                            key={item.id}
-                            value={item.id}
-                            className="flex items-center gap-2 rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted"
-                          >
-                            <span className="size-4">
-                              <DropdownMenu.ItemIndicator>
-                                <Check className="size-4" />
-                              </DropdownMenu.ItemIndicator>
-                            </span>
-                            <span className="max-w-64 truncate">{item.name}</span>
-                          </DropdownMenu.RadioItem>
-                        ))}
-                      </DropdownMenu.RadioGroup>
-                      <DropdownMenu.Separator className="my-1 h-px bg-border" />
-                      <DropdownMenu.Item
-                        className="flex items-center gap-2 rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted"
-                        onSelect={() => {
-                          setSharing(false);
-                          createWorkspace();
-                        }}
-                      >
-                        <Plus className="size-4" />
-                        {t("planner.newWorkspace")}
-                      </DropdownMenu.Item>
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Portal>
-                </DropdownMenu.Root>
-                {isOwner && (
-                  <Button variant="outline" size="sm" onClick={() => setSharing(true)}>
-                    {t("teams.share")}
-                  </Button>
-                )}
-              </>
+              <WorkspaceBar
+                api={workspaceApi}
+                app="planner"
+                workspaces={workspaces}
+                value={workspace.id}
+                onValueChange={selectWorkspace}
+                onCreated={async (created) => {
+                  selectWorkspace(created.id);
+                  await refresh();
+                }}
+                onSharesChanged={refresh}
+                labels={getWorkspaceLabels(i18n.language)}
+              />
             }
           >
             {NAV.map(({ to, key, icon: Icon, end }) => (
@@ -153,7 +93,6 @@ export default function AppLayout() {
           </p>
         )}
         <Outlet />
-        {isOwner && sharing && <ShareWorkspaceDialog onClose={() => setSharing(false)} />}
       </AppMain>
     </AppPage>
   );

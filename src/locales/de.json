@@ -5,11 +5,7 @@
     "subtitle": "Projektschätzung und Planung",
     "pages": "Planner-Seiten",
     "workspace": "Arbeitsbereich",
-    "owner": "Besitzer",
     "member": "Mitglied",
-    "newWorkspace": "Neuer Arbeitsbereich",
-    "noShares": "Dieser Arbeitsbereich wurde noch nicht geteilt.",
-    "retry": "Erneut versuchen",
     "tabs": {
       "estimation": "Schätzung",
       "backlog": "Roadmap",
@@ -39,7 +35,6 @@
     "add": "Mitglied hinzufügen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
-    "close": "Schließen",
     "shareLink": "Link teilen",
     "current": "Aktuell",
     "currentPlus": "Aktuell +",
@@ -75,15 +70,7 @@
     "createTitle": "Team erstellen",
     "createDescription": "Gruppieren Sie gemeinsam arbeitende Mitglieder und verwalten Sie den Zugriff separat.",
     "name": "Teamname",
-    "share": "Teilen",
-    "shareTitle": "{{name}} teilen",
-    "shareDescription": "Fügen Sie ein bestehendes Konto per E-Mail hinzu und wählen Sie Lese- oder Bearbeitungszugriff.",
-    "permission": "Berechtigung",
-    "permissionFor": "Berechtigung für {{email}}",
-    "viewer": "Anzeigen",
-    "editor": "Bearbeiten",
     "noShares": "Dieses Team wurde noch nicht geteilt.",
-    "removeShare": "{{email}} entfernen",
     "rename": "Umbenennen",
     "renameAria": "{{name}} umbenennen",
     "renameTitle": "Team umbenennen",
@@ -418,7 +405,6 @@
     "switchToSignIn": "Sie haben bereits ein Konto? Anmelden"
   },
   "pageMessage": {
-    "loading": "Wird geladen...",
     "notFound": "Dieser Link ist ungültig oder nicht mehr verfügbar.",
     "error": "Beim Laden ist etwas schiefgelaufen.",
     "thanks": "Danke! Ihre Bewertung wurde gesendet.",
@@ -500,9 +486,7 @@
       "invalidPlanStart": "Ungültiges Startdatum für den Arbeitsplan",
       "migrationRequired": "Stelle sicher, dass die Planner-Migration in deinem Supabase-Projekt installiert ist.",
       "providerRequired": "WorkspaceProvider ist erforderlich",
-      "signInToLoad": "Melde dich an, bevor du Arbeitsbereiche lädst",
-      "signInToOpen": "Melde dich an, bevor du Planner öffnest",
-      "signInToShare": "Melde dich an, bevor du einen Arbeitsbereich teilst"
+      "signInToOpen": "Melde dich an, bevor du Planner öffnest"
     },
     "loading": "Dein Arbeitsbereich wird geladen...",
     "select": "Arbeitsbereich auswählen"

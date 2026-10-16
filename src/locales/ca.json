@@ -5,11 +5,7 @@
     "subtitle": "Estimació i planificació de projectes",
     "pages": "Pàgines de Planner",
     "workspace": "Espai de treball",
-    "owner": "Propietari",
     "member": "Membre",
-    "newWorkspace": "Nou espai",
-    "noShares": "Aquest espai de treball encara no s'ha compartit.",
-    "retry": "Torna-ho a provar",
     "tabs": {
       "estimation": "Estimació",
       "backlog": "Full de ruta",
@@ -39,7 +35,6 @@
     "add": "Afegir Membre",
     "edit": "Editar",
     "delete": "Eliminar",
-    "close": "Tancar",
     "clear": "Netejar",
     "shareLink": "Compartir Enllaç",
     "current": "Actual",
@@ -76,15 +71,7 @@
     "createTitle": "Crear un equip",
     "createDescription": "Agrupeu les persones que treballen juntes i gestioneu l'accés per separat.",
     "name": "Nom de l'equip",
-    "share": "Compartir",
-    "shareTitle": "Compartir {{name}}",
-    "shareDescription": "Afegiu un compte existent per email i trieu accés de lectura o edició.",
-    "permission": "Permís",
-    "permissionFor": "Permís per a {{email}}",
-    "viewer": "Veure",
-    "editor": "Editar",
     "noShares": "Aquest equip encara no s'ha compartit.",
-    "removeShare": "Eliminar {{email}}",
     "rename": "Canviar nom",
     "renameAria": "Canviar el nom de {{name}}",
     "renameTitle": "Canviar el nom de l'equip",
@@ -419,7 +406,6 @@
     "switchToSignIn": "Ja teniu compte? Inicieu sessió"
   },
   "pageMessage": {
-    "loading": "Carregant...",
     "notFound": "Aquest enllaç no és vàlid o ja no està disponible.",
     "error": "Alguna cosa ha fallat en carregar.",
     "thanks": "Gràcies! La vostra avaluació s'ha enviat.",
@@ -501,9 +487,7 @@
       "invalidPlanStart": "La data d'inici del pla de l'espai de treball no és vàlida",
       "migrationRequired": "Confirma que la migració de Planner està instal·lada al teu projecte de Supabase.",
       "providerRequired": "Cal WorkspaceProvider",
-      "signInToLoad": "Inicia la sessió abans de carregar els espais de treball",
-      "signInToOpen": "Inicia la sessió abans d'obrir Planner",
-      "signInToShare": "Inicia la sessió abans de compartir un espai de treball"
+      "signInToOpen": "Inicia la sessió abans d'obrir Planner"
     },
     "loading": "Carregant el teu espai de treball...",
     "select": "Selecciona un espai de treball"

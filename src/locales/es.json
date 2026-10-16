@@ -5,11 +5,7 @@
     "subtitle": "Estimación y planificación de proyectos",
     "pages": "Páginas de Planner",
     "workspace": "Espacio de trabajo",
-    "owner": "Propietario",
     "member": "Miembro",
-    "newWorkspace": "Nuevo espacio",
-    "noShares": "Este espacio de trabajo todavía no se ha compartido.",
-    "retry": "Reintentar",
     "tabs": {
       "estimation": "Estimación",
       "backlog": "Hoja de ruta",
@@ -39,7 +35,6 @@
     "add": "Añadir Miembro",
     "edit": "Editar",
     "delete": "Eliminar",
-    "close": "Cerrar",
     "clear": "Limpiar",
     "shareLink": "Compartir Enlace",
     "current": "Actual",
@@ -76,15 +71,7 @@
     "createTitle": "Crear un equipo",
     "createDescription": "Agrupe a las personas que trabajan juntas y gestione el acceso por separado.",
     "name": "Nombre del equipo",
-    "share": "Compartir",
-    "shareTitle": "Compartir {{name}}",
-    "shareDescription": "Añada una cuenta existente por email y elija acceso de lectura o edición.",
-    "permission": "Permiso",
-    "permissionFor": "Permiso para {{email}}",
-    "viewer": "Ver",
-    "editor": "Editar",
     "noShares": "Este equipo todavía no se ha compartido.",
-    "removeShare": "Eliminar a {{email}}",
     "rename": "Renombrar",
     "renameAria": "Renombrar {{name}}",
     "renameTitle": "Renombrar equipo",
@@ -419,7 +406,6 @@
     "switchToSignIn": "¿Ya tiene cuenta? Inicie sesión"
   },
   "pageMessage": {
-    "loading": "Cargando...",
     "notFound": "Este enlace no es válido o ya no está disponible.",
     "error": "Algo salió mal al cargar.",
     "thanks": "¡Gracias! Su evaluación se ha enviado.",
@@ -501,9 +487,7 @@
       "invalidPlanStart": "La fecha de inicio del plan del espacio de trabajo no es válida",
       "migrationRequired": "Confirma que la migración de Planner está instalada en tu proyecto de Supabase.",
       "providerRequired": "Se necesita WorkspaceProvider",
-      "signInToLoad": "Inicia sesión antes de cargar los espacios de trabajo",
-      "signInToOpen": "Inicia sesión antes de abrir Planner",
-      "signInToShare": "Inicia sesión antes de compartir un espacio de trabajo"
+      "signInToOpen": "Inicia sesión antes de abrir Planner"
     },
     "loading": "Cargando tu espacio de trabajo...",
     "select": "Seleccionar espacio de trabajo"

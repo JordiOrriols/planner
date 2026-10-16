@@ -5,11 +5,7 @@
     "subtitle": "Project estimation & planning",
     "pages": "Planner pages",
     "workspace": "Workspace",
-    "owner": "Owner",
     "member": "Member",
-    "newWorkspace": "New workspace",
-    "noShares": "This workspace has not been shared yet.",
-    "retry": "Retry",
     "tabs": {
       "estimation": "Estimation",
       "backlog": "Roadmap",
@@ -39,7 +35,6 @@
     "add": "Add Member",
     "edit": "Edit",
     "delete": "Delete",
-    "close": "Close",
     "shareLink": "Share Link",
     "current": "Current",
     "currentPlus": "Current +",
@@ -75,15 +70,7 @@
     "createTitle": "Create a team",
     "createDescription": "Group members who work together and manage access separately.",
     "name": "Team name",
-    "share": "Share",
-    "shareTitle": "Share {{name}}",
-    "shareDescription": "Add an existing account by email and choose read-only or edit access.",
-    "permission": "Permission",
-    "permissionFor": "Permission for {{email}}",
-    "viewer": "View",
-    "editor": "Edit",
     "noShares": "This team has not been shared yet.",
-    "removeShare": "Remove {{email}}",
     "rename": "Rename",
     "renameAria": "Rename {{name}}",
     "renameTitle": "Rename team",
@@ -418,7 +405,6 @@
     "switchToSignIn": "Already have an account? Sign in"
   },
   "pageMessage": {
-    "loading": "Loading...",
     "notFound": "This link is not valid or is no longer available.",
     "error": "Something went wrong while loading.",
     "thanks": "Thanks! Your evaluation has been sent.",
@@ -500,9 +486,7 @@
       "invalidPlanStart": "Invalid workspace plan start date",
       "migrationRequired": "Confirm the Planner migration is installed in your Supabase project.",
       "providerRequired": "WorkspaceProvider is required",
-      "signInToLoad": "Sign in before loading workspaces",
-      "signInToOpen": "Sign in before opening Planner",
-      "signInToShare": "Sign in before sharing a workspace"
+      "signInToOpen": "Sign in before opening Planner"
     },
     "loading": "Loading your workspace...",
     "select": "Select a workspace"

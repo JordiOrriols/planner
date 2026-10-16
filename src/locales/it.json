@@ -5,11 +5,7 @@
     "subtitle": "Stima e pianificazione progetti",
     "pages": "Pagine Planner",
     "workspace": "Spazio di lavoro",
-    "owner": "Proprietario",
     "member": "Membro",
-    "newWorkspace": "Nuovo spazio",
-    "noShares": "Questo spazio di lavoro non è ancora stato condiviso.",
-    "retry": "Riprova",
     "tabs": {
       "estimation": "Stima",
       "backlog": "Roadmap",
@@ -39,7 +35,6 @@
     "add": "Aggiungi membro",
     "edit": "Modifica",
     "delete": "Elimina",
-    "close": "Chiudi",
     "shareLink": "Condividi link",
     "current": "Attuale",
     "currentPlus": "Attuale +",
@@ -75,15 +70,7 @@
     "createTitle": "Crea un team",
     "createDescription": "Raggruppa le persone che lavorano insieme e gestisci l'accesso separatamente.",
     "name": "Nome del team",
-    "share": "Condividi",
-    "shareTitle": "Condividi {{name}}",
-    "shareDescription": "Aggiungi un account esistente via email e scegli accesso in sola lettura o in modifica.",
-    "permission": "Permesso",
-    "permissionFor": "Permesso per {{email}}",
-    "viewer": "Visualizza",
-    "editor": "Modifica",
     "noShares": "Questo team non è ancora stato condiviso.",
-    "removeShare": "Rimuovi {{email}}",
     "rename": "Rinomina",
     "renameAria": "Rinomina {{name}}",
     "renameTitle": "Rinomina team",
@@ -418,7 +405,6 @@
     "switchToSignIn": "Hai già un account? Accedi"
   },
   "pageMessage": {
-    "loading": "Caricamento...",
     "notFound": "Questo link non è valido o non è più disponibile.",
     "error": "Qualcosa è andato storto durante il caricamento.",
     "thanks": "Grazie! La tua valutazione è stata inviata.",
@@ -500,9 +486,7 @@
       "invalidPlanStart": "Data di inizio del piano del workspace non valida",
       "migrationRequired": "Verifica che la migrazione di Planner sia installata nel tuo progetto Supabase.",
       "providerRequired": "È necessario WorkspaceProvider",
-      "signInToLoad": "Accedi prima di caricare i workspace",
-      "signInToOpen": "Accedi prima di aprire Planner",
-      "signInToShare": "Accedi prima di condividere un workspace"
+      "signInToOpen": "Accedi prima di aprire Planner"
     },
     "loading": "Caricamento del tuo workspace...",
     "select": "Seleziona un workspace"

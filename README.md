@@ -109,7 +109,10 @@ by deploying the apps.
 ## Workspaces and access
 
 The workspace dropdown and **Share** sit opposite the page tabs in the tab bar.
-Choose an existing workspace or **New workspace** from the same dropdown.
+Both come from UI's shared `WorkspaceBar`, the same one Ladders and Pulse use. The
+dropdown lists the workspaces shared with you for Planner (`list_workspaces`), and
+**New workspace** sits in the same menu. Workspace settings (plan start and sprint
+calibration) load with the selected workspace's data.
 
 - A verified signed-in user creates a workspace; its owner adds teams to it in
   **Team configuration**. Teams stay in the workspace they are created in, and a
@@ -117,7 +120,8 @@ Choose an existing workspace or **New workspace** from the same dropdown.
 - Workspace owners and explicitly shared editors manage feature estimates,
   roadmap priorities, delivery status and the plan start date.
 - Owners use **Share** beside the workspace selector to add a registered account
-  by email with **View** or **Edit** access, change permissions or remove a share.
+  by email with **View** or **Edit** access to Planner, Ladders or Pulse, change
+  permissions or remove a share.
   This reuses the same UI package dialog and form hook as Ladders team sharing.
   Shared workspaces appear when collaborators sign in using their platform account.
   Only owners manage sharing, teams and workspace deletion.

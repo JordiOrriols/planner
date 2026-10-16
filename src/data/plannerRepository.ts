@@ -1,13 +1,7 @@
 import i18n from "@/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import {
-  ROLES,
-  type FeatureInput,
-  type Role,
-  type WorkspaceAccess,
-  type SprintResult,
-} from "@/types/planner";
+import { ROLES, type FeatureInput, type Role, type SprintResult } from "@/types/planner";
 import { validateSprintSettings } from "@/lib/sprints";
 import { parseDate, validateFeature } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
@@ -62,13 +56,6 @@ const vacationSchema = z.object({
 });
 const linkedTeamSchema = z.object({ id: z.string().uuid(), name: z.string() });
 const vacationMemberSchema = memberSchema.pick({ id: true, name: true, role: true });
-const APP = "planner";
-const workspaceShareSchema = z.object({
-  user_id: z.string().uuid(),
-  email: z.string().email(),
-  app: z.string(),
-  access_level: z.enum(["viewer", "editor"]),
-});
 
 function validateProjectName(name: string) {
   const trimmed = name.trim();
@@ -120,17 +107,6 @@ export function createPlannerRepository(client: SupabaseClient) {
     }
   }
   return {
-    listWorkspaces: () => list("workspaces", workspaceSchema),
-    listWorkspaceShares: async (workspace: string) =>
-      (await rpcList("list_workspace_shares", workspaceShareSchema, { workspace })).filter(
-        (share) => share.app === APP
-      ),
-    shareWorkspace: (workspace: string, email: string, access: WorkspaceAccess) =>
-      rpc("share_workspace", { workspace, account_email: email, app_name: APP, access }),
-    updateWorkspaceShare: (workspace: string, account: string, access: WorkspaceAccess) =>
-      rpc("update_workspace_share", { workspace, account, app_name: APP, access }),
-    removeWorkspaceShare: (workspace: string, account: string) =>
-      rpc("remove_workspace_share", { workspace, account, app_name: APP }),
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
       if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));
@@ -154,12 +130,6 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
       return workspaceSchema.parse(data);
     },
-    createWorkspace: async (name: string) =>
-      workspaceSchema.parse(
-        await rpc("create_workspace", {
-          workspace_name: name,
-        })
-      ),
     async createTeam(workspace: string, name: string) {
       const trimmed = name.trim();
       if (!trimmed) throw new Error(i18n.t("teamConfiguration.errors.teamNameRequired"));
@@ -170,7 +140,16 @@ export function createPlannerRepository(client: SupabaseClient) {
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [features, projects, members, linkedTeams, canEdit] = await Promise.all([
+      const [settings, features, projects, members, linkedTeams, canEdit] = await Promise.all([
+        client
+          .from("workspaces")
+          .select("*")
+          .eq("id", workspace)
+          .single()
+          .then(({ data, error }) => {
+            if (error) throw new Error(error.message, { cause: error });
+            return workspaceSchema.parse(data);
+          }),
         // Features reach their workspace through their project.
         list("features", featureSchema, workspace, {
           select: "*, projects!inner(workspace_id)",
@@ -187,7 +166,7 @@ export function createPlannerRepository(client: SupabaseClient) {
       const vacations = (await list("vacations", vacationSchema)).filter((item) =>
         ids.has(item.member_id)
       );
-      return { features, projects, members, vacations, linkedTeams, canEdit };
+      return { workspace: settings, features, projects, members, vacations, linkedTeams, canEdit };
     },
     async saveFeature(input: FeatureInput, id?: string) {
       validateFeature(input);
