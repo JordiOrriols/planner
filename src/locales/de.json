@@ -666,6 +666,7 @@
     "unassignedNotice_other": "{{count}} Mitglieder haben keine Planungsrolle und werden bei der Teamkapazität nicht berücksichtigt."
   },
   "teamConfiguration": {
+    "title": "Teamkonfiguration",
     "errors": {
       "signInToLink": "Melde dich an, bevor du Teams verknüpfst",
       "signInToLoad": "Melde dich an, bevor du Teams lädst"

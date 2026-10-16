@@ -666,6 +666,7 @@
     "unassignedNotice_other": "{{count}} membri non hanno un ruolo di pianificazione e sono esclusi dalla capacità del team."
   },
   "teamConfiguration": {
+    "title": "Configurazione del team",
     "errors": {
       "signInToLink": "Accedi prima di collegare i team",
       "signInToLoad": "Accedi prima di caricare i team"

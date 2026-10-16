@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Check,
   Plus,
+  Settings,
 } from "@jordiorriols/ui/icons";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { cn } from "@/lib/utils";
@@ -19,9 +20,10 @@ import { ShareWorkspaceDialog } from "@/components/molecules/ShareWorkspaceDialo
 import { AppIcon } from "@/components/atoms/AppIcon";
 
 const NAV = [
-  { to: "/", key: "estimation", icon: Calculator, end: true },
-  { to: "/backlog", key: "backlog", icon: GanttChartSquare, end: false },
-  { to: "/vacations", key: "vacations", icon: CalendarDays, end: false },
+  { to: "/", key: "planner.tabs.estimation", icon: Calculator, end: true },
+  { to: "/backlog", key: "planner.tabs.backlog", icon: GanttChartSquare, end: false },
+  { to: "/vacations", key: "planner.tabs.vacations", icon: CalendarDays, end: false },
+  { to: "/team-configuration", key: "teamConfiguration.title", icon: Settings, end: false },
 ];
 
 export default function AppLayout() {
@@ -69,7 +71,7 @@ export default function AppLayout() {
                   key={to}
                   to={to}
                   end={end}
-                  aria-label={t(`planner.tabs.${key}`)}
+                  aria-label={t(key)}
                   className={({ isActive }) =>
                     cn(
                       "inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-3 text-sm font-medium transition-colors",
@@ -80,7 +82,7 @@ export default function AppLayout() {
                   }
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{t(`planner.tabs.${key}`)}</span>
+                  <span>{t(key)}</span>
                 </NavLink>
               ))}
             </div>

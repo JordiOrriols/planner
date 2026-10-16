@@ -667,6 +667,7 @@
     "unassignedNotice_other": "{{count}} membres no tenen cap rol de planificació i queden exclosos de la capacitat de l'equip."
   },
   "teamConfiguration": {
+    "title": "Configuració de l'equip",
     "errors": {
       "signInToLink": "Inicia la sessió abans d'enllaçar equips",
       "signInToLoad": "Inicia la sessió abans de carregar els equips"

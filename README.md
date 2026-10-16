@@ -170,6 +170,10 @@ or arrange an explicit UUID mapping before migrating old overrides.
 
 ## Estimates and scheduling
 
+The Vacations tab contains sprint velocity and the shared vacation calendar.
+Team linking, member planning roles and personal vacation links live in the
+separate **Team configuration** tab, with the same owner/member permissions.
+
 The app header is named **Planner**. **Roadmap** is the prioritized plan (the
 existing `/backlog` route remains valid). Feature Estimation first shows features
 on the roadmap in priority order, followed by **Backlog** / **Not prioritized

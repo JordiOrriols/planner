@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import Vacations from "@/pages/vacations";
+import TeamConfiguration from "@/pages/team-configuration";
 
 const { setAvailability, clearAvailability, refresh, state } = vi.hoisted(() => ({
   setAvailability: vi.fn(),
@@ -60,28 +61,28 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Team vacations shared editor", () => {
-  it.each([false, true])("shows velocity, calendar, then configuration for owner=%s", (isOwner) => {
+  it.each([false, true])("separates calendar from configuration for owner=%s", (isOwner) => {
     state.isOwner = isOwner;
-    render(
-      <QueryClientProvider client={new QueryClient()}>
-        <Vacations />
-      </QueryClientProvider>
-    );
-    const configuration = screen.getByRole("region", { name: "Configuration" });
+    const rendered = render(<Vacations />);
     expect(screen.getAllByRole("region")).toEqual([
       screen.getByRole("region", { name: "Squad velocity" }),
       screen.getByRole("region", { name: "Vacation calendar" }),
-      configuration,
     ]);
+    expect(screen.queryByRole("heading", { name: "Team members" })).not.toBeInTheDocument();
+    rendered.unmount();
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TeamConfiguration />
+      </QueryClientProvider>
+    );
+    const configuration = screen.getByRole("region", { name: "Team members" });
     expect(within(configuration).getByRole("heading", { name: "Team members" })).toBeVisible();
     expect(
       within(configuration).getByRole("combobox", { name: "Planning role for Ada" })
     ).toBeVisible();
     if (isOwner) {
-      expect(within(configuration).getByRole("heading", { name: "Ladders teams" })).toBeVisible();
-      expect(
-        within(configuration).getByRole("button", { name: "Save linked teams" })
-      ).toBeVisible();
+      expect(screen.getByRole("heading", { name: "Ladders teams" })).toBeVisible();
+      expect(screen.getByRole("button", { name: "Save linked teams" })).toBeVisible();
     } else {
       expect(screen.queryByRole("button", { name: "Save linked teams" })).not.toBeInTheDocument();
     }

@@ -13,6 +13,7 @@ import AppLayout from "./components/organisms/app-layout";
 const Estimation = lazy(() => import("./pages/estimation"));
 const Backlog = lazy(() => import("./pages/backlog"));
 const Vacations = lazy(() => import("./pages/vacations"));
+const TeamConfiguration = lazy(() => import("./pages/team-configuration"));
 const VacationLink = lazy(() => import("./pages/vacation-link"));
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
@@ -49,6 +50,7 @@ export default function App() {
                           <Route path="/" element={<Estimation />} />
                           <Route path="/backlog" element={<Backlog />} />
                           <Route path="/vacations" element={<Vacations />} />
+                          <Route path="/team-configuration" element={<TeamConfiguration />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
                       </Routes>
