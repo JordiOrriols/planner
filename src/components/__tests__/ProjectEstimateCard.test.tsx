@@ -1,3 +1,4 @@
+import { ROLE_COLORS } from "@/config/roleColors";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, within } from "@testing-library/react";
@@ -62,10 +63,19 @@ describe("Feature estimate breakdown", () => {
       ).toHaveLength(5);
       const roleEffort = within(card).getByRole("group", { name: t("featureCard.roleEffort") });
       expect(within(roleEffort).queryByText(t("featureCard.metrics.peakTeam"))).toBeNull();
-      for (const role of ROLES)
+      for (const role of ROLES) {
         expect(roleEffort).toHaveTextContent(
           `${t(`planningRoles.${role}`)}${project[`${role}_devs`] * project[`${role}_weeks`]}`
         );
+        const roleLabel = within(roleEffort).getByText(t(`planningRoles.${role}`));
+        const effortLabel = within(card)
+          .getAllByText(t("featureCard.metrics.effort"))
+          .find((element) => element.tagName === "DIV");
+        expect(roleLabel).toHaveClass(ROLE_COLORS[role].textClassName, "uppercase");
+        expect(roleLabel.nextElementSibling?.className).toBe(
+          effortLabel.nextElementSibling?.className
+        );
+      }
       await userEvent.click(toggle);
       expect(within(card).queryByRole("group", { name: t("featureCard.roleEffort") })).toBeNull();
       expect(toggle).toHaveAttribute("aria-expanded", "true");
