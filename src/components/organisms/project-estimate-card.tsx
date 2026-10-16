@@ -36,7 +36,10 @@ export default function ProjectEstimateCard({
   );
 
   return (
-    <article className="panel flex flex-col gap-4 transition-shadow hover:shadow-md">
+    <article
+      aria-label={project.name}
+      className="panel flex flex-col gap-4 transition-shadow hover:shadow-md"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-heading font-semibold text-[15px] tracking-tight truncate">
@@ -84,13 +87,12 @@ export default function ProjectEstimateCard({
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium"
           >
             <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
-            {ROLE_LABELS[role]} · {project[`${role}_devs`]}×{project[`${role}_weeks`]}
-            {t("common.units.weeksShort")}
+            {ROLE_LABELS[role]}
           </span>
         ))}
       </div>
 
-      <div className="mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-border">
+      <div className="grid grid-cols-3 gap-4">
         <Stat
           label={t("featureCard.metrics.peakTeam")}
           value={`${peak}`}
@@ -107,11 +109,53 @@ export default function ProjectEstimateCard({
           sub={t("common.units.personWeeksShort")}
         />
       </div>
+
+      <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-4">
+        {ROLES.map((role) => {
+          const people = project[`${role}_devs`];
+          const weeks = project[`${role}_weeks`];
+          return (
+            <section
+              key={role}
+              aria-label={ROLE_LABELS[role]}
+              className="min-w-0 rounded-lg bg-muted/40 p-3"
+            >
+              <h4 className="flex items-center gap-2 text-xs font-medium">
+                <span className={cn("h-2 w-2 rounded-full", ROLE_COLORS[role])} />
+                {ROLE_LABELS[role]}
+              </h4>
+              <dl className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  { label: t("common.units.people"), value: people, unit: "" },
+                  { label: t("common.units.weeks"), value: weeks, unit: "" },
+                  {
+                    label: t("featureCard.metrics.effort"),
+                    value: people * weeks,
+                    unit: t("common.units.personWeeksShort"),
+                  },
+                ].map(({ label, value, unit }) => (
+                  <div key={label} className="min-w-0">
+                    <dt className="text-[11px] text-muted-foreground">{label}</dt>
+                    <dd className="mt-1 text-sm font-semibold tabular-nums">
+                      {value}
+                      {unit && (
+                        <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                          {unit}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          );
+        })}
+      </div>
     </article>
   );
 }
 
-function Stat({ label, value, sub }) {
+function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div>
       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>

@@ -94,7 +94,7 @@ export default function Estimation() {
               {!group.features.length && (
                 <p className="text-sm text-muted-foreground">{t("estimation.groups.empty")}</p>
               )}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col gap-4">
                 {group.features.map((project) => (
                   <ProjectEstimateCard
                     key={project.id}

@@ -105,6 +105,11 @@ describe("Planner estimate and backlog controls", () => {
         .map((item) => item.textContent)
     ).toEqual(["Idea"]);
     expect(backlog).toHaveTextContent("Not prioritized features.");
+    for (const group of [roadmap, backlog]) {
+      const list = within(group).getAllByRole("article")[0]!.parentElement!;
+      expect(list).toHaveClass("flex", "flex-col");
+      expect(list.className).not.toMatch(/grid-cols/);
+    }
     expect(
       roadmap.compareDocumentPosition(backlog) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();

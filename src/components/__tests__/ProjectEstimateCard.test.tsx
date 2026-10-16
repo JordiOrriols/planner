@@ -1,0 +1,99 @@
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen, within } from "@testing-library/react";
+import { APP_LANGUAGES } from "@jordiorriols/ui";
+import ProjectEstimateCard from "@/components/organisms/project-estimate-card";
+import i18n from "@/i18n";
+import { EMPTY_PROJECT, ROLES, type Project } from "@/types/planner";
+
+const project: Project = {
+  ...EMPTY_PROJECT,
+  id: "feature",
+  workspace_id: "workspace",
+  name: "Checkout",
+  description: "A readable feature estimate",
+  backend_devs: 2,
+  backend_weeks: 3,
+  frontend_devs: 1,
+  frontend_weeks: 2,
+  design_devs: 1,
+  design_weeks: 1,
+  qa_devs: 2,
+  qa_weeks: 1,
+  in_backlog: false,
+  delivered: false,
+  priority: 0,
+};
+
+function renderCard(feature = project, readOnly = false) {
+  return render(
+    <ProjectEstimateCard
+      project={feature}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      disabled={false}
+      readOnly={readOnly}
+    />
+  );
+}
+
+afterEach(async () => {
+  await act(async () => {
+    await i18n.changeLanguage("en");
+  });
+});
+
+describe("Feature estimate breakdown", () => {
+  it.each(APP_LANGUAGES.map(({ code }) => code))(
+    "shows accurate role estimates and overall metrics in %s",
+    async (language) => {
+      await i18n.changeLanguage(language);
+      const t = i18n.getFixedT(language);
+      renderCard();
+      const card = screen.getByRole("article", { name: project.name });
+      for (const role of ROLES) {
+        const area = within(card).getByRole("region", { name: t(`planningRoles.${role}`) });
+        const values = within(area).getAllByRole("definition");
+        expect(values[0]).toHaveTextContent(String(project[`${role}_devs`]));
+        expect(values[1]).toHaveTextContent(String(project[`${role}_weeks`]));
+        expect(values[2]?.textContent).toBe(
+          `${project[`${role}_devs`] * project[`${role}_weeks`]}${t("common.units.personWeeksShort")}`
+        );
+        expect(
+          within(area)
+            .getAllByRole("term")
+            .map((term) => term.textContent)
+        ).toEqual([
+          t("common.units.people"),
+          t("common.units.weeks"),
+          t("featureCard.metrics.effort"),
+        ]);
+      }
+      const peak = within(card).getByText(t("featureCard.metrics.peakTeam")).parentElement!;
+      const duration = within(card).getByText(t("featureCard.metrics.duration")).parentElement!;
+      const effort = within(card).getAllByText(t("featureCard.metrics.effort"))[0]!.parentElement!;
+      expect(peak).toHaveTextContent(`6${t("common.units.people")}`);
+      expect(duration).toHaveTextContent(`5${t("common.units.weeks")}`);
+      expect(effort).toHaveTextContent(`11${t("common.units.personWeeksShort")}`);
+      expect(
+        peak.compareDocumentPosition(
+          screen.getByRole("region", { name: t("planningRoles.backend") })
+        ) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+    }
+  );
+
+  it("shows zero estimates for unused areas without hiding their labels", () => {
+    renderCard({ ...project, ...EMPTY_PROJECT, name: project.name }, true);
+    for (const role of ROLES) {
+      const area = screen.getByRole("region", { name: i18n.t(`planningRoles.${role}`) });
+      expect(
+        within(area)
+          .getAllByRole("definition")
+          .map((item) => item.textContent)
+      ).toEqual(["0", "0", `0${i18n.t("common.units.personWeeksShort")}`]);
+    }
+    expect(screen.getByText(i18n.t("featureCard.noEstimates"))).toBeVisible();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});

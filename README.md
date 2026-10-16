@@ -181,7 +181,10 @@ Owners/editors can reveal the start-date input with its edit button; successful
 changes are saved to the workspace and return to the read-only card.
 
 For each feature, enter people and weeks for backend, frontend, design and
-QA. People and weeks must be whole numbers. Both values must be positive for an
+QA. Estimation uses full-width feature cards: overall Peak team, Duration and Effort
+appear above a separate role breakdown with people, weeks and person-weeks for
+each area. Role columns stack on smaller screens; unused areas show zero.
+People and weeks must be whole numbers. Both values must be positive for an
 active role (or both zero). Decimal input is rejected by the form, repository and
 database, never silently rounded. Existing fractional estimates are preserved
 but must be edited to whole numbers before they can be scheduled.
