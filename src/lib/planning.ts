@@ -7,7 +7,7 @@ import {
   type Feature,
   type FeatureInput,
   type PlannerMember,
-  type Availability,
+  type Vacation,
 } from "@/types/planner";
 
 export { ROLES };
@@ -81,13 +81,9 @@ export function parseDate(value: string): Date {
   return date;
 }
 
-export function isWorking(
-  member: Pick<PlannerMember, "id">,
-  date: Date,
-  availability: Availability[]
-) {
+export function isWorking(member: Pick<PlannerMember, "id">, date: Date, vacations: Vacation[]) {
   const key = format(date, "yyyy-MM-dd");
-  const override = availability.find((item) => item.member_id === member.id && item.date === key);
+  const override = vacations.find((item) => item.member_id === member.id && item.date === key);
   if (!hasHolidayCalendar(key))
     throw new Error(
       i18n.t("planning.validation.unverifiedWorkingYear", { year: date.getFullYear() })
@@ -125,7 +121,7 @@ export interface ScheduledRole {
 }
 export function squadVelocity(
   members: PlannerMember[],
-  availability: Availability[],
+  vacations: Vacation[],
   startDate: Date,
   numWeeks = 16
 ): CapacityWeek[] {
@@ -140,7 +136,7 @@ export function squadVelocity(
     const capacity = verifiedDays.reduce(
       (sum, date) =>
         sum +
-        members.filter((member) => member.role !== null && isWorking(member, date, availability))
+        members.filter((member) => member.role !== null && isWorking(member, date, vacations))
           .length /
           5,
       0
@@ -154,13 +150,13 @@ export function squadVelocity(
 export function computeSchedule(
   features: Feature[],
   members: PlannerMember[],
-  availability: Availability[],
+  vacations: Vacation[],
   startDate: Date,
   horizon = 52
 ) {
   if (!isValid(startDate) || !hasHolidayCalendar(format(startDate, "yyyy-MM-dd")))
     throw new Error(i18n.t("planning.validation.unverifiedStart"));
-  const weeks = squadVelocity(members, availability, startDate, horizon);
+  const weeks = squadVelocity(members, vacations, startDate, horizon);
   const sorted = [...features]
     .filter((p) => p.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
@@ -208,7 +204,7 @@ export function computeSchedule(
       const free = Object.fromEntries(
         ROLES.map((role) => [
           role,
-          members.filter((member) => member.role === role && isWorking(member, date, availability))
+          members.filter((member) => member.role === role && isWorking(member, date, vacations))
             .length,
         ])
       ) as Record<Role, number>;

@@ -682,11 +682,11 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       (await db.query("select * from public.planner_vacation_member($1)", [member.vacation_token]))
         .rows
     ).toEqual([{ id: member.id, name: "Ada", role: "backend" }]);
-    const availability = (
+    const vacations = (
       await db.query("select * from public.planner_vacation_list($1)", [member.vacation_token])
     ).rows;
-    expect(availability).toHaveLength(2);
-    expect(availability.every((row) => row["member_id"] === member.id)).toBe(true);
+    expect(vacations).toHaveLength(2);
+    expect(vacations.every((row) => row["member_id"] === member.id)).toBe(true);
     for (const table of ["vacations", "teams", "members", "evaluations"]) {
       await expect(db.exec(`select * from public.${table}`)).rejects.toThrow(/permission denied/);
     }
@@ -762,15 +762,15 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     expect(await roster(secondWorkspace)).toEqual([]);
     expect((await db.query("select * from public.vacations")).rows).toHaveLength(1);
   });
-  it("drops the legacy invitation members, their availability and RPCs", async () => {
+  it("drops the legacy invitation members, their vacation records and RPCs", async () => {
     await login(null, "postgres");
     expect(
       (
-        await db.query<{ members: string | null; availability: string | null }>(
-          "select to_regclass('public.planner_members')::text as members, to_regclass('public.planner_availability')::text as availability"
+        await db.query<{ members: string | null; vacations: string | null }>(
+          "select to_regclass('public.planner_members')::text as members, to_regclass('public.planner_availability')::text as vacations"
         )
       ).rows
-    ).toEqual([{ members: null, availability: null }]);
+    ).toEqual([{ members: null, vacations: null }]);
     expect(
       (
         await db.query("select proname from pg_proc where proname = any($1::text[])", [

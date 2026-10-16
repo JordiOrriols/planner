@@ -691,7 +691,7 @@
       "title": "Ladders-Teams"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Urlaub",
       "workingDay": "Arbeitstag"

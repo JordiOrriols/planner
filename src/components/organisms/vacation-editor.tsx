@@ -6,12 +6,12 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { parseDate } from "@/lib/planning";
 import { differenceInCalendarDays } from "date-fns";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
-import type { Availability, PlannerMember } from "@/types/planner";
+import type { Vacation, PlannerMember } from "@/types/planner";
 
-export function AvailabilityEditor({
+export function VacationEditor({
   member,
   members,
-  availability,
+  vacations,
   month,
   onMonthChange,
   canEdit,
@@ -19,7 +19,7 @@ export function AvailabilityEditor({
 }: {
   member: Pick<PlannerMember, "id" | "name" | "role">;
   members: Pick<PlannerMember, "id" | "name" | "role">[];
-  availability: Availability[];
+  vacations: Vacation[];
   month: Date;
   onMonthChange: (month: Date) => void;
   canEdit: boolean;
@@ -31,15 +31,15 @@ export function AvailabilityEditor({
   const action = useAsyncAction();
   function apply(working: boolean) {
     void action.run(async () => {
-      if (!canEdit) throw new Error(t("availabilityEditor.errors.editAccessRequired"));
-      if (!range) throw new Error(t("availabilityEditor.errors.selectionRequired"));
+      if (!canEdit) throw new Error(t("vacationEditor.errors.editAccessRequired"));
+      if (!range) throw new Error(t("vacationEditor.errors.selectionRequired"));
       const end = range.end ?? range.start;
       const first = parseDate(range.start),
         last = parseDate(end);
       if (!hasHolidayCalendar(range.start) || !hasHolidayCalendar(end))
-        throw new Error(t("availabilityEditor.errors.unverifiedDates"));
+        throw new Error(t("vacationEditor.errors.unverifiedDates"));
       if (last < first || differenceInCalendarDays(last, first) > 365)
-        throw new Error(t("availabilityEditor.errors.rangeTooLong"));
+        throw new Error(t("vacationEditor.errors.rangeTooLong"));
       await save(range.start, end, working);
       setRange({ start: range.start, end });
     });
@@ -50,7 +50,7 @@ export function AvailabilityEditor({
         month={month}
         onMonthChange={onMonthChange}
         teamMembers={members}
-        availability={availability}
+        vacations={vacations}
         selectedMember={member.id}
         selectedRange={range}
         onClearSelection={() => setRange(null)}
@@ -61,18 +61,18 @@ export function AvailabilityEditor({
       />
       <div className="flex flex-wrap gap-2">
         <Button disabled={!canEdit || action.busy || !range} onClick={() => apply(false)}>
-          {t("availabilityEditor.actions.vacations")}
+          {t("vacationEditor.actions.vacations")}
         </Button>
         <Button
           variant="outline"
           disabled={!canEdit || action.busy || !range}
           onClick={() => apply(true)}
         >
-          {t("availabilityEditor.actions.workingDay")}
+          {t("vacationEditor.actions.workingDay")}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">{t("availabilityEditor.workingDayHelp")}</p>
-      {!canEdit && <p>{t("availabilityEditor.readOnlyNotice")}</p>}
+      <p className="text-xs text-muted-foreground">{t("vacationEditor.workingDayHelp")}</p>
+      {!canEdit && <p>{t("vacationEditor.readOnlyNotice")}</p>}
       {action.error && <p role="alert">{action.error}</p>}
     </div>
   );

@@ -217,8 +217,8 @@ describe("Planner repository", () => {
   it("delegates anonymous writes only through member-token RPCs", async () => {
     const { fetch, response, repository } = setup();
     fetch.mockImplementation(async () => response(null));
-    await repository.saveVacation("token", "2026-11-02", "2026-11-03", false);
-    await repository.clearVacation("token", "2026-11-02");
+    await repository.saveVacationLink("token", "2026-11-02", "2026-11-03", false);
+    await repository.clearVacationLink("token", "2026-11-02");
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_vacation_save");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       token: "token",
@@ -234,23 +234,23 @@ describe("Planner repository", () => {
   it("does not treat an empty vacation-member response as successful", async () => {
     const { fetch, response, repository } = setup();
     fetch.mockImplementation(async () => response([]));
-    await expect(repository.loadVacation("token")).rejects.toThrow("Invalid vacation link");
+    await expect(repository.loadVacationLink("token")).rejects.toThrow("Invalid vacation link");
   });
-  it("loads token identity, team names and scoped availability through separate validated RPCs", async () => {
+  it("loads token identity, team names and scoped vacations through separate validated RPCs", async () => {
     const { fetch, response, repository } = setup();
     const member = { id: workspace.owner_id, name: "Ada", role: "backend" };
     const colleague = { id: workspace.id, name: "Grace", role: null };
-    const availability = [{ member_id: colleague.id, date: "2026-11-02", is_working: false }];
+    const vacations = [{ member_id: colleague.id, date: "2026-11-02", is_working: false }];
     fetch.mockImplementation(async (url) => {
       if (String(url).includes("planner_vacation_team_members"))
         return response([member, colleague]);
-      if (String(url).includes("planner_vacation_team_list")) return response(availability);
+      if (String(url).includes("planner_vacation_team_list")) return response(vacations);
       return response([member]);
     });
-    expect(await repository.loadVacation("token")).toEqual({
+    expect(await repository.loadVacationLink("token")).toEqual({
       member,
       members: [member, colleague],
-      availability,
+      vacations,
     });
     expect(fetch).toHaveBeenCalledTimes(3);
     for (const call of fetch.mock.calls)
@@ -260,15 +260,15 @@ describe("Planner repository", () => {
   it("paginates the team vacation list rather than hiding leave after the first page", async () => {
     const { fetch, response, repository } = setup();
     const member = { id: workspace.owner_id, name: "Ada", role: "backend" };
-    const availability = { member_id: member.id, date: "2026-11-02", is_working: false };
+    const vacations = { member_id: member.id, date: "2026-11-02", is_working: false };
     fetch.mockImplementation(async (url) => {
       if (String(url).includes("planner_vacation_team_list"))
         return response(
-          String(url).includes("offset=500") ? [availability] : Array(500).fill(availability)
+          String(url).includes("offset=500") ? [vacations] : Array(500).fill(vacations)
         );
       return response([member]);
     });
-    expect((await repository.loadVacation("token")).availability).toHaveLength(501);
+    expect((await repository.loadVacationLink("token")).vacations).toHaveLength(501);
   });
 
   it("surfaces team read errors and rejects inconsistent roster data", async () => {
@@ -279,11 +279,13 @@ describe("Planner repository", () => {
         return response({ message: "Team calendar unavailable" }, 500);
       return response([member]);
     });
-    await expect(repository.loadVacation("token")).rejects.toThrow("Team calendar unavailable");
+    await expect(repository.loadVacationLink("token")).rejects.toThrow("Team calendar unavailable");
     fetch.mockImplementation(async (url) =>
       response(String(url).includes("planner_vacation_member") ? [member] : [])
     );
-    await expect(repository.loadVacation("token")).rejects.toThrow(/did not include its member/);
+    await expect(repository.loadVacationLink("token")).rejects.toThrow(
+      /did not include its member/
+    );
   });
   it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
     const { fetch, response, repository } = setup();

@@ -10,12 +10,7 @@ import {
   totalDevWeeks,
 } from "../planning";
 import { BARCELONA_HOLIDAYS, isHoliday } from "../barcelonaHolidays";
-import {
-  EMPTY_FEATURE,
-  type Feature,
-  type PlannerMember,
-  type Availability,
-} from "@/types/planner";
+import { EMPTY_FEATURE, type Feature, type PlannerMember, type Vacation } from "@/types/planner";
 
 const member: PlannerMember = {
   id: "backend",
@@ -280,15 +275,13 @@ describe("daily role-based capacity", () => {
     expect(end(result)).toBe("2026-03-27");
   });
   it("counts partial-week vacations once, without dropping the entire person/week", () => {
-    const availability: Availability[] = ["2026-02-03", "2026-02-04"].map((date) => ({
+    const vacations: Vacation[] = ["2026-02-03", "2026-02-04"].map((date) => ({
       member_id: member.id,
       date,
       is_working: false,
     }));
-    expect(squadVelocity([member], availability, date("2026-02-02"), 1)[0]?.capacity).toBeCloseTo(
-      0.6
-    );
-    expect(end(computeSchedule([feature()], [member], availability, date("2026-02-02")))).toBe(
+    expect(squadVelocity([member], vacations, date("2026-02-02"), 1)[0]?.capacity).toBeCloseTo(0.6);
+    expect(end(computeSchedule([feature()], [member], vacations, date("2026-02-02")))).toBe(
       "2026-02-10"
     );
   });

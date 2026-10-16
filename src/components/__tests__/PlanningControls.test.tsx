@@ -31,7 +31,7 @@ vi.mock("@/data/WorkspaceProvider", () => ({
     canEdit: state.canEditOverride ?? state.isOwner,
     workspace: { id: "squad", plan_start_date: state.planStart },
     members: [],
-    availability: [],
+    vacations: [],
     refresh,
   }),
 }));

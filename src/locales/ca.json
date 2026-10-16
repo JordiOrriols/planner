@@ -692,7 +692,7 @@
       "title": "Equips de Ladders"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacances",
       "workingDay": "Dia laborable"

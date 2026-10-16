@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { AppMain, AppPage, AppSkeleton } from "@jordiorriols/ui";
-import { AvailabilityEditor } from "@/components/organisms/availability-editor";
+import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
 
@@ -24,7 +24,7 @@ export default function VacationLink() {
       if (!z.string().uuid().safeParse(token).success)
         throw new Error(t("vacationLink.errors.invalidLink"));
       if (!repository) throw new Error(t("vacationLink.errors.notConfigured"));
-      return repository.loadVacation(token);
+      return repository.loadVacationLink(token);
     },
   });
   return (
@@ -37,16 +37,16 @@ export default function VacationLink() {
         {query.data && repository && (
           <section className="panel p-5 space-y-4">
             <h2 className="text-xl font-semibold">{query.data.member.name}</h2>
-            <AvailabilityEditor
+            <VacationEditor
               key={token}
               member={query.data.member}
               members={query.data.members}
-              availability={query.data.availability}
+              vacations={query.data.vacations}
               month={month}
               onMonthChange={setMonth}
               canEdit
               save={async (start, end, working) => {
-                await repository.saveVacation(token, start, end, working);
+                await repository.saveVacationLink(token, start, end, working);
                 await client.invalidateQueries({ queryKey });
               }}
             />

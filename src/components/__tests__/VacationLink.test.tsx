@@ -7,14 +7,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import VacationLink from "@/pages/vacation-link";
 import { EntryGate } from "@/components/EntryGate";
 
-const { loadVacation, saveVacation, clearVacation } = vi.hoisted(() => ({
-  loadVacation: vi.fn(),
-  saveVacation: vi.fn(),
-  clearVacation: vi.fn(),
+const { loadVacationLink, saveVacationLink, clearVacationLink } = vi.hoisted(() => ({
+  loadVacationLink: vi.fn(),
+  saveVacationLink: vi.fn(),
+  clearVacationLink: vi.fn(),
 }));
 vi.mock("@/data/supabaseClient", () => ({ supabase: {} }));
 vi.mock("@/data/plannerRepository", () => ({
-  createPlannerRepository: () => ({ loadVacation, saveVacation, clearVacation }),
+  createPlannerRepository: () => ({ loadVacationLink, saveVacationLink, clearVacationLink }),
 }));
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({ user: null, loading: true, authError: null }),
@@ -43,16 +43,16 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(2026, 10, 1));
-  loadVacation.mockResolvedValue({ member, members: [member], availability: [] });
-  saveVacation.mockResolvedValue(undefined);
-  clearVacation.mockResolvedValue(undefined);
+  loadVacationLink.mockResolvedValue({ member, members: [member], vacations: [] });
+  saveVacationLink.mockResolvedValue(undefined);
+  clearVacationLink.mockResolvedValue(undefined);
 });
 afterEach(() => vi.useRealTimers());
 describe("Anonymous member vacation route", () => {
   it("loads just the token member without waiting for login or showing workspace controls", async () => {
     open();
     expect(await screen.findByRole("heading", { name: "Ada" })).toBeInTheDocument();
-    expect(loadVacation).toHaveBeenCalledWith(token);
+    expect(loadVacationLink).toHaveBeenCalledWith(token);
     expect(screen.queryByRole("heading", { name: /sign in/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "Member" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /linked teams/ })).not.toBeInTheDocument();
@@ -62,14 +62,14 @@ describe("Anonymous member vacation route", () => {
     await screen.findByRole("heading", { name: "Ada" });
     await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
     await userEvent.click(screen.getByRole("button", { name: "2026-11-03" }));
-    loadVacation.mockResolvedValue({
+    loadVacationLink.mockResolvedValue({
       member,
       members: [member],
-      availability: [{ member_id: "member", date: "2026-11-02", is_working: false }],
+      vacations: [{ member_id: "member", date: "2026-11-02", is_working: false }],
     });
     await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
     await waitFor(() =>
-      expect(saveVacation).toHaveBeenCalledWith(token, "2026-11-02", "2026-11-03", false)
+      expect(saveVacationLink).toHaveBeenCalledWith(token, "2026-11-02", "2026-11-03", false)
     );
     expect(await screen.findByLabelText("Ada: vacation")).toBeInTheDocument();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
@@ -82,19 +82,19 @@ describe("Anonymous member vacation route", () => {
       "aria-pressed",
       "true"
     );
-    expect(clearVacation).not.toHaveBeenCalled();
+    expect(clearVacationLink).not.toHaveBeenCalled();
   });
   it("rejects malformed routes and invalid capabilities explicitly instead of showing login", async () => {
     open("/vacations/not-a-token");
     expect(await screen.findByRole("alert")).toHaveTextContent("Invalid vacation link");
-    expect(loadVacation).not.toHaveBeenCalled();
+    expect(loadVacationLink).not.toHaveBeenCalled();
   });
   it("surfaces remote invalid-link and save errors", async () => {
-    loadVacation.mockRejectedValueOnce(new Error("Invalid vacation link"));
+    loadVacationLink.mockRejectedValueOnce(new Error("Invalid vacation link"));
     const first = open();
     expect(await screen.findByRole("alert")).toHaveTextContent("Invalid vacation link");
     first.unmount();
-    saveVacation.mockRejectedValueOnce(new Error("Availability could not be saved"));
+    saveVacationLink.mockRejectedValueOnce(new Error("Availability could not be saved"));
     open();
     await screen.findByRole("heading", { name: "Ada" });
     await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
@@ -105,14 +105,14 @@ describe("Anonymous member vacation route", () => {
   it("does not bypass authentication on the normal vacations page", () => {
     open("/vacations");
     expect(screen.getByRole("status")).toBeInTheDocument();
-    expect(loadVacation).not.toHaveBeenCalled();
+    expect(loadVacationLink).not.toHaveBeenCalled();
   });
   it("shows teammates' vacation names and initials but never exposes their edit controls", async () => {
     const grace = { id: "grace", name: "Grace", role: "frontend" };
-    loadVacation.mockResolvedValue({
+    loadVacationLink.mockResolvedValue({
       member,
       members: [member, grace],
-      availability: [
+      vacations: [
         { member_id: "grace", date: "2026-11-02", is_working: false },
         { member_id: "member", date: "2026-11-03", is_working: false },
       ],
@@ -131,7 +131,12 @@ describe("Anonymous member vacation route", () => {
     await userEvent.click(screen.getByRole("button", { name: "2026-11-02" }));
     await userEvent.click(screen.getByRole("button", { name: "Working Day" }));
     await waitFor(() =>
-      expect(saveVacation).toHaveBeenCalledExactlyOnceWith(token, "2026-11-02", "2026-11-02", true)
+      expect(saveVacationLink).toHaveBeenCalledExactlyOnceWith(
+        token,
+        "2026-11-02",
+        "2026-11-02",
+        true
+      )
     );
   });
 });

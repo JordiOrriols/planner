@@ -691,7 +691,7 @@
       "title": "Team Ladders"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacanze",
       "workingDay": "Giorno lavorativo"

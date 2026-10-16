@@ -45,7 +45,7 @@ export interface LaddersTeam {
 }
 export type LinkedTeam = Pick<LaddersTeam, "id" | "name">;
 export type WorkspaceAccess = "viewer" | "editor";
-export interface Availability {
+export interface Vacation {
   member_id: string;
   date: string;
   is_working: boolean;

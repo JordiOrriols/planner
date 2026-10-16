@@ -31,7 +31,7 @@ function setup(history: SprintResult[] = [], hasMembers = true) {
             ]
           : []
       }
-      availability={[]}
+      vacations={[]}
       onSave={onSave}
       onClose={onClose}
     />

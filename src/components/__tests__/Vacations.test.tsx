@@ -7,18 +7,18 @@ import Vacations from "@/pages/vacations";
 import TeamConfiguration from "@/pages/team-configuration";
 
 const {
-  setAvailability,
-  clearAvailability,
+  setVacations,
+  clearVacation,
   setSprintCalibration,
   setWorkspaceTeams,
   listTeams,
   refresh,
   state,
 } = vi.hoisted(() => ({
-  setAvailability: vi.fn(),
+  setVacations: vi.fn(),
   setWorkspaceTeams: vi.fn(),
   listTeams: vi.fn(),
-  clearAvailability: vi.fn(),
+  clearVacation: vi.fn(),
   setSprintCalibration: vi.fn(),
   refresh: vi.fn(),
   state: { canEdit: true, isOwner: false },
@@ -26,8 +26,8 @@ const {
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({
     repository: {
-      setAvailability,
-      clearAvailability,
+      setVacations,
+      clearVacation,
       setSprintCalibration,
       setWorkspaceTeams,
       listTeams,
@@ -55,7 +55,7 @@ vi.mock("@/data/WorkspaceProvider", () => ({
       },
     ],
     linkedTeams: [{ id: "team", name: "Team" }],
-    availability: [{ member_id: "grace", date: "2026-11-02", is_working: false }],
+    vacations: [{ member_id: "grace", date: "2026-11-02", is_working: false }],
     workspace: { id: "workspace", sprint_start_date: "2026-02-02", sprint_history: [] },
     isOwner: state.isOwner,
     canEdit: state.canEdit,
@@ -73,7 +73,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 10, 1));
   state.canEdit = true;
   state.isOwner = false;
-  setAvailability.mockResolvedValue(undefined);
+  setVacations.mockResolvedValue(undefined);
   setWorkspaceTeams.mockResolvedValue(undefined);
   listTeams.mockResolvedValue([]);
   refresh.mockResolvedValue(undefined);
@@ -154,19 +154,14 @@ describe("Team vacations shared editor", () => {
     await userEvent.click(screen.getByRole("button", { name: "2026-11-04" }));
     await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(setAvailability).toHaveBeenCalledExactlyOnceWith(
-      "ada",
-      "2026-11-02",
-      "2026-11-04",
-      false
-    );
+    expect(setVacations).toHaveBeenCalledExactlyOnceWith("ada", "2026-11-02", "2026-11-04", false);
     expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
     await userEvent.click(screen.getByRole("button", { name: "Working Day" }));
     await waitFor(() =>
-      expect(setAvailability).toHaveBeenLastCalledWith("ada", "2026-11-02", "2026-11-04", true)
+      expect(setVacations).toHaveBeenLastCalledWith("ada", "2026-11-02", "2026-11-04", true)
     );
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Member" }), "grace");
     expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
@@ -182,7 +177,7 @@ describe("Team vacations shared editor", () => {
     expect(screen.getByRole("button", { name: "2026-11-02" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
-    expect(setAvailability).not.toHaveBeenCalled();
+    expect(setVacations).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
   });
 });

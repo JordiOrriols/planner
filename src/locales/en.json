@@ -691,7 +691,7 @@
       "title": "Ladders teams"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacations",
       "workingDay": "Working Day"

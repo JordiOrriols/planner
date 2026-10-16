@@ -56,7 +56,7 @@ const projectSchema = z.object({
   workspace_id: z.string().uuid(),
   name: z.string(),
 });
-const availabilitySchema = z.object({
+const vacationSchema = z.object({
   member_id: z.string().uuid(),
   date: z.string(),
   is_working: z.boolean(),
@@ -181,10 +181,10 @@ export function createPlannerRepository(client: SupabaseClient) {
         rpc("planner_can_edit_workspace", { workspace }).then((value) => z.boolean().parse(value)),
       ]);
       const ids = new Set(members.map((member) => member.id));
-      const availability = (await list("vacations", availabilitySchema)).filter((item) =>
+      const vacations = (await list("vacations", vacationSchema)).filter((item) =>
         ids.has(item.member_id)
       );
-      return { features, projects, members, availability, linkedTeams, canEdit };
+      return { features, projects, members, vacations, linkedTeams, canEdit };
     },
     async saveFeature(workspace: string, input: FeatureInput, id?: string) {
       validateFeature(input);
@@ -257,9 +257,9 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     reorder: (workspace: string, ids: string[]) =>
       rpc("planner_reorder_features", { workspace, feature_ids: ids }),
-    setAvailability: (member: string, start: string, end: string, working: boolean) =>
+    setVacations: (member: string, start: string, end: string, working: boolean) =>
       rpc("planner_set_vacations", { member, start_date: start, end_date: end, working }),
-    async clearAvailability(member: string, date: string) {
+    async clearVacation(member: string, date: string) {
       const { error } = await client
         .from("vacations")
         .delete()
@@ -267,21 +267,21 @@ export function createPlannerRepository(client: SupabaseClient) {
         .eq("date", date);
       if (error) throw new Error(error.message, { cause: error });
     },
-    async loadVacation(token: string) {
-      const [identity, members, availability] = await Promise.all([
+    async loadVacationLink(token: string) {
+      const [identity, members, vacations] = await Promise.all([
         rpc("planner_vacation_member", { token }),
         rpcList("planner_vacation_team_members", vacationMemberSchema, { token }),
-        rpcList("planner_vacation_team_list", availabilitySchema, { token }),
+        rpcList("planner_vacation_team_list", vacationSchema, { token }),
       ]);
       const member = z.array(vacationMemberSchema).parse(identity)[0];
       if (!member) throw new Error(i18n.t("vacationLink.errors.invalidLink"));
       if (!members.some((item) => item.id === member.id))
         throw new Error(i18n.t("vacationLink.errors.missingMember"));
-      return { member, members, availability };
+      return { member, members, vacations };
     },
-    saveVacation: (token: string, start: string, end: string, working: boolean) =>
+    saveVacationLink: (token: string, start: string, end: string, working: boolean) =>
       rpc("planner_vacation_save", { token, start_date: start, end_date: end, working }),
-    clearVacation: (token: string, date: string) =>
+    clearVacationLink: (token: string, date: string) =>
       rpc("planner_vacation_clear", { token, day: date }),
   };
 }

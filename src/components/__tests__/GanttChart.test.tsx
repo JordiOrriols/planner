@@ -329,14 +329,14 @@ describe("role-aware Gantt allocations", () => {
       qa_devs: 1,
       qa_weeks: 1,
     };
-    const availability = members.flatMap((member) =>
+    const vacations = members.flatMap((member) =>
       ["2026-02-07", "2026-02-08"].map((date) => ({
         member_id: member.id,
         date,
         is_working: true,
       }))
     );
-    const result = computeSchedule([feature], members, availability, parseISO("2026-02-02"), 3);
+    const result = computeSchedule([feature], members, vacations, parseISO("2026-02-02"), 3);
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
     const design = screen.getByRole("img", { name: /^Mixed · Design:/ });
     const backend = screen.getAllByRole("img", { name: /^Mixed · Backend:/ })[0]!;

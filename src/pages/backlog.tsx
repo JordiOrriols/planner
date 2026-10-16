@@ -13,7 +13,7 @@ import { useData } from "@/data/DataProvider";
 export default function Backlog() {
   const { t } = useTranslation();
 
-  const { features, projects, members, availability, workspace, canEdit, refresh } = useWorkspace();
+  const { features, projects, members, vacations, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export default function Backlog() {
   let result: ReturnType<typeof computeSchedule> | null = null;
   let error: string | null = null;
   try {
-    result = computeSchedule(backlog, members, availability, parseDate(startDate));
+    result = computeSchedule(backlog, members, vacations, parseDate(startDate));
   } catch (cause) {
     error = cause instanceof Error ? cause.message : String(cause);
   }

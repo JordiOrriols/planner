@@ -691,7 +691,7 @@
       "title": "Équipes Ladders"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacances",
       "workingDay": "Jour travaillé"

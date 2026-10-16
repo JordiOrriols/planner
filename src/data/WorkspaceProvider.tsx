@@ -10,7 +10,7 @@ import {
   type Feature,
   type Project,
   type PlannerMember,
-  type Availability,
+  type Vacation,
   type LinkedTeam,
 } from "@/types/planner";
 
@@ -20,7 +20,7 @@ interface WorkspaceContextValue {
   features: Feature[];
   projects: Project[];
   members: PlannerMember[];
-  availability: Availability[];
+  vacations: Vacation[];
   linkedTeams: LinkedTeam[];
   isOwner: boolean;
   canEdit: boolean;

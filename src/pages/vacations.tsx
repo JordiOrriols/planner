@@ -1,14 +1,14 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import VacationCalendar from "@/components/organisms/vacation-calendar";
-import { AvailabilityEditor } from "@/components/organisms/availability-editor";
+import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 import SquadVelocity from "@/components/organisms/squad-velocity";
 
 export default function Vacations() {
   const { t } = useTranslation();
-  const { members, linkedTeams, availability, refresh, workspace, canEdit } = useWorkspace();
+  const { members, linkedTeams, vacations, refresh, workspace, canEdit } = useWorkspace();
   const { repository } = useData();
   const [selected, setSelected] = useState("");
   const selectedMember = members.find((member) => member.id === selected) ?? members[0];
@@ -26,7 +26,7 @@ export default function Vacations() {
       <SquadVelocity
         members={assignable}
         linkedTeams={linkedTeams}
-        availability={availability}
+        vacations={vacations}
         startDate={new Date()}
         sprintStart={workspace.sprint_start_date}
         history={workspace.sprint_history}
@@ -58,16 +58,16 @@ export default function Vacations() {
                 ))}
               </select>
             </label>
-            <AvailabilityEditor
+            <VacationEditor
               key={selectedMember.id}
               member={selectedMember}
               members={members}
-              availability={availability}
+              vacations={vacations}
               month={month}
               onMonthChange={setMonth}
               canEdit={selectedMember.can_edit}
               save={async (start, end, working) => {
-                await repository.setAvailability(selectedMember.id, start, end, working);
+                await repository.setVacations(selectedMember.id, start, end, working);
                 await refresh();
               }}
             />
@@ -77,7 +77,7 @@ export default function Vacations() {
             month={month}
             onMonthChange={setMonth}
             teamMembers={members}
-            availability={availability}
+            vacations={vacations}
             selectedMember=""
             onSelectRange={() => {}}
             disabled

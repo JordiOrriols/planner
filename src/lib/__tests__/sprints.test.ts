@@ -47,19 +47,21 @@ describe("Two-week sprint forecasts", () => {
 
   it("counts vacations, holidays and working overrides but not unassigned members", () => {
     expect(sprintCapacity(members, [], parseDate("2026-02-02"))).toBe(4);
-    const availability = [
+    const vacations = [
       { member_id: "back", date: "2026-02-02", is_working: false },
       { member_id: "front", date: "2026-02-07", is_working: true },
       { member_id: "back", date: "2026-02-03", is_working: false },
     ];
-    expect(sprintCapacity(members, availability, parseDate("2026-02-02"))).toBe(3.8);
+    expect(sprintCapacity(members, vacations, parseDate("2026-02-02"))).toBe(3.8);
     expect(sprintCapacity(members, [], parseDate("2026-12-21"))).toBe(3.2);
   });
 
   it("uses total points / total person-weeks, not an unweighted mean", () => {
-    const availability = ["02", "03", "04", "05", "06", "09", "10", "11", "12", "13"].map(
-      (day) => ({ member_id: "back", date: `2026-02-${day}`, is_working: false })
-    );
+    const vacations = ["02", "03", "04", "05", "06", "09", "10", "11", "12", "13"].map((day) => ({
+      member_id: "back",
+      date: `2026-02-${day}`,
+      is_working: false,
+    }));
     const rate = calibratedRate(
       "2026-02-02",
       [
@@ -67,7 +69,7 @@ describe("Two-week sprint forecasts", () => {
         { start_date: "2026-02-16", story_points: 30 },
       ],
       members,
-      availability
+      vacations
     );
     expect(rate).toBeCloseTo(80 / 6);
     expect(rate! * sprintCapacity(members, [], parseDate("2026-03-02"))).toBeCloseTo(53.3333);
