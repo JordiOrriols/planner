@@ -570,7 +570,8 @@
       "effort": "Impegno",
       "peakTeam": "Picco del team"
     },
-    "noEstimates": "Nessuna stima"
+    "noEstimates": "Nessuna stima",
+    "roleEffort": "Impegno per area"
   },
   "roadmap": {
     "actions": {

@@ -60,7 +60,14 @@ describe("Feature estimate breakdown", () => {
           .getAllByText(t("common.units.personWeeksShort"))
           .filter((element) => !element.closest("[hidden]"))
       ).toHaveLength(5);
+      const roleEffort = within(card).getByRole("group", { name: t("featureCard.roleEffort") });
+      expect(within(roleEffort).queryByText(t("featureCard.metrics.peakTeam"))).toBeNull();
+      for (const role of ROLES)
+        expect(roleEffort).toHaveTextContent(
+          `${t(`planningRoles.${role}`)}${project[`${role}_devs`] * project[`${role}_weeks`]}`
+        );
       await userEvent.click(toggle);
+      expect(within(card).queryByRole("group", { name: t("featureCard.roleEffort") })).toBeNull();
       expect(toggle).toHaveAttribute("aria-expanded", "true");
       for (const role of ROLES) {
         const area = within(card).getByRole("region", { name: t(`planningRoles.${role}`) });

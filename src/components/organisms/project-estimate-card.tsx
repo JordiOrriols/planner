@@ -107,15 +107,30 @@ export default function ProjectEstimateCard({
           value={`${dw}`}
           sub={t("common.units.personWeeksShort")}
         />
-        {!expanded && (
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
+        {!expanded && activeRoles.length > 0 && (
+          <div
+            role="group"
+            aria-label={t("featureCard.roleEffort")}
+            className="flex w-full flex-wrap gap-x-5 gap-y-2 border-t border-border pt-3 sm:w-auto sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0"
+          >
             {activeRoles.map((role) => (
-              <Stat
-                key={role}
-                label={ROLE_LABELS[role]}
-                value={`${project[`${role}_devs`] * project[`${role}_weeks`]}`}
-                sub={t("common.units.personWeeksShort")}
-              />
+              <div key={role}>
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span
+                    data-role-swatch={role}
+                    className={cn("size-2 rounded-full", ROLE_COLORS[role].className)}
+                  />
+                  {ROLE_LABELS[role]}
+                </div>
+                <div className="mt-0.5 flex items-baseline gap-1 pl-3.5">
+                  <span className="text-sm font-medium tabular-nums">
+                    {project[`${role}_devs`] * project[`${role}_weeks`]}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {t("common.units.personWeeksShort")}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         )}

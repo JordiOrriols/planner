@@ -571,7 +571,8 @@
       "effort": "Esforç",
       "peakTeam": "Equip màxim"
     },
-    "noEstimates": "Encara no hi ha estimacions"
+    "noEstimates": "Encara no hi ha estimacions",
+    "roleEffort": "Esforç per àrea"
   },
   "roadmap": {
     "actions": {

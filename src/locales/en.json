@@ -570,7 +570,8 @@
       "effort": "Effort",
       "peakTeam": "Peak team"
     },
-    "noEstimates": "No estimates yet"
+    "noEstimates": "No estimates yet",
+    "roleEffort": "Effort by role"
   },
   "roadmap": {
     "actions": {

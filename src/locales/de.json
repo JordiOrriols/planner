@@ -570,7 +570,8 @@
       "effort": "Aufwand",
       "peakTeam": "Maximale Teamgröße"
     },
-    "noEstimates": "Noch keine Schätzungen"
+    "noEstimates": "Noch keine Schätzungen",
+    "roleEffort": "Aufwand nach Bereich"
   },
   "roadmap": {
     "actions": {
