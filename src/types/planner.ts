@@ -50,10 +50,6 @@ export interface Availability {
   date: string;
   is_working: boolean;
 }
-export interface Invitation {
-  member_id: string;
-  workspace_name: string;
-}
 export const EMPTY_PROJECT: ProjectInput = {
   name: "",
   description: "",
