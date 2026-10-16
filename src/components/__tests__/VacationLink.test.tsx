@@ -12,7 +12,7 @@ const { loadVacationLink, saveVacationLink, clearVacationLink } = vi.hoisted(() 
   saveVacationLink: vi.fn(),
   clearVacationLink: vi.fn(),
 }));
-vi.mock("@/data/supabaseClient", () => ({ supabase: {} }));
+vi.mock("@/data/supabaseClient", () => ({ supabase: {}, authCallback: null }));
 vi.mock("@/data/plannerRepository", () => ({
   createPlannerRepository: () => ({ loadVacationLink, saveVacationLink, clearVacationLink }),
 }));

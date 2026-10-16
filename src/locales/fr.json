@@ -402,7 +402,8 @@
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
     "checkEmail": "Consultez votre e-mail pour confirmer votre compte.",
     "switchToSignUp": "Pas de compte ? Créez-en un",
-    "switchToSignIn": "Vous avez déjà un compte ? Connectez-vous"
+    "switchToSignIn": "Vous avez déjà un compte ? Connectez-vous",
+    "linkFailed": "Ce lien n'a pas fonctionné : {{message}}. Demandez-en un nouveau depuis Se connecter."
   },
   "pageMessage": {
     "notFound": "Ce lien n’est pas valide ou n’est plus disponible.",

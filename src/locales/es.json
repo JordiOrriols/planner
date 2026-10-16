@@ -403,7 +403,8 @@
     "passwordsDoNotMatch": "Las contraseñas no coinciden.",
     "checkEmail": "Revise su email para confirmar la cuenta.",
     "switchToSignUp": "¿No tiene cuenta? Cree una",
-    "switchToSignIn": "¿Ya tiene cuenta? Inicie sesión"
+    "switchToSignIn": "¿Ya tiene cuenta? Inicie sesión",
+    "linkFailed": "Este enlace no ha funcionado: {{message}}. Pide uno nuevo desde Iniciar sesión."
   },
   "pageMessage": {
     "notFound": "Este enlace no es válido o ya no está disponible.",

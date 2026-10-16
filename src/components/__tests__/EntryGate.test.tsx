@@ -12,6 +12,7 @@ const { dataState } = vi.hoisted(() => ({
     user: null as { id: string } | null,
     loading: false,
     authEnabled: true,
+    linkError: null as string | null,
     signIn: vi.fn(),
     signUp: vi.fn(),
   },
@@ -36,7 +37,16 @@ describe("EntryGate", () => {
     dataState.user = null;
     dataState.loading = false;
     dataState.authEnabled = true;
+    dataState.linkError = null;
     vi.clearAllMocks();
+  });
+
+  it("says why a sign-in link did not work on the welcome page", () => {
+    dataState.linkError = "Email link is invalid or has expired";
+    renderGate();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "This link did not work: Email link is invalid or has expired. Ask for a new one from Sign in."
+    );
   });
 
   it("offers account access on an owned route", () => {
