@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { applyMigrations, createMigratedDatabase } from "./support/migratedDatabase";
 
 const SHARED_WORKSPACES = "20261016180000_shared_workspaces.sql";
+const SETTINGS_ON_WORKSPACES = "20261016210000_planner_settings_live_on_workspaces.sql";
 const owner = "11111111-1111-4111-8111-111111111111";
 const stranger = "33333333-3333-4333-8333-333333333333";
 const accounts = [
@@ -88,9 +89,7 @@ describe("Shared workspaces migration", () => {
     const planner = (await value<string>(
       "select (public.planner_create_linked_workspace('Roadmap')).id as value"
     ))!;
-    await db.query("update public.planner_workspaces set name = 'Roadmap 2027' where id = $1", [
-      planner,
-    ]);
+    await db.query("update public.workspaces set name = 'Roadmap 2027' where id = $1", [planner]);
 
     const owned = await db.query<{ name: string }>(
       "select name from public.workspaces order by name"
@@ -181,5 +180,119 @@ describe("Shared workspaces migration", () => {
 
     await db.query("delete from public.teams where id = $1", [backend]);
     expect(await workspaceNames()).toEqual(["Default Team", "Digital", "Frontend"]);
+  });
+
+  it("carries Planner settings onto workspaces and marks the ones that only held a team", async () => {
+    db = await createMigratedDatabase(accounts, { until: SETTINGS_ON_WORKSPACES });
+    await login(owner);
+    await createTeam("Lead");
+    const roadmap = (await value<string>(
+      "select (public.planner_create_linked_workspace('Roadmap')).id as value"
+    ))!;
+    await db.query(
+      `update public.planner_workspaces set plan_start_date = '2026-03-02',
+         sprint_start_date = '2026-02-02',
+         sprint_history = '[{"start_date":"2026-02-16","story_points":30}]'
+       where id = $1`,
+      [roadmap]
+    );
+
+    await login(null, "postgres");
+    await applyMigrations(db, { from: SETTINGS_ON_WORKSPACES });
+
+    expect(
+      (
+        await db.query(
+          `select name, plan_start_date::text, sprint_start_date::text, sprint_history,
+             created_for_team from public.workspaces where owner_id = $1 order by name`,
+          [owner]
+        )
+      ).rows
+    ).toMatchObject([
+      { name: "Default Team", created_for_team: true },
+      { name: "Lead", created_for_team: true },
+      {
+        name: "Roadmap",
+        plan_start_date: "2026-03-02",
+        sprint_start_date: "2026-02-02",
+        sprint_history: [{ start_date: "2026-02-16", story_points: 30 }],
+        created_for_team: false,
+      },
+    ]);
+    expect(
+      await value<string | null>("select to_regclass('public.planner_workspaces')::text as value")
+    ).toBeNull();
+  });
+
+  it("lists team workspaces for planning and keeps one that holds a plan after its team leaves", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const lead = await createTeam("Lead");
+    const leadWorkspace = (await value<string>(
+      "select workspace_id::text as value from public.teams where id = $1",
+      [lead]
+    ))!;
+    await db.query("update public.workspaces set plan_start_date = '2026-03-02' where id = $1", [
+      leadWorkspace,
+    ]);
+    await db.query("insert into public.features(workspace_id, name) values($1, 'Hiring')", [
+      leadWorkspace,
+    ]);
+    const roadmap = (await value<string>(
+      "select (public.planner_create_linked_workspace('Roadmap')).id as value"
+    ))!;
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [roadmap, [lead]]);
+
+    expect(
+      (
+        await db.query("select name, plan_start_date::text from public.workspaces where id = $1", [
+          leadWorkspace,
+        ])
+      ).rows
+    ).toEqual([{ name: "Lead", plan_start_date: "2026-03-02" }]);
+    await expect(
+      db.query("update public.workspaces set created_for_team = false where id = $1", [
+        leadWorkspace,
+      ])
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("moves the teams of a deleted workspace into workspaces of their own", async () => {
+    db = await createMigratedDatabase(accounts);
+    await login(owner);
+    const [backend, frontend] = [await createTeam("Backend"), await createTeam("Frontend")];
+    const digital = (await value<string>(
+      "select (public.planner_create_linked_workspace('Digital')).id as value"
+    ))!;
+    await db.query("select public.planner_set_workspace_teams($1,$2)", [
+      digital,
+      [backend, frontend],
+    ]);
+    await db.query("insert into public.features(workspace_id, name) values($1, 'Checkout')", [
+      digital,
+    ]);
+
+    expect(
+      (await db.query("delete from public.workspaces where id = $1 returning id", [digital])).rows
+    ).toEqual([{ id: digital }]);
+    expect(
+      (
+        await db.query(
+          `select t.name as team, w.name as workspace, w.created_for_team
+           from public.teams t join public.workspaces w on w.id = t.workspace_id
+           where t.id = any($1) order by t.name`,
+          [[backend, frontend]]
+        )
+      ).rows
+    ).toEqual([
+      { team: "Backend", workspace: "Backend", created_for_team: true },
+      { team: "Frontend", workspace: "Frontend", created_for_team: true },
+    ]);
+    expect((await db.query("select id from public.features")).rows).toEqual([]);
+
+    await login(stranger);
+    await expect(
+      db.query("delete from public.workspaces where owner_id = $1 returning id", [owner])
+    ).resolves.toMatchObject({ rows: [] });
   });
 });

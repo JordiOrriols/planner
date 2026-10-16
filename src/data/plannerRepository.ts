@@ -126,7 +126,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     }
   }
   return {
-    listWorkspaces: () => list("planner_workspaces", workspaceSchema),
+    listWorkspaces: () => list("workspaces", workspaceSchema),
     listWorkspaceShares: (workspace: string) =>
       rpcList("planner_list_workspace_shares", workspaceShareSchema, { workspace }),
     shareWorkspace: (workspace: string, email: string, access: WorkspaceAccess) =>
@@ -139,7 +139,7 @@ export function createPlannerRepository(client: SupabaseClient) {
       parseDate(date);
       if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));
       const { data, error } = await client
-        .from("planner_workspaces")
+        .from("workspaces")
         .update({ plan_start_date: date })
         .eq("id", workspace)
         .select("*")
@@ -150,7 +150,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     async setSprintCalibration(workspace: string, anchor: string, history: SprintResult[]) {
       validateSprintSettings(anchor, history);
       const { data, error } = await client
-        .from("planner_workspaces")
+        .from("workspaces")
         .update({ sprint_start_date: anchor, sprint_history: history })
         .eq("id", workspace)
         .select("*")

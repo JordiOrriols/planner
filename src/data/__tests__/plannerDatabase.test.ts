@@ -27,7 +27,7 @@ beforeAll(async () => {
   ]);
 });
 beforeEach(async () => {
-  await db.exec("reset role; delete from public.planner_workspaces");
+  await db.exec("reset role; delete from public.workspaces");
   await login(owner);
   const created = await db.query<{ id: string }>(
     "select id from public.planner_create_linked_workspace('Squad')"
@@ -43,20 +43,19 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     expect(
       (
         await db.query<{ same_day: boolean }>(
-          "select plan_start_date=current_date as same_day from public.planner_workspaces where id=$1",
+          "select plan_start_date=current_date as same_day from public.workspaces where id=$1",
           [workspace]
         )
       ).rows[0]!.same_day
     ).toBe(true);
-    await db.query(
-      "update public.planner_workspaces set plan_start_date='2026-02-02' where id=$1",
-      [workspace]
-    );
+    await db.query("update public.workspaces set plan_start_date='2026-02-02' where id=$1", [
+      workspace,
+    ]);
     await shareWithTeammate("viewer");
     await login(teammate);
     expect(
       (
-        await db.query("select plan_start_date::text from public.planner_workspaces where id=$1", [
+        await db.query("select plan_start_date::text from public.workspaces where id=$1", [
           workspace,
         ])
       ).rows
@@ -64,7 +63,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     expect(
       (
         await db.query(
-          "update public.planner_workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
+          "update public.workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
           [workspace]
         )
       ).rows
@@ -73,7 +72,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     expect(
       (
         await db.query(
-          "update public.planner_workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
+          "update public.workspaces set plan_start_date='2026-03-02' where id=$1 returning id",
           [workspace]
         )
       ).rows
@@ -81,13 +80,13 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     await login(owner);
     expect(
       (
-        await db.query("select plan_start_date::text from public.planner_workspaces where id=$1", [
+        await db.query("select plan_start_date::text from public.workspaces where id=$1", [
           workspace,
         ])
       ).rows
     ).toEqual([{ plan_start_date: "2026-02-02" }]);
     await expect(
-      db.query("update public.planner_workspaces set plan_start_date=null where id=$1", [workspace])
+      db.query("update public.workspaces set plan_start_date=null where id=$1", [workspace])
     ).rejects.toThrow(/null/);
   });
   it("defaults delivery to false and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
@@ -167,7 +166,9 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       workspace,
     ]);
     await login(stranger);
-    expect((await db.query("select * from public.planner_workspaces")).rows).toHaveLength(0);
+    expect(
+      (await db.query("select * from public.workspaces where id=$1", [workspace])).rows
+    ).toHaveLength(0);
     expect((await db.query("select * from public.features")).rows).toHaveLength(0);
     await expect(
       db.query("insert into public.features(workspace_id,name) values($1,'Bad')", [workspace])
@@ -175,9 +176,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
   });
   it("denies anonymous access and refuses unverified workspace creation", async () => {
     await db.exec("reset role; set role anon");
-    await expect(db.query("select * from public.planner_workspaces")).rejects.toThrow(
-      /permission denied/
-    );
+    await expect(db.query("select * from public.workspaces")).rejects.toThrow(/permission denied/);
     await expect(
       db.query("select public.planner_list_workspace_shares($1)", [workspace])
     ).rejects.toThrow(/permission denied/);

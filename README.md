@@ -307,6 +307,21 @@ project with approval:
    linked-team editing permissions.
 9. `20261016092000_planner_restore_working_calendar.sql`: changes Working Day
    saves to remove vacations while preserving the default calendar. Applied with approval.
+10. `20261016110000_planner_sprint_calibration.sql`: sprint start and delivered
+    story points per sprint for the squad velocity forecast.
+11. `20261016130000_planner_main_projects.sql`: main projects that group features.
+12. `20261016170000_planner_drop_legacy_members.sql`: drops the unused
+    `planner_members` and `planner_availability` tables.
+13. `20261016180000_shared_workspaces.sql`: shared `workspaces` table; every team
+    lives in exactly one workspace (`teams.workspace_id`).
+14. `20261016190000_planner_rename_features_projects_vacations.sql`: renames
+    `planner_projects` → `features`, `planner_main_projects` → `projects` and
+    `planner_team_availability` → `vacations`.
+15. `20261016200000_planner_teams_live_in_workspaces.sql`: choosing a team moves it
+    into the workspace; drops `planner_workspace_teams`.
+16. `20261016210000_planner_settings_live_on_workspaces.sql`: plan and sprint
+    settings move onto `workspaces` and `planner_workspaces` is dropped. Deleting a
+    workspace moves its teams into workspaces of their own.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

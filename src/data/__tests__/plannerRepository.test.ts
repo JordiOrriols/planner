@@ -89,7 +89,7 @@ describe("Planner repository", () => {
       ...workspace,
       plan_start_date: "2026-02-02",
     });
-    expect(String(fetch.mock.calls[0]?.[0])).toContain(`/planner_workspaces?id=eq.${workspace.id}`);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`/workspaces?id=eq.${workspace.id}`);
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       plan_start_date: "2026-02-02",
     });
