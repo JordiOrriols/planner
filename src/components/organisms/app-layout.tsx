@@ -16,6 +16,7 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { ShareWorkspaceDialog } from "@/components/molecules/ShareWorkspaceDialog";
+import { AppIcon } from "@/components/atoms/AppIcon";
 
 const NAV = [
   { to: "/", key: "estimation", icon: Calculator, end: true },
@@ -34,9 +35,10 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       <AppHeader
         projectId="planner"
+        projectSwitcherLabel={t("planner.switchProject")}
         title={t("planner.name")}
         subtitle={t("planner.subtitle")}
-        icon={<GanttChartSquare className="cadence-icon" />}
+        icon={<AppIcon />}
         actions={
           <LanguageSelector
             value={i18n.language}

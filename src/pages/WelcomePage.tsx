@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarDays, Calculator, GanttChartSquare } from "@jordiorriols/ui/icons";
 import { LoginDialog } from "@/components/molecules/LoginDialog";
 import { useData } from "@/data/DataProvider";
+import { AppIcon } from "@/components/atoms/AppIcon";
 
 export function WelcomePage() {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export function WelcomePage() {
   return (
     <WelcomeScreen
       brand={t("planner.brand")}
-      icon={<GanttChartSquare className="cadence-icon" />}
+      icon={<AppIcon />}
       title={t("planner.welcome.title")}
       description={t("planner.welcome.description")}
       features={[
