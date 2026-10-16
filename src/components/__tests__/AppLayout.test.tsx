@@ -49,4 +49,17 @@ describe("Planner shared project navigation", () => {
     expect(trigger).toHaveFocus();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
+
+  it("uses the shared page canvas behind the white header and page body", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <I18nextProvider i18n={i18n}>
+          <AppLayout />
+        </I18nextProvider>
+      </MemoryRouter>
+    );
+    expect(container.firstElementChild).toHaveClass("min-h-screen", "bg-page");
+    expect(screen.getByRole("banner")).toHaveClass("bg-background");
+    expect(screen.getByRole("main")).toHaveClass("mx-auto", "max-w-7xl");
+  });
 });

@@ -12,8 +12,10 @@ import {
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import {
   AppHeader,
+  AppMain,
   AppNavigation,
   AppNavigationItem,
+  AppPage,
   Button,
   LanguageSelector,
   buttonVariants,
@@ -40,7 +42,7 @@ export default function AppLayout() {
   const [sharing, setSharing] = useState(false);
   const action = useAsyncAction();
   return (
-    <div className="min-h-screen bg-background">
+    <AppPage>
       <AppHeader
         projectId="planner"
         projectSwitcherLabel={t("planner.switchProject")}
@@ -144,7 +146,7 @@ export default function AppLayout() {
           </AppNavigation>
         }
       />
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <AppMain>
         {action.error && (
           <p role="alert" className="px-6 text-destructive">
             {action.error}
@@ -152,7 +154,7 @@ export default function AppLayout() {
         )}
         <Outlet />
         {isOwner && sharing && <ShareWorkspaceDialog onClose={() => setSharing(false)} />}
-      </main>
-    </div>
+      </AppMain>
+    </AppPage>
   );
 }
