@@ -68,6 +68,22 @@ beforeEach(() => {
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
+  it("uses identical label and value layout for every roadmap summary card", () => {
+    renderBacklog();
+    const cards = ["Squad size", "Plan starts", "Roadmap finishes"].map((name) =>
+      screen.getByRole("region", { name })
+    );
+    const first = cards[0]!;
+    for (const card of cards) {
+      expect(card.className).toBe(first.className);
+      expect(card.firstElementChild?.className).toBe(first.firstElementChild?.className);
+      expect(within(card).getByRole("heading", { level: 2 }).className).toBe(
+        within(first).getByRole("heading", { level: 2 }).className
+      );
+      expect(card.lastElementChild?.className).toBe(first.lastElementChild?.className);
+    }
+  });
+
   it("groups prioritized features in roadmap order before the unprioritized backlog", () => {
     const base = state.projects[0]!;
     state.projects = [

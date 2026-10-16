@@ -1,6 +1,6 @@
 import React, { type ReactNode } from "react";
 
-export function PlanDateCard({
+export function PlanSummaryCard({
   label,
   value,
   action,

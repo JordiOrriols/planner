@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, EmptyState, Modal } from "@jordiorriols/ui";
 import { GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
-import { PlanDateCard } from "@/components/molecules/plan-date-card";
+import { PlanSummaryCard } from "@/components/molecules/plan-summary-card";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import GanttChart from "@/components/organisms/gantt-chart";
@@ -91,13 +91,11 @@ export default function Backlog() {
         )}
       </div>
       <div className="grid sm:grid-cols-3 gap-3">
-        <div className="panel">
-          <p className="text-xs text-muted-foreground">{t("roadmap.metrics.squadSize")}</p>
-          <p className="font-semibold">
-            {t("roadmap.metrics.peopleCount", { count: members.length })}
-          </p>
-        </div>
-        <PlanDateCard
+        <PlanSummaryCard
+          label={t("roadmap.metrics.squadSize")}
+          value={t("roadmap.metrics.peopleCount", { count: members.length })}
+        />
+        <PlanSummaryCard
           label={t("roadmap.dates.start")}
           value={fmtDate(parseDate(workspace.plan_start_date))}
           action={
@@ -130,8 +128,8 @@ export default function Backlog() {
               onChange={(event) => changeStart(event.target.value)}
             />
           ) : undefined}
-        </PlanDateCard>
-        <PlanDateCard
+        </PlanSummaryCard>
+        <PlanSummaryCard
           label={t("roadmap.dates.finish")}
           value={
             completed.length === backlog.length && finish
