@@ -152,13 +152,16 @@ describe("Planner repository", () => {
       priority: 0,
       delivered: true,
     };
-    fetch.mockResolvedValue(response(project));
+    const { main_project_id: projectId, ...feature } = project;
+    const row = { ...feature, project_id: projectId };
+    fetch.mockResolvedValue(response(row));
     expect(await repository.setDelivered(workspace.id, project.id, true)).toEqual(project);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
     const url = String(fetch.mock.calls[0]?.[0]);
     expect(url).toContain(`id=eq.${project.id}`);
     expect(url).toContain(`workspace_id=eq.${workspace.id}`);
-    fetch.mockResolvedValue(response({ ...project, delivered: false }));
+    fetch.mockResolvedValue(response({ ...row, delivered: false }));
     expect((await repository.setDelivered(workspace.id, project.id, false)).delivered).toBe(false);
     fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
     await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow(
@@ -292,10 +295,39 @@ describe("Planner repository", () => {
     expect(fetch).not.toHaveBeenCalled();
     fetch.mockResolvedValue(response(null));
     await repository.reorder(workspace.id, ["one", "two"]);
-    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_reorder_projects");
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rpc/planner_reorder_features");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
       workspace: workspace.id,
-      project_ids: ["one", "two"],
+      feature_ids: ["one", "two"],
     });
+  });
+  it("stores a feature's project as project_id and reads it back as the app's main project", async () => {
+    const { fetch, response, repository } = setup();
+    const project = "33333333-3333-4333-8333-333333333333";
+    const input = { ...EMPTY_PROJECT, name: " Checkout ", main_project_id: project };
+    const { main_project_id: _, ...feature } = input;
+    fetch.mockResolvedValue(
+      response({
+        ...feature,
+        name: "Checkout",
+        project_id: project,
+        id: workspace.owner_id,
+        workspace_id: workspace.id,
+        in_backlog: false,
+        delivered: false,
+        priority: 0,
+      })
+    );
+    const saved = await repository.saveProject(workspace.id, input);
+    expect(saved).toMatchObject({ name: "Checkout", main_project_id: project });
+    expect(saved).not.toHaveProperty("project_id");
+    expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
+    const body = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
+    expect(body).toMatchObject({
+      name: "Checkout",
+      project_id: project,
+      workspace_id: workspace.id,
+    });
+    expect(body).not.toHaveProperty("main_project_id");
   });
 });

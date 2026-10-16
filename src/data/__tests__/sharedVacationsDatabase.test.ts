@@ -124,26 +124,20 @@ describe("Registered-account workspace sharing", () => {
   it("shares main projects with workspace editors and keeps features in their own workspace", async () => {
     const mainProject = (
       await db.query<{ id: string }>(
-        "insert into public.planner_main_projects(workspace_id,name) values($1,'Payments') returning id",
+        "insert into public.projects(workspace_id,name) values($1,'Payments') returning id",
         [workspace]
       )
     ).rows[0]!.id;
     await expect(
-      db.query(
-        "insert into public.planner_main_projects(workspace_id,name) values($1,'payments')",
-        [workspace]
-      )
+      db.query("insert into public.projects(workspace_id,name) values($1,'payments')", [workspace])
     ).rejects.toThrow();
     for (const name of ["", " Padded", "x".repeat(81)])
       await expect(
-        db.query("insert into public.planner_main_projects(workspace_id,name) values($1,$2)", [
-          workspace,
-          name,
-        ])
+        db.query("insert into public.projects(workspace_id,name) values($1,$2)", [workspace, name])
       ).rejects.toThrow();
     const feature = (
       await db.query<{ id: string }>(
-        "insert into public.planner_projects(workspace_id,name,main_project_id) values($1,'Checkout',$2) returning id",
+        "insert into public.features(workspace_id,name,project_id) values($1,'Checkout',$2) returning id",
         [workspace, mainProject]
       )
     ).rows[0]!.id;
@@ -153,10 +147,10 @@ describe("Registered-account workspace sharing", () => {
       )
     ).rows[0]!.id;
     await expect(
-      db.query(
-        "insert into public.planner_projects(workspace_id,name,main_project_id) values($1,'Leak',$2)",
-        [otherWorkspace, mainProject]
-      )
+      db.query("insert into public.features(workspace_id,name,project_id) values($1,'Leak',$2)", [
+        otherWorkspace,
+        mainProject,
+      ])
     ).rejects.toThrow();
 
     await db.query("select public.planner_share_workspace($1,'viewer@example.com','viewer')", [
@@ -164,27 +158,20 @@ describe("Registered-account workspace sharing", () => {
     ]);
     await login(viewer);
     expect(
-      (
-        await db.query("select name from public.planner_main_projects where workspace_id=$1", [
-          workspace,
-        ])
-      ).rows
+      (await db.query("select name from public.projects where workspace_id=$1", [workspace])).rows
     ).toEqual([{ name: "Payments" }]);
     expect(
       (
-        await db.query(
-          "update public.planner_main_projects set name='Renamed' where id=$1 returning id",
-          [mainProject]
-        )
+        await db.query("update public.projects set name='Renamed' where id=$1 returning id", [
+          mainProject,
+        ])
       ).rows
     ).toHaveLength(0);
     await expect(
-      db.query("insert into public.planner_main_projects(workspace_id,name) values($1,'Viewer')", [
-        workspace,
-      ])
+      db.query("insert into public.projects(workspace_id,name) values($1,'Viewer')", [workspace])
     ).rejects.toThrow();
     await login(stranger);
-    expect((await db.query("select id from public.planner_main_projects")).rows).toHaveLength(0);
+    expect((await db.query("select id from public.projects")).rows).toHaveLength(0);
 
     await login(owner);
     await db.query("select public.planner_update_workspace_share($1,$2,'editor')", [
@@ -194,27 +181,18 @@ describe("Registered-account workspace sharing", () => {
     await login(viewer);
     expect(
       (
-        await db.query(
-          "update public.planner_main_projects set name='Billing' where id=$1 returning name",
-          [mainProject]
-        )
-      ).rows
-    ).toEqual([{ name: "Billing" }]);
-    expect(
-      (
-        await db.query("delete from public.planner_main_projects where id=$1 returning id", [
+        await db.query("update public.projects set name='Billing' where id=$1 returning name", [
           mainProject,
         ])
       ).rows
+    ).toEqual([{ name: "Billing" }]);
+    expect(
+      (await db.query("delete from public.projects where id=$1 returning id", [mainProject])).rows
     ).toHaveLength(1);
     expect(
-      (
-        await db.query(
-          "select workspace_id,main_project_id from public.planner_projects where id=$1",
-          [feature]
-        )
-      ).rows
-    ).toEqual([{ workspace_id: workspace, main_project_id: null }]);
+      (await db.query("select workspace_id,project_id from public.features where id=$1", [feature]))
+        .rows
+    ).toEqual([{ workspace_id: workspace, project_id: null }]);
   });
 
   it("rejects invalid, duplicate and off-cadence sprint results in PostgreSQL", async () => {
@@ -314,22 +292,20 @@ describe("Registered-account workspace sharing", () => {
     await login(viewer);
     const project = (
       await db.query<{ id: string }>(
-        "insert into public.planner_projects(workspace_id,name) values($1,'Feature') returning id",
+        "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
       )
     ).rows[0]!.id;
     await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project]);
-    await db.query("select public.planner_reorder_projects($1,$2)", [workspace, [project]]);
-    await db.query(
-      "update public.planner_projects set delivered=true,description='Updated' where id=$1",
-      [project]
-    );
+    await db.query("select public.planner_reorder_features($1,$2)", [workspace, [project]]);
+    await db.query("update public.features set delivered=true,description='Updated' where id=$1", [
+      project,
+    ]);
     expect(
       (
-        await db.query(
-          "select delivered,priority,description from public.planner_projects where id=$1",
-          [project]
-        )
+        await db.query("select delivered,priority,description from public.features where id=$1", [
+          project,
+        ])
       ).rows
     ).toEqual([{ delivered: true, priority: 1, description: "Updated" }]);
     expect(
@@ -358,7 +334,7 @@ describe("Registered-account workspace sharing", () => {
       db.query("select public.planner_update_planning_role($1,'frontend')", [member.id])
     ).rejects.toThrow(/Team edit access/);
     await expect(
-      db.query("select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',false)", [
+      db.query("select public.planner_set_vacations($1,'2026-11-02','2026-11-02',false)", [
         member.id,
       ])
     ).rejects.toThrow(/Team edit access/);
@@ -370,8 +346,7 @@ describe("Registered-account workspace sharing", () => {
       ).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.planner_projects where id=$1 returning id", [project]))
-        .rows
+      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
     ).toEqual([{ id: project }]);
   });
 
@@ -381,27 +356,23 @@ describe("Registered-account workspace sharing", () => {
     ]);
     const project = (
       await db.query<{ id: string }>(
-        "insert into public.planner_projects(workspace_id,name) values($1,'Feature') returning id",
+        "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
       )
     ).rows[0]!.id;
     await login(viewer);
     await expect(
-      db.query("insert into public.planner_projects(workspace_id,name) values($1,'Forbidden')", [
-        workspace,
-      ])
+      db.query("insert into public.features(workspace_id,name) values($1,'Forbidden')", [workspace])
     ).rejects.toThrow(/row-level security/);
     expect(
       (
-        await db.query(
-          "update public.planner_projects set delivered=true where id=$1 returning id",
-          [project]
-        )
+        await db.query("update public.features set delivered=true where id=$1 returning id", [
+          project,
+        ])
       ).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.planner_projects where id=$1 returning id", [project]))
-        .rows
+      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
     ).toEqual([]);
     expect(
       (
@@ -415,10 +386,10 @@ describe("Registered-account workspace sharing", () => {
       db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project])
     ).rejects.toThrow(/edit access required/);
     await expect(
-      db.query("select public.planner_reorder_projects($1,$2)", [workspace, []])
+      db.query("select public.planner_reorder_features($1,$2)", [workspace, []])
     ).rejects.toThrow(/edit access required/);
     await login(stranger);
-    expect((await db.exec("select id from public.planner_projects"))[0]!.rows).toEqual([]);
+    expect((await db.exec("select id from public.features"))[0]!.rows).toEqual([]);
     expect((await db.exec("select id from public.planner_workspaces"))[0]!.rows).toEqual([]);
     await login(null, "anon");
     await expect(
@@ -473,9 +444,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
           [team]
         )
       ).rows[0]!.id;
-      await db.query("insert into public.planner_team_availability values($1,'2026-10-14',false)", [
-        other,
-      ]);
+      await db.query("insert into public.vacations values($1,'2026-10-14',false)", [other]);
       async function save(working: boolean) {
         if (mode === "token") {
           await login(null, "anon");
@@ -484,36 +453,24 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
             working,
           ]);
         } else {
-          await db.query(
-            "select public.planner_set_team_availability($1,'2026-10-05','2026-10-16',$2)",
-            [member.id, working]
-          );
+          await db.query("select public.planner_set_vacations($1,'2026-10-05','2026-10-16',$2)", [
+            member.id,
+            working,
+          ]);
         }
       }
       await save(false);
       await login(owner);
       expect(
-        (
-          await db.query("select * from public.planner_team_availability where member_id=$1", [
-            member.id,
-          ])
-        ).rows
+        (await db.query("select * from public.vacations where member_id=$1", [member.id])).rows
       ).toHaveLength(12);
       await save(true);
       await login(owner);
       expect(
-        (
-          await db.query("select * from public.planner_team_availability where member_id=$1", [
-            member.id,
-          ])
-        ).rows
+        (await db.query("select * from public.vacations where member_id=$1", [member.id])).rows
       ).toEqual([]);
       expect(
-        (
-          await db.query("select * from public.planner_team_availability where member_id=$1", [
-            other,
-          ])
-        ).rows
+        (await db.query("select * from public.vacations where member_id=$1", [other])).rows
       ).toHaveLength(1);
       const { isWorking, parseDate } = await import("@/lib/planning");
       expect(isWorking(member, parseDate("2026-10-10"), [])).toBe(false);
@@ -540,7 +497,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       )
     ).rows[0]!;
     await link(workspace, [team, secondTeam]);
-    await db.exec(`insert into public.planner_team_availability values
+    await db.exec(`insert into public.vacations values
       ('${member.id}','2026-11-02',true),
       ('${grace.id}','2026-11-02',false),
       ('${grace.id}','2026-11-03',true),
@@ -582,18 +539,12 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       member.vacation_token,
     ]);
     await expect(
-      db.query("select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',true)", [
-        grace.id,
-      ])
+      db.query("select public.planner_set_vacations($1,'2026-11-02','2026-11-02',true)", [grace.id])
     ).rejects.toThrow(/permission denied/);
     await expect(db.exec("select * from public.members")).rejects.toThrow(/permission denied/);
     await login(owner);
     expect(
-      (
-        await db.query("select * from public.planner_team_availability where member_id=$1", [
-          grace.id,
-        ])
-      ).rows
+      (await db.query("select * from public.vacations where member_id=$1", [grace.id])).rows
     ).toHaveLength(2);
   });
 
@@ -613,7 +564,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
         [secondTeam]
       )
     ).rows[0]!.id;
-    await db.exec(`insert into public.planner_team_availability values
+    await db.exec(`insert into public.vacations values
       ('${grace}','2026-11-02',false), ('${newColleague}','2026-11-03',false)`);
     await db.query("update public.members set team_id=$1 where id=$2", [secondTeam, member.id]);
     await login(null, "anon");
@@ -685,7 +636,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     await expect(
       db.query("select * from public.planner_workspace_roster($1)", [workspace])
     ).rejects.toThrow(/access required/);
-    expect((await db.query("select * from public.planner_team_availability")).rows).toHaveLength(0);
+    expect((await db.query("select * from public.vacations")).rows).toHaveLength(0);
   });
   it("grants linked team viewers plan visibility but not editing or vacation capabilities", async () => {
     await link();
@@ -703,14 +654,12 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       db.query("select public.planner_update_planning_role($1,'qa')", [member.id])
     ).rejects.toThrow(/edit access/);
     await expect(
-      db.query("select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',false)", [
+      db.query("select public.planner_set_vacations($1,'2026-11-02','2026-11-02',false)", [
         member.id,
       ])
     ).rejects.toThrow(/edit access/);
     await expect(
-      db.query("insert into public.planner_team_availability values($1,'2026-11-02',false)", [
-        member.id,
-      ])
+      db.query("insert into public.vacations values($1,'2026-11-02',false)", [member.id])
     ).rejects.toThrow(/row-level security/);
   });
   it("permits anonymous token save/list/reset only for its member and no direct table access", async () => {
@@ -720,10 +669,9 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
         [team]
       )
     ).rows[0]!.id;
-    await db.query(
-      "select public.planner_set_team_availability($1,'2026-11-02','2026-11-02',false)",
-      [otherMember]
-    );
+    await db.query("select public.planner_set_vacations($1,'2026-11-02','2026-11-02',false)", [
+      otherMember,
+    ]);
     await login(null, "anon");
     await db.query("select public.planner_vacation_save($1,'2026-11-02','2026-11-03',false)", [
       member.vacation_token,
@@ -737,12 +685,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     ).rows;
     expect(availability).toHaveLength(2);
     expect(availability.every((row) => row["member_id"] === member.id)).toBe(true);
-    for (const table of [
-      "planner_team_availability",
-      "planner_workspace_teams",
-      "members",
-      "evaluations",
-    ]) {
+    for (const table of ["vacations", "planner_workspace_teams", "members", "evaluations"]) {
       await expect(db.exec(`select * from public.${table}`)).rejects.toThrow(/permission denied/);
     }
     await db.query("select public.planner_vacation_clear($1,'2026-11-02')", [
@@ -754,11 +697,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     ).toHaveLength(1);
     await login(owner);
     expect(
-      (
-        await db.query("select * from public.planner_team_availability where member_id=$1", [
-          otherMember,
-        ])
-      ).rows
+      (await db.query("select * from public.vacations where member_id=$1", [otherMember])).rows
     ).toHaveLength(1);
   });
   it("does not grant vacation access to evaluation/view tokens and validates date ranges", async () => {
@@ -819,7 +758,7 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       ).toEqual([{ id: member.id }]);
     }
     await link(workspace, []);
-    expect((await db.query("select * from public.planner_team_availability")).rows).toHaveLength(1);
+    expect((await db.query("select * from public.vacations")).rows).toHaveLength(1);
     expect(
       (await db.query("select * from public.planner_workspace_roster($1)", [workspace])).rows
     ).toHaveLength(0);

@@ -33,24 +33,27 @@ const memberSchema = z.object({
   can_edit: z.boolean(),
   vacation_token: z.string().uuid().nullable(),
 });
-const projectSchema = z.object({
-  id: z.string().uuid(),
-  workspace_id: z.string().uuid(),
-  name: z.string(),
-  description: z.string(),
-  main_project_id: z.string().uuid().nullable(),
-  in_backlog: z.boolean(),
-  delivered: z.boolean(),
-  priority: z.number(),
-  backend_devs: z.number(),
-  backend_weeks: z.number(),
-  frontend_devs: z.number(),
-  frontend_weeks: z.number(),
-  design_devs: z.number(),
-  design_weeks: z.number(),
-  qa_devs: z.number(),
-  qa_weeks: z.number(),
-});
+// The app still calls features "projects" and projects "main projects".
+const projectSchema = z
+  .object({
+    id: z.string().uuid(),
+    workspace_id: z.string().uuid(),
+    name: z.string(),
+    description: z.string(),
+    project_id: z.string().uuid().nullable(),
+    in_backlog: z.boolean(),
+    delivered: z.boolean(),
+    priority: z.number(),
+    backend_devs: z.number(),
+    backend_weeks: z.number(),
+    frontend_devs: z.number(),
+    frontend_weeks: z.number(),
+    design_devs: z.number(),
+    design_weeks: z.number(),
+    qa_devs: z.number(),
+    qa_weeks: z.number(),
+  })
+  .transform(({ project_id, ...feature }) => ({ ...feature, main_project_id: project_id }));
 const mainProjectSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
@@ -100,16 +103,20 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (page.length < 500) return rows;
     }
   }
-  async function list<T>(table: string, schema: z.ZodType<T>, workspace?: string): Promise<T[]> {
+  async function list<T>(
+    table: string,
+    schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+    workspace?: string
+  ): Promise<T[]> {
     // Supabase caps response sizes. Page instead of silently truncating capacity/history.
     const result: T[] = [];
     for (let offset = 0; ; offset += 500) {
       let query = client
         .from(table)
         .select("*")
-        .order(table.endsWith("availability") ? "date" : "id")
+        .order(table === "vacations" ? "date" : "id")
         .range(offset, offset + 499);
-      if (table.endsWith("availability")) query = query.order("member_id");
+      if (table === "vacations") query = query.order("member_id");
       if (workspace) query = query.eq("workspace_id", workspace);
       const { data, error } = await query;
       if (error) throw new Error(error.message, { cause: error });
@@ -164,8 +171,8 @@ export function createPlannerRepository(client: SupabaseClient) {
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
       const [projects, mainProjects, members, linkedTeams, canEdit] = await Promise.all([
-        list("planner_projects", projectSchema, workspace),
-        list("planner_main_projects", mainProjectSchema, workspace).then((items) =>
+        list("features", projectSchema, workspace),
+        list("projects", mainProjectSchema, workspace).then((items) =>
           items.sort((a, b) => a.name.localeCompare(b.name))
         ),
         rpcList("planner_workspace_roster", memberSchema, { workspace }),
@@ -173,24 +180,30 @@ export function createPlannerRepository(client: SupabaseClient) {
         rpc("planner_can_edit_workspace", { workspace }).then((value) => z.boolean().parse(value)),
       ]);
       const ids = new Set(members.map((member) => member.id));
-      const availability = (await list("planner_team_availability", availabilitySchema)).filter(
-        (item) => ids.has(item.member_id)
+      const availability = (await list("vacations", availabilitySchema)).filter((item) =>
+        ids.has(item.member_id)
       );
       return { projects, mainProjects, members, availability, linkedTeams, canEdit };
     },
     async saveProject(workspace: string, input: ProjectInput, id?: string) {
       validateProject(input);
-      const payload = { ...input, name: input.name.trim(), workspace_id: workspace };
+      const { main_project_id: projectId, ...feature } = input;
+      const payload = {
+        ...feature,
+        name: input.name.trim(),
+        project_id: projectId,
+        workspace_id: workspace,
+      };
       const query = id
-        ? client.from("planner_projects").update(payload).eq("id", id).eq("workspace_id", workspace)
-        : client.from("planner_projects").insert(payload);
+        ? client.from("features").update(payload).eq("id", id).eq("workspace_id", workspace)
+        : client.from("features").insert(payload);
       const { data, error } = await query.select("*").single();
       if (error) throw new Error(error.message, { cause: error });
       return projectSchema.parse(data);
     },
     async createMainProject(workspace: string, name: string) {
       const { data, error } = await client
-        .from("planner_main_projects")
+        .from("projects")
         .insert({ workspace_id: workspace, name: validateMainProjectName(name) })
         .select("*")
         .single();
@@ -199,7 +212,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     async renameMainProject(workspace: string, id: string, name: string) {
       const { data, error } = await client
-        .from("planner_main_projects")
+        .from("projects")
         .update({ name: validateMainProjectName(name) })
         .eq("id", id)
         .eq("workspace_id", workspace)
@@ -210,7 +223,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     async deleteMainProject(workspace: string, id: string) {
       const { error } = await client
-        .from("planner_main_projects")
+        .from("projects")
         .delete()
         .eq("id", id)
         .eq("workspace_id", workspace);
@@ -218,12 +231,12 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     async toggleBacklog(workspace: string, id: string, inBacklog: boolean) {
       return projectSchema.parse(
-        await rpc("planner_toggle_backlog", { workspace, project: id, included: inBacklog })
+        await rpc("planner_toggle_backlog", { workspace, feature: id, included: inBacklog })
       );
     },
     async deleteProject(workspace: string, id: string) {
       const { error, data } = await client
-        .from("planner_projects")
+        .from("features")
         .delete()
         .eq("id", id)
         .eq("workspace_id", workspace)
@@ -234,7 +247,7 @@ export function createPlannerRepository(client: SupabaseClient) {
     },
     async setDelivered(workspace: string, id: string, delivered: boolean) {
       const { data, error } = await client
-        .from("planner_projects")
+        .from("features")
         .update({ delivered })
         .eq("id", id)
         .eq("workspace_id", workspace)
@@ -244,12 +257,12 @@ export function createPlannerRepository(client: SupabaseClient) {
       return projectSchema.parse(data);
     },
     reorder: (workspace: string, ids: string[]) =>
-      rpc("planner_reorder_projects", { workspace, project_ids: ids }),
+      rpc("planner_reorder_features", { workspace, feature_ids: ids }),
     setAvailability: (member: string, start: string, end: string, working: boolean) =>
-      rpc("planner_set_team_availability", { member, start_date: start, end_date: end, working }),
+      rpc("planner_set_vacations", { member, start_date: start, end_date: end, working }),
     async clearAvailability(member: string, date: string) {
       const { error } = await client
-        .from("planner_team_availability")
+        .from("vacations")
         .delete()
         .eq("member_id", member)
         .eq("date", date);
