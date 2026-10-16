@@ -538,6 +538,7 @@
   },
   "featureForm": {
     "actions": {
+      "discard": "Descarta",
       "create": "Crea la funcionalitat",
       "save": "Desa els canvis",
       "saving": "Desant..."

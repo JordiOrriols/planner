@@ -537,6 +537,7 @@
   },
   "featureForm": {
     "actions": {
+      "discard": "Abandonner",
       "create": "Créer une fonctionnalité",
       "save": "Enregistrer les modifications",
       "saving": "Enregistrement..."

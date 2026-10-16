@@ -211,6 +211,8 @@ appear alongside a compact effort summary for active roles. Role details are
 collapsed by default; expanding them replaces the compact summary with people,
 weeks and person-weeks for each area. Role columns stack on smaller screens;
 unused areas show zero.
+Feature creation and editing share footer actions: a primary Create/Save button
+beside Discard. Discard closes without saving; failed saves keep the draft open.
 People and weeks must be whole numbers. Both values must be positive for an
 active role (or both zero). Decimal input is rejected by the form, repository and
 database, never silently rounded. Existing fractional estimates are preserved

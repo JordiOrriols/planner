@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import {
@@ -25,6 +25,7 @@ export default function ProjectForm({
   initial: ProjectInput | null;
 }) {
   const { t } = useTranslation();
+  const formId = useId();
 
   const [form, setForm] = useState<ProjectInput>(initial ?? EMPTY_PROJECT);
   const action = useAsyncAction();
@@ -36,12 +37,23 @@ export default function ProjectForm({
       }}
       title={initial ? t("featureForm.editTitle") : t("featureForm.createTitle")}
       description={t("featureForm.description")}
-      closeLabel={t("common.actions.close")}
+      closeLabel={t("featureForm.actions.discard")}
+      footer={
+        <Button type="submit" form={formId} disabled={action.busy}>
+          {action.busy
+            ? t("featureForm.actions.saving")
+            : initial
+              ? t("featureForm.actions.save")
+              : t("featureForm.actions.create")}
+        </Button>
+      }
     >
       <form
+        id={formId}
         className="space-y-4 max-h-[65vh] overflow-y-auto pr-1"
         onSubmit={(event) => {
           event.preventDefault();
+          if (action.busy) return;
           void action.run(async () => {
             await onSave(form);
             onClose();
@@ -124,13 +136,6 @@ export default function ProjectForm({
             {action.error}
           </p>
         )}
-        <Button type="submit" disabled={action.busy}>
-          {action.busy
-            ? t("featureForm.actions.saving")
-            : initial
-              ? t("featureForm.actions.save")
-              : t("featureForm.actions.create")}
-        </Button>
       </form>
     </Modal>
   );

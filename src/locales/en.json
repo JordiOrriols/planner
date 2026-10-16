@@ -537,6 +537,7 @@
   },
   "featureForm": {
     "actions": {
+      "discard": "Discard",
       "create": "Create feature",
       "save": "Save changes",
       "saving": "Saving..."
