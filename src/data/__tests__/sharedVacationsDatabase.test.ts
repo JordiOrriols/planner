@@ -286,21 +286,21 @@ describe("Registered-account workspace sharing", () => {
       workspace,
     ]);
     await login(viewer);
-    const project = (
+    const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
       )
     ).rows[0]!.id;
-    await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project]);
-    await db.query("select public.planner_reorder_features($1,$2)", [workspace, [project]]);
+    await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature]);
+    await db.query("select public.planner_reorder_features($1,$2)", [workspace, [feature]]);
     await db.query("update public.features set delivered=true,description='Updated' where id=$1", [
-      project,
+      feature,
     ]);
     expect(
       (
         await db.query("select delivered,priority,description from public.features where id=$1", [
-          project,
+          feature,
         ])
       ).rows
     ).toEqual([{ delivered: true, priority: 1, description: "Updated" }]);
@@ -338,15 +338,15 @@ describe("Registered-account workspace sharing", () => {
       (await db.query("delete from public.workspaces where id=$1 returning id", [workspace])).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
-    ).toEqual([{ id: project }]);
+      (await db.query("delete from public.features where id=$1 returning id", [feature])).rows
+    ).toEqual([{ id: feature }]);
   });
 
   it("denies viewer writes, outsider reads and anonymous sharing", async () => {
     await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
-    const project = (
+    const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
@@ -359,12 +359,12 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.features set delivered=true where id=$1 returning id", [
-          project,
+          feature,
         ])
       ).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
+      (await db.query("delete from public.features where id=$1 returning id", [feature])).rows
     ).toEqual([]);
     expect(
       (
@@ -375,7 +375,7 @@ describe("Registered-account workspace sharing", () => {
       ).rows
     ).toEqual([]);
     await expect(
-      db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project])
+      db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature])
     ).rejects.toThrow(/edit access required/);
     await expect(
       db.query("select public.planner_reorder_features($1,$2)", [workspace, []])

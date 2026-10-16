@@ -3,11 +3,11 @@ import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
-import { EMPTY_PROJECT, type MainProject, type ProjectInput } from "@/types/planner";
+import { EMPTY_FEATURE, type MainProject, type FeatureInput } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
-export default function ProjectForm({
+export default function FeatureForm({
   open,
   onClose,
   onSave,
@@ -17,13 +17,13 @@ export default function ProjectForm({
   mainProjects?: MainProject[];
   open: boolean;
   onClose: () => void;
-  onSave: (input: ProjectInput) => Promise<void>;
-  initial: ProjectInput | null;
+  onSave: (input: FeatureInput) => Promise<void>;
+  initial: FeatureInput | null;
 }) {
   const { t } = useTranslation();
   const formId = useId();
 
-  const [form, setForm] = useState<ProjectInput>({ ...EMPTY_PROJECT, ...initial });
+  const [form, setForm] = useState<FeatureInput>({ ...EMPTY_FEATURE, ...initial });
   const action = useAsyncAction();
   return (
     <Modal
@@ -75,9 +75,9 @@ export default function ProjectForm({
           }
         >
           <option value="">{t("mainProjects.none")}</option>
-          {mainProjects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
+          {mainProjects.map((feature) => (
+            <option key={feature.id} value={feature.id}>
+              {feature.name}
             </option>
           ))}
         </select>

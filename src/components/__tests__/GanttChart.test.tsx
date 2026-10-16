@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { parseISO } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
 import { computeSchedule } from "@/lib/planning";
-import { EMPTY_PROJECT, type PlannerMember, type Project } from "@/types/planner";
+import { EMPTY_FEATURE, type PlannerMember, type Feature } from "@/types/planner";
 
 const members: PlannerMember[] = [
   {
@@ -34,8 +34,8 @@ const members: PlannerMember[] = [
   },
   { id: "qa", team_id: "team", name: "QA", role: "qa", can_edit: true, vacation_token: null },
 ];
-const mixed: Project = {
-  ...EMPTY_PROJECT,
+const mixed: Feature = {
+  ...EMPTY_FEATURE,
   id: "mixed",
   workspace_id: "workspace",
   name: "Mixed",
@@ -49,8 +49,8 @@ const mixed: Project = {
 };
 afterEach(() => vi.useRealTimers());
 
-function renderSchedule(projects: Project[], horizon = 6) {
-  const result = computeSchedule(projects, members, [], parseISO("2026-02-02"), horizon);
+function renderSchedule(features: Feature[], horizon = 6) {
+  const result = computeSchedule(features, members, [], parseISO("2026-02-02"), horizon);
   render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
   return result;
 }
@@ -321,7 +321,7 @@ describe("role-aware Gantt allocations", () => {
   });
 
   it("positions successive phases within the same week without overlapping their bars", () => {
-    const project = {
+    const feature = {
       ...mixed,
       backend_weeks: 1,
       frontend_weeks: 0,
@@ -338,7 +338,7 @@ describe("role-aware Gantt allocations", () => {
         is_working: true,
       }))
     );
-    const result = computeSchedule([project], members, availability, parseISO("2026-02-02"), 3);
+    const result = computeSchedule([feature], members, availability, parseISO("2026-02-02"), 3);
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
     const design = screen.getByRole("img", { name: /^Mixed · Design:/ });
     const backend = screen.getAllByRole("img", { name: /^Mixed · Backend:/ })[0]!;

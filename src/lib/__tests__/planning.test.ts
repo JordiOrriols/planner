@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import {
   computeSchedule,
   squadVelocity,
-  validateProject,
+  validateFeature,
   parseDate,
   durationWeeks,
   peakDevs,
@@ -11,8 +11,8 @@ import {
 } from "../planning";
 import { BARCELONA_HOLIDAYS, isHoliday } from "../barcelonaHolidays";
 import {
-  EMPTY_PROJECT,
-  type Project,
+  EMPTY_FEATURE,
+  type Feature,
   type PlannerMember,
   type Availability,
 } from "@/types/planner";
@@ -25,8 +25,8 @@ const member: PlannerMember = {
   vacation_token: null,
   role: "backend",
 };
-const project = (id = "one", weeks = 1): Project => ({
-  ...EMPTY_PROJECT,
+const feature = (id = "one", weeks = 1): Feature => ({
+  ...EMPTY_FEATURE,
   id,
   workspace_id: "workspace",
   name: id,
@@ -45,12 +45,12 @@ const squad: PlannerMember[] = [
   { ...member, id: "backend-2" },
   { ...member, id: "frontend", role: "frontend" },
 ];
-const exampleProjects: Project[] = [
-  { ...project("Back Task", 2), backend_devs: 2, priority: 0 },
-  { ...project("1 Back Task Second", 2), priority: 1 },
-  { ...project("1 Back Task", 2), priority: 2 },
+const exampleFeatures: Feature[] = [
+  { ...feature("Back Task", 2), backend_devs: 2, priority: 0 },
+  { ...feature("1 Back Task Second", 2), priority: 1 },
+  { ...feature("1 Back Task", 2), priority: 2 },
   {
-    ...project("Front", 2),
+    ...feature("Front", 2),
     backend_devs: 0,
     backend_weeks: 0,
     frontend_devs: 1,
@@ -58,7 +58,7 @@ const exampleProjects: Project[] = [
     priority: 3,
   },
   {
-    ...project("Mixed Project", 2),
+    ...feature("Mixed Project", 2),
     backend_devs: 2,
     frontend_devs: 1,
     frontend_weeks: 2,
@@ -68,10 +68,10 @@ const exampleProjects: Project[] = [
 
 describe("the two-backend / one-frontend backlog", () => {
   it("fills weeks 1–2, overlaps single-backend tasks in weeks 3–4, and separates mixed roles", () => {
-    const result = computeSchedule(exampleProjects, squad, [], date("2026-02-02"), 6);
+    const result = computeSchedule(exampleFeatures, squad, [], date("2026-02-02"), 6);
     expect(
       result.schedule.map((item) => ({
-        name: item.project.name,
+        name: item.feature.name,
         complete: item.complete,
         start: format(item.start!, "yyyy-MM-dd"),
         end: format(item.end!, "yyyy-MM-dd"),
@@ -138,28 +138,28 @@ describe("the two-backend / one-frontend backlog", () => {
     for (const item of result.schedule) {
       expect(
         item.roles.flatMap((role) => role.allocations).reduce((sum, a) => sum + a.personDays / 5, 0)
-      ).toBe(totalDevWeeks(item.project));
+      ).toBe(totalDevWeeks(item.feature));
     }
   });
 
   it("uses backlog priority, not input order, when the mixed project precedes Front", () => {
-    const reordered = exampleProjects.map((item) => ({
+    const reordered = exampleFeatures.map((item) => ({
       ...item,
       priority: item.name === "Mixed Project" ? 3 : item.name === "Front" ? 4 : item.priority,
     }));
     const result = computeSchedule(reordered.reverse(), squad, [], date("2026-02-02"), 6);
-    const mixed = result.schedule.find((item) => item.project.name === "Mixed Project")!;
-    const front = result.schedule.find((item) => item.project.name === "Front")!;
+    const mixed = result.schedule.find((item) => item.feature.name === "Mixed Project")!;
+    const front = result.schedule.find((item) => item.feature.name === "Front")!;
     expect(format(mixed.roles.find((role) => role.role === "frontend")!.start!, "yyyy-MM-dd")).toBe(
       "2026-02-02"
     );
     expect(format(front.start!, "yyyy-MM-dd")).toBe("2026-02-16");
-    expect(exampleProjects[4]!.priority).toBe(4);
+    expect(exampleFeatures[4]!.priority).toBe(4);
   });
 
   it("records partial-week vacation work without allocating effort to an idle role", () => {
     const result = computeSchedule(
-      exampleProjects,
+      exampleFeatures,
       squad,
       [{ member_id: "frontend", date: "2026-02-03", is_working: false }],
       date("2026-02-02"),
@@ -177,7 +177,7 @@ describe("the two-backend / one-frontend backlog", () => {
 
 describe("design and QA phase dependencies", () => {
   const phased = {
-    ...project("phased"),
+    ...feature("phased"),
     design_devs: 1,
     design_weeks: 1,
     frontend_devs: 1,
@@ -246,7 +246,7 @@ describe("design and QA phase dependencies", () => {
   it("allows design-only and QA-only projects without nonexistent dependencies", () => {
     for (const role of ["design", "qa"] as const) {
       const only = {
-        ...project(),
+        ...feature(),
         backend_devs: 0,
         backend_weeks: 0,
         [`${role}_devs`]: 1,
@@ -272,11 +272,11 @@ describe("daily role-based capacity", () => {
     const unassigned: PlannerMember = { ...member, role: null };
     expect(squadVelocity([unassigned], [], date("2026-02-02"), 1)[0]?.capacity).toBe(0);
     expect(
-      computeSchedule([project()], [unassigned], [], date("2026-02-02")).schedule[0]?.reason
+      computeSchedule([feature()], [unassigned], [], date("2026-02-02")).schedule[0]?.reason
     ).toBe("No Backend capacity");
   });
   it("schedules one person for eight weeks as forty working days", () => {
-    const result = computeSchedule([project("one", 8)], [member], [], date("2026-02-02"));
+    const result = computeSchedule([feature("one", 8)], [member], [], date("2026-02-02"));
     expect(end(result)).toBe("2026-03-27");
   });
   it("counts partial-week vacations once, without dropping the entire person/week", () => {
@@ -288,7 +288,7 @@ describe("daily role-based capacity", () => {
     expect(squadVelocity([member], availability, date("2026-02-02"), 1)[0]?.capacity).toBeCloseTo(
       0.6
     );
-    expect(end(computeSchedule([project()], [member], availability, date("2026-02-02")))).toBe(
+    expect(end(computeSchedule([feature()], [member], availability, date("2026-02-02")))).toBe(
       "2026-02-10"
     );
   });
@@ -303,18 +303,18 @@ describe("daily role-based capacity", () => {
   });
   it("supports working on a holiday and excludes earlier days than the plan start", () => {
     const override = [{ member_id: member.id, date: "2026-05-25", is_working: true }];
-    expect(end(computeSchedule([project()], [member], override, date("2026-05-25")))).toBe(
+    expect(end(computeSchedule([feature()], [member], override, date("2026-05-25")))).toBe(
       "2026-05-29"
     );
-    expect(end(computeSchedule([project()], [member], [], date("2026-02-04")))).toBe("2026-02-10");
+    expect(end(computeSchedule([feature()], [member], [], date("2026-02-04")))).toBe("2026-02-10");
   });
   it("allows parallel projects when role capacity is free and respects priority when it is not", () => {
-    const second = { ...project("two"), priority: 1 };
-    const single = computeSchedule([second, project()], [member], [], date("2026-02-02"));
+    const second = { ...feature("two"), priority: 1 };
+    const single = computeSchedule([second, feature()], [member], [], date("2026-02-02"));
     expect(end(single, 0)).toBe("2026-02-06");
     expect(end(single, 1)).toBe("2026-02-13");
     const parallel = computeSchedule(
-      [project(), second],
+      [feature(), second],
       [member, { ...member, id: "other" }],
       [],
       date("2026-02-02")
@@ -324,7 +324,7 @@ describe("daily role-based capacity", () => {
   });
   it("never uses backend people to satisfy frontend effort", () => {
     const frontend = {
-      ...project(),
+      ...feature(),
       backend_devs: 0,
       backend_weeks: 0,
       frontend_devs: 1,
@@ -335,7 +335,7 @@ describe("daily role-based capacity", () => {
     expect(result.weeks[0]?.allocated).toBe(0);
   });
   it("allocates each concurrent role independently without exceeding available capacity", () => {
-    const mixed = { ...project(), frontend_devs: 1, frontend_weeks: 2 };
+    const mixed = { ...feature(), frontend_devs: 1, frontend_weeks: 2 };
     const result = computeSchedule(
       [mixed],
       [member, { ...member, id: "fe", role: "frontend" }],
@@ -350,40 +350,40 @@ describe("daily role-based capacity", () => {
   });
   it("slows a two-person estimate down if only one person is available", () => {
     expect(
-      end(computeSchedule([{ ...project(), backend_devs: 2 }], [member], [], date("2026-02-02")))
+      end(computeSchedule([{ ...feature(), backend_devs: 2 }], [member], [], date("2026-02-02")))
     ).toBe("2026-02-13");
   });
   it("does not schedule unselected projects or pretend incomplete projects are finished", () => {
     expect(
-      computeSchedule([{ ...project(), in_backlog: false }], [member], [], date("2026-02-02"))
+      computeSchedule([{ ...feature(), in_backlog: false }], [member], [], date("2026-02-02"))
         .schedule
     ).toHaveLength(0);
-    const result = computeSchedule([project("long", 100)], [member], [], date("2027-12-20"));
+    const result = computeSchedule([feature("long", 100)], [member], [], date("2027-12-20"));
     expect(result.calendarLimited).toBe(true);
     expect(result.schedule[0]?.end).toBeNull();
     expect(result.schedule[0]?.complete).toBe(false);
     expect(result.schedule[0]?.reason).toMatch(/Not completed/);
   });
   it("fails explicitly on invalid estimates and unknown calendar years", () => {
-    expect(() => validateProject({ ...project(), backend_weeks: 0 })).toThrow(/both/);
-    expect(() => validateProject({ ...project(), backend_devs: NaN })).toThrow(/estimates/);
+    expect(() => validateFeature({ ...feature(), backend_weeks: 0 })).toThrow(/both/);
+    expect(() => validateFeature({ ...feature(), backend_devs: NaN })).toThrow(/estimates/);
     for (const role of ["backend", "frontend", "design", "qa"] as const) {
       expect(() =>
-        validateProject({ ...project(), [`${role}_devs`]: 1.5, [`${role}_weeks`]: 1 })
+        validateFeature({ ...feature(), [`${role}_devs`]: 1.5, [`${role}_weeks`]: 1 })
       ).toThrow(/whole numbers/);
       expect(() =>
-        validateProject({ ...project(), [`${role}_devs`]: 1, [`${role}_weeks`]: 1.5 })
+        validateFeature({ ...feature(), [`${role}_devs`]: 1, [`${role}_weeks`]: 1.5 })
       ).toThrow(/whole numbers/);
     }
     expect(() => parseDate("2026-02-30")).toThrow(/valid/);
-    expect(() => computeSchedule([project()], [member], [], date("2028-01-03"))).toThrow(
+    expect(() => computeSchedule([feature()], [member], [], date("2028-01-03"))).toThrow(
       /verified/
     );
   });
   it("uses verified days in partial weeks at both calendar boundaries", () => {
-    const first = computeSchedule([project()], [member], [], date("2026-01-01"));
+    const first = computeSchedule([feature()], [member], [], date("2026-01-01"));
     expect(end(first)).toBe("2026-01-09");
-    const last = computeSchedule([project()], [member], [], date("2027-12-30"));
+    const last = computeSchedule([feature()], [member], [], date("2027-12-30"));
     expect(last.weeks[0]?.allocated).toBeCloseTo(0.4);
     expect(last.schedule[0]?.end).toBeNull();
     expect(last.calendarLimited).toBe(true);

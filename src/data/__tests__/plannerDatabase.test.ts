@@ -90,19 +90,19 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     ).rejects.toThrow(/null/);
   });
   it("defaults delivery to false and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
-    const project = (
+    const feature = (
       await db.query<{ id: string; delivered: boolean }>(
         "insert into public.features(workspace_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
         [workspace]
       )
     ).rows[0]!;
-    expect(project.delivered).toBe(false);
-    await db.query("update public.features set delivered=true where id=$1", [project.id]);
+    expect(feature.delivered).toBe(false);
+    await db.query("update public.features set delivered=true where id=$1", [feature.id]);
     expect(
       (
         await db.query(
           "select delivered,backend_devs,backend_weeks,in_backlog,priority from public.features where id=$1",
-          [project.id]
+          [feature.id]
         )
       ).rows[0]
     ).toEqual({
@@ -117,7 +117,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     expect(
       (
         await db.query("update public.features set delivered=false where id=$1 returning id", [
-          project.id,
+          feature.id,
         ])
       ).rows
     ).toHaveLength(0);
@@ -125,17 +125,17 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     expect(
       (
         await db.query("update public.features set delivered=false where id=$1 returning id", [
-          project.id,
+          feature.id,
         ])
       ).rows
     ).toHaveLength(0);
     await login(owner);
     expect(
-      (await db.query("select delivered from public.features where id=$1", [project.id])).rows
+      (await db.query("select delivered from public.features where id=$1", [feature.id])).rows
     ).toEqual([{ delivered: true }]);
-    await db.query("update public.features set delivered=false where id=$1", [project.id]);
+    await db.query("update public.features set delivered=false where id=$1", [feature.id]);
     expect(
-      (await db.query("select delivered from public.features where id=$1", [project.id])).rows
+      (await db.query("select delivered from public.features where id=$1", [feature.id])).rows
     ).toEqual([{ delivered: false }]);
   });
   it("rejects decimal people and weeks for every role at the database boundary", async () => {
@@ -218,12 +218,12 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     ).rejects.toThrow(/Roadmap changed/);
   });
   it("appends projects with deterministic priorities and denies outsiders backlog changes", async () => {
-    const projects = await db.query<{ id: string }>(
+    const features = await db.query<{ id: string }>(
       "insert into public.features(workspace_id,name) values($1,'A'),($1,'B') returning id",
       [workspace]
     );
-    for (const project of projects.rows)
-      await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project.id]);
+    for (const feature of features.rows)
+      await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature.id]);
     expect(
       (
         await db.query<{ priority: number }>(
@@ -235,7 +235,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     await expect(
       db.query("select public.planner_toggle_backlog($1,$2,true)", [
         workspace,
-        projects.rows[0]!.id,
+        features.rows[0]!.id,
       ])
     ).rejects.toThrow(/Workspace edit access required/);
   });

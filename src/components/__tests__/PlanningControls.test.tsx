@@ -5,8 +5,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Backlog from "@/pages/backlog";
 import Estimation from "@/pages/estimation";
-import ProjectForm from "@/components/organisms/project-form";
-import { EMPTY_PROJECT, type MainProject, type Project } from "@/types/planner";
+import FeatureForm from "@/components/organisms/feature-form";
+import { EMPTY_FEATURE, type MainProject, type Feature } from "@/types/planner";
 
 const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
@@ -17,7 +17,7 @@ const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = v
   state: {
     isOwner: true,
     canEditOverride: null as boolean | null,
-    projects: [] as Project[],
+    features: [] as Feature[],
     mainProjects: [] as MainProject[],
     planStart: "2026-10-15",
   },
@@ -51,9 +51,9 @@ beforeEach(() => {
   setPlanStart.mockImplementation(async (_id: string, date: string) => {
     state.planStart = date;
   });
-  state.projects = [
+  state.features = [
     {
-      ...EMPTY_PROJECT,
+      ...EMPTY_FEATURE,
       id: "project",
       workspace_id: "squad",
       name: "Checkout",
@@ -87,8 +87,8 @@ describe("Planner estimate and backlog controls", () => {
   });
 
   it("groups prioritized features in roadmap order before the unprioritized backlog", () => {
-    const base = state.projects[0]!;
-    state.projects = [
+    const base = state.features[0]!;
+    state.features = [
       { ...base, id: "later", name: "Later", in_backlog: true, priority: 2 },
       { ...base, id: "idea", name: "Idea", in_backlog: false },
       { ...base, id: "first", name: "First", in_backlog: true, priority: 1 },
@@ -124,7 +124,7 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.getByRole("button", { name: "New feature" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Edit Checkout" })).toBeVisible();
     rendered.unmount();
-    state.projects[0]!.in_backlog = true;
+    state.features[0]!.in_backlog = true;
     renderBacklog();
     await userEvent.click(screen.getByRole("button", { name: "Edit plan start" }));
     expect(screen.getByLabelText("Plan starts", { selector: "input" })).toBeEnabled();
@@ -145,8 +145,8 @@ describe("Planner estimate and backlog controls", () => {
 
   it("labels features with their main project and lets only editors manage projects", async () => {
     state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
-    state.projects = state.projects.map((project) => ({
-      ...project,
+    state.features = state.features.map((feature) => ({
+      ...feature,
       main_project_id: "payments",
     }));
     const rendered = render(<Estimation />);
@@ -162,8 +162,8 @@ describe("Planner estimate and backlog controls", () => {
 
   it("groups roadmap rows under main project headings in priority order", () => {
     state.mainProjects = [{ id: "payments", workspace_id: "squad", name: "Payments" }];
-    state.projects = state.projects.map((project) => ({
-      ...project,
+    state.features = state.features.map((feature) => ({
+      ...feature,
       in_backlog: true,
       main_project_id: "payments",
     }));
@@ -231,7 +231,7 @@ describe("Planner estimate and backlog controls", () => {
   });
   it("requires integer steps and makes decimal input invalid for all roles", async () => {
     const save = vi.fn();
-    render(<ProjectForm open initial={null} onClose={vi.fn()} onSave={save} />);
+    render(<FeatureForm open initial={null} onClose={vi.fn()} onSave={save} />);
     for (const role of ["Backend", "Frontend", "Design", "QA"]) {
       for (const field of ["people", "weeks"]) {
         const input = screen.getByRole("spinbutton", { name: `${role} ${field}` });
@@ -256,7 +256,7 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.getByRole("link", { name: "Create a new feature" })).toHaveAttribute("href", "/");
   });
   it("removes a selected estimate without deleting it", async () => {
-    state.projects[0]!.in_backlog = true;
+    state.features[0]!.in_backlog = true;
     renderBacklog();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
@@ -283,8 +283,8 @@ describe("Planner estimate and backlog controls", () => {
 });
 
 function selectBacklog() {
-  const first = { ...state.projects[0]!, in_backlog: true };
-  state.projects = [
+  const first = { ...state.features[0]!, in_backlog: true };
+  state.features = [
     first,
     { ...first, id: "second", name: "Second", priority: 1 },
     { ...first, id: "third", name: "Third", priority: 2 },
@@ -292,7 +292,7 @@ function selectBacklog() {
   ];
 }
 
-function dragProject(from: string, to: string) {
+function dragFeature(from: string, to: string) {
   const source = screen.getByRole("button", { name: `Reorder ${from}` });
   const target = screen.getByRole("button", { name: `Reorder ${to}` }).parentElement!;
   const dataTransfer = { setData: vi.fn(), effectAllowed: "", dropEffect: "" };
@@ -307,7 +307,7 @@ describe("inline schedule priority controls", () => {
   it("persists delivery, refreshes it, and allows undoing without changing backlog inclusion", async () => {
     selectBacklog();
     setDelivered.mockImplementation(async (_workspace: string, id: string, delivered: boolean) => {
-      state.projects = state.projects.map((p) => (p.id === id ? { ...p, delivered } : p));
+      state.features = state.features.map((p) => (p.id === id ? { ...p, delivered } : p));
     });
     const rendered = renderBacklog();
     fireEvent.contextMenu(screen.getByRole("button", { name: "Reorder Checkout" }));
@@ -342,7 +342,7 @@ describe("inline schedule priority controls", () => {
   it("moves a dragged project upward and saves all selected IDs in their new order", async () => {
     selectBacklog();
     renderBacklog();
-    const transfer = dragProject("Third", "Checkout");
+    const transfer = dragFeature("Third", "Checkout");
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(transfer.setData).toHaveBeenCalledWith("text/plain", "third");
     expect(reorder).toHaveBeenCalledExactlyOnceWith("squad", ["third", "project", "second"]);
@@ -351,7 +351,7 @@ describe("inline schedule priority controls", () => {
   it("moves downward by insertion rather than swapping distant projects", async () => {
     selectBacklog();
     renderBacklog();
-    dragProject("Checkout", "Third");
+    dragFeature("Checkout", "Third");
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(reorder).toHaveBeenCalledExactlyOnceWith("squad", ["second", "third", "project"]);
   });
@@ -376,13 +376,13 @@ describe("inline schedule priority controls", () => {
   it("refreshes project order after persistence succeeds", async () => {
     selectBacklog();
     reorder.mockImplementation(async (_workspace: string, ids: string[]) => {
-      state.projects = state.projects.map((project) => ({
-        ...project,
-        priority: ids.includes(project.id) ? ids.indexOf(project.id) : project.priority,
+      state.features = state.features.map((feature) => ({
+        ...feature,
+        priority: ids.includes(feature.id) ? ids.indexOf(feature.id) : feature.priority,
       }));
     });
     const rendered = renderBacklog();
-    dragProject("Third", "Checkout");
+    dragFeature("Third", "Checkout");
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     rendered.rerender(
       <MemoryRouter>
@@ -397,7 +397,7 @@ describe("inline schedule priority controls", () => {
   it("ignores self-drops and external drops", () => {
     selectBacklog();
     renderBacklog();
-    dragProject("Checkout", "Checkout");
+    dragFeature("Checkout", "Checkout");
     fireEvent.drop(screen.getByRole("button", { name: "Reorder Third" }).parentElement!);
     expect(reorder).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
@@ -407,7 +407,7 @@ describe("inline schedule priority controls", () => {
     selectBacklog();
     reorder.mockRejectedValue(new Error("Could not save priority"));
     renderBacklog();
-    dragProject("Third", "Checkout");
+    dragFeature("Third", "Checkout");
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Could not save priority")
     );
@@ -427,7 +427,7 @@ describe("inline schedule priority controls", () => {
         })
     );
     renderBacklog();
-    dragProject("Third", "Checkout");
+    dragFeature("Third", "Checkout");
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Reorder Checkout" })).toBeDisabled()
     );
@@ -445,7 +445,7 @@ describe("inline schedule priority controls", () => {
       "true"
     );
     await userEvent.keyboard("{Escape}");
-    dragProject("Checkout", "Third");
+    dragFeature("Checkout", "Third");
     expect(reorder).toHaveBeenCalledOnce();
     finish();
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
@@ -467,7 +467,7 @@ describe("inline schedule priority controls", () => {
 
   it("preserves removal controls when invalid estimates prevent computing the forecast", async () => {
     selectBacklog();
-    state.projects[0]!.backend_weeks = 1.5;
+    state.features[0]!.backend_weeks = 1.5;
     renderBacklog();
     expect(screen.getByRole("alert")).toHaveTextContent("whole numbers");
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));

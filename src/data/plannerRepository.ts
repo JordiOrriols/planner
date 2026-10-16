@@ -3,13 +3,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
   ROLES,
-  type ProjectInput,
+  type FeatureInput,
   type Role,
   type WorkspaceAccess,
   type SprintResult,
 } from "@/types/planner";
 import { validateSprintSettings } from "@/lib/sprints";
-import { parseDate, validateProject } from "@/lib/planning";
+import { parseDate, validateFeature } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 
 const workspaceSchema = z.object({
@@ -34,7 +34,7 @@ const memberSchema = z.object({
   vacation_token: z.string().uuid().nullable(),
 });
 // The app still calls features "projects" and projects "main projects".
-const projectSchema = z
+const featureSchema = z
   .object({
     id: z.string().uuid(),
     workspace_id: z.string().uuid(),
@@ -174,8 +174,8 @@ export function createPlannerRepository(client: SupabaseClient) {
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [projects, mainProjects, members, linkedTeams, canEdit] = await Promise.all([
-        list("features", projectSchema, workspace),
+      const [features, mainProjects, members, linkedTeams, canEdit] = await Promise.all([
+        list("features", featureSchema, workspace),
         list("projects", mainProjectSchema, workspace).then((items) =>
           items.sort((a, b) => a.name.localeCompare(b.name))
         ),
@@ -187,10 +187,10 @@ export function createPlannerRepository(client: SupabaseClient) {
       const availability = (await list("vacations", availabilitySchema)).filter((item) =>
         ids.has(item.member_id)
       );
-      return { projects, mainProjects, members, availability, linkedTeams, canEdit };
+      return { features, mainProjects, members, availability, linkedTeams, canEdit };
     },
-    async saveProject(workspace: string, input: ProjectInput, id?: string) {
-      validateProject(input);
+    async saveFeature(workspace: string, input: FeatureInput, id?: string) {
+      validateFeature(input);
       const { main_project_id: projectId, ...feature } = input;
       const payload = {
         ...feature,
@@ -203,7 +203,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         : client.from("features").insert(payload);
       const { data, error } = await query.select("*").single();
       if (error) throw new Error(error.message, { cause: error });
-      return projectSchema.parse(data);
+      return featureSchema.parse(data);
     },
     async createMainProject(workspace: string, name: string) {
       const { data, error } = await client
@@ -234,11 +234,11 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
     },
     async toggleBacklog(workspace: string, id: string, inBacklog: boolean) {
-      return projectSchema.parse(
+      return featureSchema.parse(
         await rpc("planner_toggle_backlog", { workspace, feature: id, included: inBacklog })
       );
     },
-    async deleteProject(workspace: string, id: string) {
+    async deleteFeature(workspace: string, id: string) {
       const { error, data } = await client
         .from("features")
         .delete()
@@ -258,7 +258,7 @@ export function createPlannerRepository(client: SupabaseClient) {
         .select("*")
         .single();
       if (error) throw new Error(error.message, { cause: error });
-      return projectSchema.parse(data);
+      return featureSchema.parse(data);
     },
     reorder: (workspace: string, ids: string[]) =>
       rpc("planner_reorder_features", { workspace, feature_ids: ids }),

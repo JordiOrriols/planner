@@ -2,12 +2,12 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import GanttChart from "@/components/organisms/gantt-chart";
-import ProjectEstimateCard from "@/components/organisms/project-estimate-card";
+import FeatureEstimateCard from "@/components/organisms/feature-estimate-card";
 import { ROLE_COLORS } from "@/config/roleColors";
-import { EMPTY_PROJECT, ROLES, type Project } from "@/types/planner";
+import { EMPTY_FEATURE, ROLES, type Feature } from "@/types/planner";
 
-const project: Project = {
-  ...EMPTY_PROJECT,
+const feature: Feature = {
+  ...EMPTY_FEATURE,
   id: "feature",
   workspace_id: "workspace",
   name: "Checkout",
@@ -29,8 +29,8 @@ describe("role colors", () => {
     const { container } = render(
       <>
         <GanttChart weeks={[]} schedule={[]} />
-        <ProjectEstimateCard
-          project={project}
+        <FeatureEstimateCard
+          feature={feature}
           onEdit={vi.fn()}
           onDelete={vi.fn()}
           disabled={false}

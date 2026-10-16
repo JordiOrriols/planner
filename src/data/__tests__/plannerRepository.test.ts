@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import { createPlannerRepository } from "../plannerRepository";
-import { EMPTY_PROJECT } from "@/types/planner";
+import { EMPTY_FEATURE } from "@/types/planner";
 
 const workspace = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -159,8 +159,8 @@ describe("Planner repository", () => {
   });
   it("persists delivery separately from estimates and scopes writes to both workspace and project", async () => {
     const { fetch, response, repository } = setup();
-    const project = {
-      ...EMPTY_PROJECT,
+    const feature = {
+      ...EMPTY_FEATURE,
       id: workspace.owner_id,
       workspace_id: workspace.id,
       name: "Feature",
@@ -168,23 +168,23 @@ describe("Planner repository", () => {
       priority: 0,
       delivered: true,
     };
-    const { main_project_id: projectId, ...feature } = project;
-    const row = { ...feature, project_id: projectId };
+    const { main_project_id: projectId, ...estimates } = feature;
+    const row = { ...estimates, project_id: projectId };
     fetch.mockResolvedValue(response(row));
-    expect(await repository.setDelivered(workspace.id, project.id, true)).toEqual(project);
+    expect(await repository.setDelivered(workspace.id, feature.id, true)).toEqual(feature);
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
     expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
     const url = String(fetch.mock.calls[0]?.[0]);
-    expect(url).toContain(`id=eq.${project.id}`);
+    expect(url).toContain(`id=eq.${feature.id}`);
     expect(url).toContain(`workspace_id=eq.${workspace.id}`);
     fetch.mockResolvedValue(response({ ...row, delivered: false }));
-    expect((await repository.setDelivered(workspace.id, project.id, false)).delivered).toBe(false);
+    expect((await repository.setDelivered(workspace.id, feature.id, false)).delivered).toBe(false);
     fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
-    await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow(
+    await expect(repository.setDelivered(workspace.id, feature.id, true)).rejects.toThrow(
       "Only the owner can edit"
     );
     fetch.mockResolvedValue(response(null));
-    await expect(repository.setDelivered(workspace.id, project.id, true)).rejects.toThrow();
+    await expect(repository.setDelivered(workspace.id, feature.id, true)).rejects.toThrow();
   });
   it("does not silently truncate more than one page of workspaces", async () => {
     const { fetch, response, repository } = setup();
@@ -291,7 +291,7 @@ describe("Planner repository", () => {
   it("validates estimates before a request and delegates ordering to the transactional RPC", async () => {
     const { fetch, response, repository } = setup();
     await expect(
-      repository.saveProject(workspace.id, { ...EMPTY_PROJECT, name: "Invalid", backend_devs: 1 })
+      repository.saveFeature(workspace.id, { ...EMPTY_FEATURE, name: "Invalid", backend_devs: 1 })
     ).rejects.toThrow(/both/);
     for (const role of ["backend", "frontend", "design", "qa"] as const) {
       for (const [people, weeks] of [
@@ -299,8 +299,8 @@ describe("Planner repository", () => {
         [1, 1.5],
       ]) {
         await expect(
-          repository.saveProject(workspace.id, {
-            ...EMPTY_PROJECT,
+          repository.saveFeature(workspace.id, {
+            ...EMPTY_FEATURE,
             name: "Fractional",
             [`${role}_devs`]: people,
             [`${role}_weeks`]: weeks,
@@ -320,7 +320,7 @@ describe("Planner repository", () => {
   it("stores a feature's project as project_id and reads it back as the app's main project", async () => {
     const { fetch, response, repository } = setup();
     const project = "33333333-3333-4333-8333-333333333333";
-    const input = { ...EMPTY_PROJECT, name: " Checkout ", main_project_id: project };
+    const input = { ...EMPTY_FEATURE, name: " Checkout ", main_project_id: project };
     const { main_project_id: _, ...feature } = input;
     fetch.mockResolvedValue(
       response({
@@ -334,7 +334,7 @@ describe("Planner repository", () => {
         priority: 0,
       })
     );
-    const saved = await repository.saveProject(workspace.id, input);
+    const saved = await repository.saveFeature(workspace.id, input);
     expect(saved).toMatchObject({ name: "Checkout", main_project_id: project });
     expect(saved).not.toHaveProperty("project_id");
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");

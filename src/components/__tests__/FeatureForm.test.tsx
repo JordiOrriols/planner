@@ -2,17 +2,17 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ProjectForm from "@/components/organisms/project-form";
-import { EMPTY_PROJECT } from "@/types/planner";
+import FeatureForm from "@/components/organisms/feature-form";
+import { EMPTY_FEATURE } from "@/types/planner";
 
 describe("Feature form footer actions", () => {
   it("places primary save beside discard and submits the associated form", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onClose = vi.fn();
     render(
-      <ProjectForm
+      <FeatureForm
         open
-        initial={{ ...EMPTY_PROJECT, name: "Checkout" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout" }}
         onSave={onSave}
         onClose={onClose}
       />
@@ -27,7 +27,7 @@ describe("Feature form footer actions", () => {
     await userEvent.click(save);
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledExactlyOnceWith({
-        ...EMPTY_PROJECT,
+        ...EMPTY_FEATURE,
         name: "Checkout",
       })
     );
@@ -37,9 +37,9 @@ describe("Feature form footer actions", () => {
   it("assigns or clears the feature's main project from the workspace list", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
-      <ProjectForm
+      <FeatureForm
         open
-        initial={{ ...EMPTY_PROJECT, name: "Checkout", main_project_id: "growth" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", main_project_id: "growth" }}
         mainProjects={[
           { id: "payments", workspace_id: "workspace", name: "Payments" },
           { id: "growth", workspace_id: "workspace", name: "Growth" },
@@ -67,9 +67,9 @@ describe("Feature form footer actions", () => {
   it("saves features without a main project as null", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
-      <ProjectForm
+      <FeatureForm
         open
-        initial={{ ...EMPTY_PROJECT, name: "Checkout", main_project_id: "payments" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", main_project_id: "payments" }}
         mainProjects={[{ id: "payments", workspace_id: "workspace", name: "Payments" }]}
         onSave={onSave}
         onClose={vi.fn()}
@@ -85,7 +85,7 @@ describe("Feature form footer actions", () => {
   it("discards changes without saving", async () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
-    render(<ProjectForm open initial={null} onSave={onSave} onClose={onClose} />);
+    render(<FeatureForm open initial={null} onSave={onSave} onClose={onClose} />);
     await userEvent.type(screen.getByLabelText("Name"), "Draft");
     await userEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(onSave).not.toHaveBeenCalled();
@@ -95,9 +95,9 @@ describe("Feature form footer actions", () => {
   it("keeps failed saves open and displays the error", async () => {
     const onClose = vi.fn();
     render(
-      <ProjectForm
+      <FeatureForm
         open
-        initial={{ ...EMPTY_PROJECT, name: "Checkout" }}
+        initial={{ ...EMPTY_FEATURE, name: "Checkout" }}
         onSave={vi.fn().mockRejectedValue(new Error("Save failed"))}
         onClose={onClose}
       />

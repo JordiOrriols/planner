@@ -1,7 +1,7 @@
 export const ROLES = ["backend", "frontend", "design", "qa"] as const;
 export type Role = (typeof ROLES)[number];
 export type Estimates = Record<`${Role}_devs` | `${Role}_weeks`, number>;
-export type ProjectInput = Estimates & {
+export type FeatureInput = Estimates & {
   name: string;
   description: string;
   main_project_id: string | null;
@@ -11,7 +11,7 @@ export interface MainProject {
   workspace_id: string;
   name: string;
 }
-export type Project = ProjectInput & {
+export type Feature = FeatureInput & {
   id: string;
   workspace_id: string;
   in_backlog: boolean;
@@ -50,7 +50,7 @@ export interface Availability {
   date: string;
   is_working: boolean;
 }
-export const EMPTY_PROJECT: ProjectInput = {
+export const EMPTY_FEATURE: FeatureInput = {
   name: "",
   description: "",
   main_project_id: null,

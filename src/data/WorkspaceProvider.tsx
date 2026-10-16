@@ -7,7 +7,7 @@ import { AppSkeleton, Button, Input, Label } from "@jordiorriols/ui";
 import { useData } from "./DataProvider";
 import {
   type Workspace,
-  type Project,
+  type Feature,
   type MainProject,
   type PlannerMember,
   type Availability,
@@ -17,7 +17,7 @@ import {
 interface WorkspaceContextValue {
   workspace: Workspace;
   workspaces: Workspace[];
-  projects: Project[];
+  features: Feature[];
   mainProjects: MainProject[];
   members: PlannerMember[];
   availability: Availability[];
