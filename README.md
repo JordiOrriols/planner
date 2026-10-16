@@ -207,10 +207,23 @@ changes are saved to the workspace and return to the read-only card.
 
 For each feature, enter people and weeks for backend, frontend, design and
 QA. Estimation uses full-width feature cards: overall Peak team, Duration and Effort
-appear alongside a compact effort summary for active roles. Role details are
+appear first, followed by a vertical divider and a separate **Effort by role** group
+for active roles. Role details are
 collapsed by default; expanding them replaces the compact summary with people,
 weeks and person-weeks for each area. Role columns stack on smaller screens;
 unused areas show zero.
+Role colors live in `src/config/roleColors.ts`, which uses the roadmap palette.
+Estimation badges, the feature form, the roadmap legend and bars, and velocity
+charts all read from it.
+
+Features can optionally belong to a **main project**. Owners/editors use
+**Manage projects** on Estimation to add, rename or delete the workspace's
+project list. Names must be unique ignoring case, and deleting a project keeps
+its features, which move to **No project**. Choose a feature's project in the
+feature form. Estimation shows the project label before the feature title. The
+Roadmap keeps strict priority order and inserts a project heading whenever
+consecutive features belong to a different project. No headings appear when no
+roadmap feature has a project.
 Feature creation and editing share footer actions: a primary Create/Save button
 beside Discard. Discard closes without saving; failed saves keep the draft open.
 People and weeks must be whole numbers. Both values must be positive for an
