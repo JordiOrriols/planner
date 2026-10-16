@@ -21,15 +21,18 @@ const { auth, state } = vi.hoisted(() => {
 vi.mock("../supabaseClient", () => ({ supabase: { auth } }));
 
 describe("Planner authentication composition", () => {
-  it("creates only the Planner repository after shared authentication restores a user", async () => {
+  it("creates the Planner repository and shared workspace API only after shared authentication restores a user", async () => {
     const { result } = renderHook(() => useData(), { wrapper: DataProvider });
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.repository).toBeNull();
+    expect(result.current.workspaceApi).toBeNull();
     await act(async () => state.listener?.("SIGNED_IN", { user: { id: "one" } }));
-    expect(result.current.repository?.listWorkspaces).toBeTypeOf("function");
+    expect(result.current.repository?.loadWorkspace).toBeTypeOf("function");
+    expect(result.current.workspaceApi?.listWorkspaces).toBeTypeOf("function");
     expect(result.current.repository).not.toHaveProperty("listEvaluations");
     await act(async () => state.listener?.("SIGNED_OUT", null));
     expect(result.current.repository).toBeNull();
+    expect(result.current.workspaceApi).toBeNull();
   });
   it("uses the same shared recovery actions and deployment redirect", async () => {
     const { result } = renderHook(() => useData(), { wrapper: DataProvider });

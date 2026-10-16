@@ -13,23 +13,22 @@ import { useData } from "@/data/DataProvider";
 export default function Backlog() {
   const { t } = useTranslation();
 
-  const { projects, mainProjects, members, availability, workspace, canEdit, refresh } =
-    useWorkspace();
+  const { features, projects, members, vacations, workspace, canEdit, refresh } = useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
   const [editingStart, setEditingStart] = useState(false);
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
-  const availableProjects = projects.filter((project) => !project.in_backlog);
+  const availableFeatures = features.filter((feature) => !feature.in_backlog);
   if (!repository) throw new Error(t("roadmap.errors.signInRequired"));
-  const backlog = [...projects]
-    .filter((project) => project.in_backlog)
+  const backlog = [...features]
+    .filter((feature) => feature.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
   let result: ReturnType<typeof computeSchedule> | null = null;
   let error: string | null = null;
   try {
-    result = computeSchedule(backlog, members, availability, parseDate(startDate));
+    result = computeSchedule(backlog, members, vacations, parseDate(startDate));
   } catch (cause) {
     error = cause instanceof Error ? cause.message : String(cause);
   }
@@ -39,7 +38,7 @@ export default function Backlog() {
     null
   );
   function move(fromId: string, toId: string) {
-    const ids = backlog.map((project) => project.id);
+    const ids = backlog.map((feature) => feature.id);
     const from = ids.indexOf(fromId),
       to = ids.indexOf(toId);
     if (!repository || action.busy || from < 0 || to < 0 || from === to) return;
@@ -60,7 +59,7 @@ export default function Backlog() {
   function deliver(id: string, delivered: boolean) {
     if (!repository) throw new Error(t("roadmap.errors.signInRequired"));
     void action.run(async () => {
-      await repository.setDelivered(workspace.id, id, delivered);
+      await repository.setDelivered(id, delivered);
       await refresh();
     });
   }
@@ -170,12 +169,12 @@ export default function Backlog() {
             })}
           </h2>
           <GanttChart
-            mainProjects={mainProjects}
+            projects={projects}
             weeks={result?.weeks ?? []}
             schedule={
               result?.schedule ??
-              backlog.map((project) => ({
-                project,
+              backlog.map((feature) => ({
+                feature,
                 startIdx: null,
                 endIdx: null,
                 start: null,
@@ -211,19 +210,19 @@ export default function Backlog() {
               {action.error}
             </p>
           )}
-          {availableProjects.length ? (
+          {availableFeatures.length ? (
             <ul className="max-h-[50vh] overflow-y-auto space-y-2">
-              {availableProjects.map((project) => (
+              {availableFeatures.map((feature) => (
                 <li
-                  key={project.id}
+                  key={feature.id}
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"
                 >
-                  <span className="font-medium">{project.name}</span>
+                  <span className="font-medium">{feature.name}</span>
                   <Button
                     size="sm"
                     disabled={action.busy}
-                    aria-label={t("roadmap.addFeature.addLabel", { featureName: project.name })}
-                    onClick={() => toggle(project.id, true)}
+                    aria-label={t("roadmap.addFeature.addLabel", { featureName: feature.name })}
+                    onClick={() => toggle(feature.id, true)}
                   >
                     {t("roadmap.actions.addFeature")}
                   </Button>
@@ -232,7 +231,7 @@ export default function Backlog() {
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {projects.length
+              {features.length
                 ? t("roadmap.addFeature.allIncluded")
                 : t("roadmap.addFeature.noEstimates")}
             </p>

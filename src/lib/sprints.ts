@@ -2,7 +2,7 @@ import { addDays, differenceInCalendarDays, format } from "date-fns";
 import i18n from "@/i18n";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 import { isWorking, parseDate } from "@/lib/planning";
-import type { Availability, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, PlannerMember, SprintResult } from "@/types/planner";
 
 export function sprintDays(start: Date) {
   return Array.from({ length: 14 }, (_, day) => addDays(start, day));
@@ -30,17 +30,12 @@ export function validateSprintSettings(anchor: string, history: SprintResult[]) 
   }
 }
 
-export function sprintCapacity(
-  members: PlannerMember[],
-  availability: Availability[],
-  start: Date
-) {
+export function sprintCapacity(members: PlannerMember[], vacations: Vacation[], start: Date) {
   verifySprint(start);
   const assigned = members.filter((member) => member.role !== null);
   return (
     sprintDays(start).reduce(
-      (sum, date) =>
-        sum + assigned.filter((member) => isWorking(member, date, availability)).length,
+      (sum, date) => sum + assigned.filter((member) => isWorking(member, date, vacations)).length,
       0
     ) / 5
   );
@@ -50,7 +45,7 @@ export function calibratedRate(
   anchor: string,
   history: SprintResult[],
   members: PlannerMember[],
-  availability: Availability[],
+  vacations: Vacation[],
   reference = new Date()
 ): number | null {
   validateSprintSettings(anchor, history);
@@ -60,7 +55,7 @@ export function calibratedRate(
   for (const result of history) {
     if (differenceInCalendarDays(reference, parseDate(result.start_date)) < 14)
       throw new Error(i18n.t("velocity.calibration.errors.unfinished"));
-    const capacity = sprintCapacity(members, availability, parseDate(result.start_date));
+    const capacity = sprintCapacity(members, vacations, parseDate(result.start_date));
     if (capacity === 0) throw new Error(i18n.t("velocity.calibration.errors.noCapacity"));
     totalCapacity += capacity;
     totalPoints += result.story_points;

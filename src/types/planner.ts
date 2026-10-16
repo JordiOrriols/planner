@@ -1,19 +1,19 @@
 export const ROLES = ["backend", "frontend", "design", "qa"] as const;
 export type Role = (typeof ROLES)[number];
 export type Estimates = Record<`${Role}_devs` | `${Role}_weeks`, number>;
-export type ProjectInput = Estimates & {
+export type FeatureInput = Estimates & {
   name: string;
   description: string;
-  main_project_id: string | null;
+  project_id: string | null;
 };
-export interface MainProject {
+export interface Project {
   id: string;
   workspace_id: string;
   name: string;
 }
-export type Project = ProjectInput & {
+export type Feature = Omit<FeatureInput, "project_id"> & {
   id: string;
-  workspace_id: string;
+  project_id: string;
   in_backlog: boolean;
   delivered: boolean;
   priority: number;
@@ -38,22 +38,20 @@ export interface PlannerMember {
   can_edit: boolean;
   vacation_token: string | null;
 }
-export interface LaddersTeam {
+export interface LinkedTeam {
   id: string;
   name: string;
-  access_level: "owner" | "editor" | "viewer";
 }
-export type LinkedTeam = Pick<LaddersTeam, "id" | "name">;
 export type WorkspaceAccess = "viewer" | "editor";
-export interface Availability {
+export interface Vacation {
   member_id: string;
   date: string;
   is_working: boolean;
 }
-export const EMPTY_PROJECT: ProjectInput = {
+export const EMPTY_FEATURE: FeatureInput = {
   name: "",
   description: "",
-  main_project_id: null,
+  project_id: null,
   backend_devs: 0,
   backend_weeks: 0,
   frontend_devs: 0,

@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { parseISO } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
 import { computeSchedule } from "@/lib/planning";
-import { EMPTY_PROJECT, type PlannerMember, type Project } from "@/types/planner";
+import { EMPTY_FEATURE, type PlannerMember, type Feature } from "@/types/planner";
 
 const members: PlannerMember[] = [
   {
@@ -34,10 +34,10 @@ const members: PlannerMember[] = [
   },
   { id: "qa", team_id: "team", name: "QA", role: "qa", can_edit: true, vacation_token: null },
 ];
-const mixed: Project = {
-  ...EMPTY_PROJECT,
+const mixed: Feature = {
+  ...EMPTY_FEATURE,
   id: "mixed",
-  workspace_id: "workspace",
+  project_id: "project",
   name: "Mixed",
   in_backlog: true,
   delivered: false,
@@ -49,15 +49,15 @@ const mixed: Project = {
 };
 afterEach(() => vi.useRealTimers());
 
-function renderSchedule(projects: Project[], horizon = 6) {
-  const result = computeSchedule(projects, members, [], parseISO("2026-02-02"), horizon);
+function renderSchedule(features: Feature[], horizon = 6) {
+  const result = computeSchedule(features, members, [], parseISO("2026-02-02"), horizon);
   render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
   return result;
 }
 
 describe("role-aware Gantt allocations", () => {
-  it("keeps priority order and adds a project heading whenever the main project changes", () => {
-    const mainProjects = [
+  it("keeps priority order and adds a project heading whenever the project changes", () => {
+    const projects = [
       { id: "payments", workspace_id: "workspace", name: "Payments" },
       { id: "growth", workspace_id: "workspace", name: "Growth" },
     ];
@@ -66,12 +66,10 @@ describe("role-aware Gantt allocations", () => {
       id: name,
       name,
       priority: index,
-      main_project_id: [`payments`, "payments", null, "growth", "payments"][index]!,
+      project_id: [`payments`, "payments", null, "growth", "payments"][index]!,
     }));
     const result = computeSchedule(features, members, [], parseISO("2026-02-02"), 12);
-    render(
-      <GanttChart weeks={result.weeks} schedule={result.schedule} mainProjects={mainProjects} />
-    );
+    render(<GanttChart weeks={result.weeks} schedule={result.schedule} projects={projects} />);
     const order = screen
       .getAllByRole("heading")
       .concat(screen.getAllByLabelText(/^Schedule row:/))
@@ -321,7 +319,7 @@ describe("role-aware Gantt allocations", () => {
   });
 
   it("positions successive phases within the same week without overlapping their bars", () => {
-    const project = {
+    const feature = {
       ...mixed,
       backend_weeks: 1,
       frontend_weeks: 0,
@@ -331,14 +329,14 @@ describe("role-aware Gantt allocations", () => {
       qa_devs: 1,
       qa_weeks: 1,
     };
-    const availability = members.flatMap((member) =>
+    const vacations = members.flatMap((member) =>
       ["2026-02-07", "2026-02-08"].map((date) => ({
         member_id: member.id,
         date,
         is_working: true,
       }))
     );
-    const result = computeSchedule([project], members, availability, parseISO("2026-02-02"), 3);
+    const result = computeSchedule([feature], members, vacations, parseISO("2026-02-02"), 3);
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
     const design = screen.getByRole("img", { name: /^Mixed · Design:/ });
     const backend = screen.getAllByRole("img", { name: /^Mixed · Backend:/ })[0]!;

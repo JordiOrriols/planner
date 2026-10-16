@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AvailabilityEditor } from "@/components/organisms/availability-editor";
-import type { Availability } from "@/types/planner";
+import { VacationEditor } from "@/components/organisms/vacation-editor";
+import type { Vacation } from "@/types/planner";
 
 const ada = { id: "ada", name: "Ada", role: "backend" as const };
 const grace = { id: "grace", name: "Grace", role: "frontend" as const };
@@ -11,16 +11,16 @@ const grace = { id: "grace", name: "Grace", role: "frontend" as const };
 function open({
   canEdit = true,
   save = vi.fn().mockResolvedValue(undefined),
-  availability = [] as Availability[],
+  vacations = [] as Vacation[],
   initialMonth = new Date(2026, 10, 1),
 } = {}) {
   function Editor() {
     const [month, setMonth] = useState(initialMonth);
     return (
-      <AvailabilityEditor
+      <VacationEditor
         member={ada}
         members={[ada, grace]}
-        availability={availability}
+        vacations={vacations}
         month={month}
         onMonthChange={setMonth}
         canEdit={canEdit}
@@ -118,7 +118,7 @@ describe("Shared vacation calendar editor", () => {
 
   it("shows vacation names, initials and matching legend colors, not ordinary non-working days", () => {
     open({
-      availability: [
+      vacations: [
         { member_id: "ada", date: "2026-11-02", is_working: false },
         { member_id: "grace", date: "2026-11-02", is_working: false },
         { member_id: "grace", date: "2026-11-03", is_working: true },
@@ -147,7 +147,7 @@ describe("Shared vacation calendar editor", () => {
   it("keeps read-only calendars visible without permitting selection or writes", () => {
     const { save } = open({
       canEdit: false,
-      availability: [{ member_id: "ada", date: "2026-11-02", is_working: false }],
+      vacations: [{ member_id: "ada", date: "2026-11-02", is_working: false }],
     });
     expect(day("2026-11-02")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();

@@ -2,31 +2,38 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { AppSkeleton, Button, Input, Label } from "@jordiorriols/ui";
+import { useAsyncAction, useWorkspaceList } from "@jordiorriols/ui/hooks";
+import {
+  AppSkeleton,
+  Button,
+  Input,
+  Label,
+  type WorkspaceApi,
+  type WorkspaceSummary,
+} from "@jordiorriols/ui";
 import { useData } from "./DataProvider";
 import {
   type Workspace,
+  type Feature,
   type Project,
-  type MainProject,
   type PlannerMember,
-  type Availability,
+  type Vacation,
   type LinkedTeam,
 } from "@/types/planner";
 
 interface WorkspaceContextValue {
   workspace: Workspace;
-  workspaces: Workspace[];
+  workspaces: WorkspaceSummary[];
+  workspaceApi: WorkspaceApi;
+  features: Feature[];
   projects: Project[];
-  mainProjects: MainProject[];
   members: PlannerMember[];
-  availability: Availability[];
+  vacations: Vacation[];
   linkedTeams: LinkedTeam[];
   isOwner: boolean;
   canEdit: boolean;
   userId: string;
   selectWorkspace: (id: string) => void;
-  createWorkspace: () => void;
   refresh: () => Promise<void>;
 }
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -39,45 +46,33 @@ export function useWorkspace() {
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
 
-  const { repository, user, signOut } = useData();
+  const { repository, workspaceApi, user, signOut } = useData();
   const client = useQueryClient();
-  const [selected, setSelected] = useState("");
-  const [creating, setCreating] = useState(false);
+  const directory = useWorkspaceList(workspaceApi, "planner");
   const [name, setName] = useState("");
   const action = useAsyncAction();
-  const directoryKey = ["planner-directory", user?.id];
-  const directory = useQuery({
-    queryKey: directoryKey,
-    enabled: !!repository,
-    queryFn: async () => {
-      if (!repository) throw new Error(t("workspace.errors.signInToLoad"));
-      return { workspaces: await repository.listWorkspaces() };
-    },
-  });
-  const workspace =
-    directory.data?.workspaces.find((item) => item.id === selected) ??
-    directory.data?.workspaces[0];
+  const summary = directory.workspace;
   const data = useQuery({
-    queryKey: ["planner-workspace", user?.id, workspace?.id],
-    enabled: !!workspace && !!repository,
+    queryKey: ["planner-workspace", user?.id, summary?.id],
+    enabled: !!summary && !!repository,
     queryFn: () => {
-      if (!repository || !workspace) throw new Error(t("workspace.select"));
-      return repository.loadWorkspace(workspace.id);
+      if (!repository || !summary) throw new Error(t("workspace.select"));
+      return repository.loadWorkspace(summary.id);
     },
   });
   async function refresh() {
     await Promise.all([
-      client.invalidateQueries({ queryKey: ["planner-directory", user?.id] }),
+      directory.refresh(),
       client.invalidateQueries({ queryKey: ["planner-workspace", user?.id] }),
     ]);
   }
-  if (!repository || !user) throw new Error(t("workspace.errors.signInToOpen"));
-  if (directory.isPending || (workspace && data.isPending))
+  if (!repository || !workspaceApi || !user) throw new Error(t("workspace.errors.signInToOpen"));
+  if (directory.loading || (summary && data.isPending))
     return <AppSkeleton label={t("workspace.loading")} />;
   if (directory.error || data.error)
     return (
       <div className="p-8 space-y-4">
-        <p role="alert">{(directory.error ?? data.error)?.message}</p>
+        <p role="alert">{directory.error ?? data.error?.message}</p>
         <p>{t("workspace.errors.migrationRequired")}</p>
         <Button onClick={() => void refresh()}>{t("common.actions.retry")}</Button>
         <Button variant="ghost" onClick={() => void action.run(signOut)}>
@@ -86,7 +81,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         {action.error && <p role="alert">{action.error}</p>}
       </div>
     );
-  if (creating || !workspace || !data.data)
+  if (!summary || !data.data)
     return (
       <main className="max-w-xl mx-auto p-8 space-y-6">
         <h1 className="text-2xl font-semibold">{t("workspace.create.title")}</h1>
@@ -104,9 +99,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           onSubmit={(event) => {
             event.preventDefault();
             void action.run(async () => {
-              const created = await repository.createWorkspace(name);
-              setSelected(created.id);
-              setCreating(false);
+              const created = await workspaceApi.createWorkspace(name);
+              directory.select(created.id);
               setName("");
               await refresh();
             });
@@ -123,29 +117,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           <Button type="submit" disabled={action.busy}>
             {t("workspace.create.submit")}
           </Button>
-          {!!workspace && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setCreating(false)}
-              disabled={action.busy}
-            >
-              {t("common.actions.cancel")}
-            </Button>
-          )}
         </form>
       </main>
     );
+  const { workspace, ...loaded } = data.data;
   return (
     <WorkspaceContext.Provider
       value={{
         workspace,
-        workspaces: directory.data?.workspaces ?? [],
-        ...data.data,
-        isOwner: workspace.owner_id === user.id,
+        workspaces: directory.workspaces ?? [],
+        workspaceApi,
+        ...loaded,
+        isOwner: summary.access_level === "owner",
         userId: user.id,
-        selectWorkspace: setSelected,
-        createWorkspace: () => setCreating(true),
+        selectWorkspace: directory.select,
         refresh,
       }}
     >

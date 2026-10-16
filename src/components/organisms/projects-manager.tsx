@@ -3,19 +3,21 @@ import React, { useState } from "react";
 import { Button, Input, Modal } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { Plus, Trash2 } from "@jordiorriols/ui/icons";
-import type { MainProject } from "@/types/planner";
+import type { Project } from "@/types/planner";
 
-export default function MainProjectsManager({
+export default function ProjectsManager({
   open,
   onClose,
   projects,
+  projectsInUse,
   onCreate,
   onRename,
   onDelete,
 }: {
   open: boolean;
   onClose: () => void;
-  projects: MainProject[];
+  projects: Project[];
+  projectsInUse: ReadonlySet<string>;
   onCreate: (name: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -29,9 +31,9 @@ export default function MainProjectsManager({
       onOpenChange={(value) => {
         if (!value && !action.busy) onClose();
       }}
-      title={t("mainProjects.title")}
-      description={t("mainProjects.description")}
-      closeLabel={t("mainProjects.actions.done")}
+      title={t("projects.title")}
+      description={t("projects.description")}
+      closeLabel={t("projects.actions.done")}
     >
       <div className="space-y-4">
         <form
@@ -46,8 +48,8 @@ export default function MainProjectsManager({
           }}
         >
           <Input
-            aria-label={t("mainProjects.fields.newName")}
-            placeholder={t("mainProjects.fields.newName")}
+            aria-label={t("projects.fields.newName")}
+            placeholder={t("projects.fields.newName")}
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={80}
@@ -55,23 +57,24 @@ export default function MainProjectsManager({
           />
           <Button type="submit" disabled={action.busy || !name.trim()}>
             <Plus className="mr-2 size-4" />
-            {t("mainProjects.actions.add")}
+            {t("projects.actions.add")}
           </Button>
         </form>
         {projects.length ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {projects.map((project) => (
-              <MainProjectRow
+              <ProjectRow
                 key={`${project.id}-${project.name}`}
                 project={project}
                 busy={action.busy}
+                inUse={projectsInUse.has(project.id)}
                 onRename={(value) => void action.run(() => onRename(project.id, value))}
                 onDelete={() => void action.run(() => onDelete(project.id))}
               />
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">{t("mainProjects.empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("projects.empty")}</p>
         )}
         {action.error && (
           <p role="alert" className="text-sm text-destructive">
@@ -83,14 +86,16 @@ export default function MainProjectsManager({
   );
 }
 
-function MainProjectRow({
+function ProjectRow({
   project,
   busy,
+  inUse,
   onRename,
   onDelete,
 }: {
-  project: MainProject;
+  project: Project;
   busy: boolean;
+  inUse: boolean;
   onRename: (name: string) => void;
   onDelete: () => void;
 }) {
@@ -107,7 +112,7 @@ function MainProjectRow({
         }}
       >
         <Input
-          aria-label={t("mainProjects.fields.rename", { projectName: project.name })}
+          aria-label={t("projects.fields.rename", { projectName: project.name })}
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={80}
@@ -118,7 +123,7 @@ function MainProjectRow({
             type="submit"
             size="sm"
             disabled={busy}
-            aria-label={t("mainProjects.actions.save", { projectName: project.name })}
+            aria-label={t("projects.actions.save", { projectName: project.name })}
           >
             {t("featureForm.actions.save")}
           </Button>
@@ -128,8 +133,9 @@ function MainProjectRow({
           size="icon"
           variant="ghost"
           className="size-8 shrink-0 text-destructive hover:text-destructive"
-          disabled={busy}
-          aria-label={t("mainProjects.actions.delete", { projectName: project.name })}
+          disabled={busy || inUse}
+          title={inUse ? t("projects.inUse") : undefined}
+          aria-label={t("projects.actions.delete", { projectName: project.name })}
           onClick={onDelete}
         >
           <Trash2 className="size-4" />

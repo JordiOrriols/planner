@@ -4,14 +4,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { APP_LANGUAGES } from "@jordiorriols/ui";
-import ProjectEstimateCard from "@/components/organisms/project-estimate-card";
+import FeatureEstimateCard from "@/components/organisms/feature-estimate-card";
 import i18n from "@/i18n";
-import { EMPTY_PROJECT, ROLES, type Project } from "@/types/planner";
+import { EMPTY_FEATURE, ROLES, type Feature } from "@/types/planner";
 
-const project: Project = {
-  ...EMPTY_PROJECT,
+const feature: Feature = {
+  ...EMPTY_FEATURE,
   id: "feature",
-  workspace_id: "workspace",
+  project_id: "project",
   name: "Checkout",
   description: "A readable feature estimate",
   backend_devs: 2,
@@ -27,10 +27,10 @@ const project: Project = {
   priority: 0,
 };
 
-function renderCard(feature = project, readOnly = false) {
+function renderCard(input = feature, readOnly = false) {
   return render(
-    <ProjectEstimateCard
-      project={feature}
+    <FeatureEstimateCard
+      feature={input}
       onEdit={vi.fn()}
       onDelete={vi.fn()}
       disabled={false}
@@ -52,7 +52,7 @@ describe("Feature estimate breakdown", () => {
       await i18n.changeLanguage(language);
       const t = i18n.getFixedT(language);
       renderCard();
-      const card = screen.getByRole("article", { name: project.name });
+      const card = screen.getByRole("article", { name: feature.name });
       expect(within(card).queryByRole("region")).not.toBeInTheDocument();
       const toggle = screen.getByRole("button", { name: t("featureCard.showDetails") });
       expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -72,7 +72,7 @@ describe("Feature estimate breakdown", () => {
       expect(within(roleEffort).queryByText(t("featureCard.metrics.peakTeam"))).toBeNull();
       for (const role of ROLES) {
         expect(roleEffort).toHaveTextContent(
-          `${t(`planningRoles.${role}`)}${project[`${role}_devs`] * project[`${role}_weeks`]}`
+          `${t(`planningRoles.${role}`)}${feature[`${role}_devs`] * feature[`${role}_weeks`]}`
         );
         const roleLabel = within(roleEffort).getByText(t(`planningRoles.${role}`));
         const effortLabel = within(card)
@@ -89,10 +89,10 @@ describe("Feature estimate breakdown", () => {
       for (const role of ROLES) {
         const area = within(card).getByRole("region", { name: t(`planningRoles.${role}`) });
         const values = within(area).getAllByRole("definition");
-        expect(values[0]).toHaveTextContent(String(project[`${role}_devs`]));
-        expect(values[1]).toHaveTextContent(String(project[`${role}_weeks`]));
+        expect(values[0]).toHaveTextContent(String(feature[`${role}_devs`]));
+        expect(values[1]).toHaveTextContent(String(feature[`${role}_weeks`]));
         expect(values[2]?.textContent).toBe(
-          `${project[`${role}_devs`] * project[`${role}_weeks`]}${t("common.units.personWeeksShort")}`
+          `${feature[`${role}_devs`] * feature[`${role}_weeks`]}${t("common.units.personWeeksShort")}`
         );
         expect(
           within(area)
@@ -119,11 +119,11 @@ describe("Feature estimate breakdown", () => {
     }
   );
 
-  it("shows the main project label before the feature title only when assigned", () => {
+  it("shows the project label before the feature title only when assigned", () => {
     const { rerender } = render(
-      <ProjectEstimateCard
-        project={project}
-        mainProjectName="Payments"
+      <FeatureEstimateCard
+        feature={feature}
+        projectName="Payments"
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         disabled={false}
@@ -131,11 +131,11 @@ describe("Feature estimate breakdown", () => {
       />
     );
     const title = screen.getByRole("heading", { level: 3 });
-    expect(title.textContent).toBe(`Payments${project.name}`);
+    expect(title.textContent).toBe(`Payments${feature.name}`);
     expect(title.firstElementChild).toHaveTextContent("Payments");
     rerender(
-      <ProjectEstimateCard
-        project={project}
+      <FeatureEstimateCard
+        feature={feature}
         onEdit={vi.fn()}
         onDelete={vi.fn()}
         disabled={false}
@@ -143,12 +143,12 @@ describe("Feature estimate breakdown", () => {
       />
     );
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
-      new RegExp(`^${project.name}$`)
+      new RegExp(`^${feature.name}$`)
     );
   });
 
   it("shows zero estimates for unused areas without hiding their labels", async () => {
-    renderCard({ ...project, ...EMPTY_PROJECT, name: project.name }, true);
+    renderCard({ ...feature, ...EMPTY_FEATURE, name: feature.name }, true);
     await userEvent.click(screen.getByRole("button", { name: i18n.t("featureCard.showDetails") }));
     for (const role of ROLES) {
       const area = screen.getByRole("region", { name: i18n.t(`planningRoles.${role}`) });

@@ -3,28 +3,29 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@/i18n";
-import MainProjectsManager from "@/components/organisms/main-projects-manager";
+import ProjectsManager from "@/components/organisms/projects-manager";
 
 const projects = [
   { id: "payments", workspace_id: "workspace", name: "Payments" },
   { id: "growth", workspace_id: "workspace", name: "Growth" },
 ];
 
-function setup(overrides: Partial<React.ComponentProps<typeof MainProjectsManager>> = {}) {
+function setup(overrides: Partial<React.ComponentProps<typeof ProjectsManager>> = {}) {
   const props = {
     open: true,
     onClose: vi.fn(),
     projects,
+    projectsInUse: new Set<string>(),
     onCreate: vi.fn().mockResolvedValue(undefined),
     onRename: vi.fn().mockResolvedValue(undefined),
     onDelete: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
-  render(<MainProjectsManager {...props} />);
+  render(<ProjectsManager {...props} />);
   return props;
 }
 
-describe("Main projects manager", () => {
+describe("Projects manager", () => {
   it("creates a project and clears the name field", async () => {
     const props = setup();
     const name = screen.getByLabelText("New project name");
@@ -46,6 +47,17 @@ describe("Main projects manager", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Delete Growth" }));
     await waitFor(() => expect(props.onDelete).toHaveBeenCalledExactlyOnceWith("growth"));
+  });
+
+  it("blocks deleting a project that still has features", () => {
+    setup({ projectsInUse: new Set(["payments"]) });
+    const deletePayments = screen.getByRole("button", { name: "Delete Payments" });
+    expect(deletePayments).toBeDisabled();
+    expect(deletePayments).toHaveAttribute(
+      "title",
+      "Delete or move this project's features first."
+    );
+    expect(screen.getByRole("button", { name: "Delete Growth" })).toBeEnabled();
   });
 
   it("shows an empty state and surfaces failures", async () => {

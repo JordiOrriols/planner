@@ -6,20 +6,20 @@ import { Plus, Trash2 } from "@jordiorriols/ui/icons";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { calibratedRate, sprintCapacity } from "@/lib/sprints";
 import { parseDate } from "@/lib/planning";
-import type { Availability, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, PlannerMember, SprintResult } from "@/types/planner";
 
 export default function VelocityCalibration({
   anchor,
   history,
   members,
-  availability,
+  vacations,
   onSave,
   onClose,
 }: {
   anchor: string;
   history: SprintResult[];
   members: PlannerMember[];
-  availability: Availability[];
+  vacations: Vacation[];
   onSave: (anchor: string, history: SprintResult[]) => Promise<void>;
   onClose: () => void;
 }) {
@@ -42,9 +42,9 @@ export default function VelocityCalibration({
     story_points: row.points.trim() === "" ? NaN : Number(row.points),
   }));
   try {
-    rate = calibratedRate(start, results, members, availability);
+    rate = calibratedRate(start, results, members, vacations);
     capacities = results.map((result) =>
-      sprintCapacity(members, availability, parseDate(result.start_date))
+      sprintCapacity(members, vacations, parseDate(result.start_date))
     );
   } catch (cause) {
     validationError = cause instanceof Error ? cause.message : String(cause);

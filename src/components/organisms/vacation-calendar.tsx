@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight } from "@jordiorriols/ui/icons";
 import { Button } from "@jordiorriols/ui";
 import { hasHolidayCalendar, holidayName } from "@/lib/barcelonaHolidays";
 import { fmtMonth } from "@/lib/planning";
-import type { PlannerMember, Availability } from "@/types/planner";
+import type { PlannerMember, Vacation } from "@/types/planner";
 import { cn } from "@/lib/utils";
 
 const MEMBER_TONES = [
@@ -30,7 +30,7 @@ export default function VacationCalendar({
   month,
   onMonthChange,
   teamMembers,
-  availability,
+  vacations,
   selectedMember,
   onSelectRange,
   disabled,
@@ -40,7 +40,7 @@ export default function VacationCalendar({
   month: Date;
   onMonthChange: (month: Date) => void;
   teamMembers: Pick<PlannerMember, "id" | "name" | "role">[];
-  availability: Availability[];
+  vacations: Vacation[];
   selectedMember: string;
   onSelectRange: (start: string, end: string | null) => void;
   disabled: boolean;
@@ -129,7 +129,7 @@ export default function VacationCalendar({
           const supported = hasHolidayCalendar(key);
           const holiday = holidayName(key);
           const off = teamMembers.filter((member) =>
-            availability.some(
+            vacations.some(
               (item) => item.member_id === member.id && item.date === key && !item.is_working
             )
           );

@@ -5,11 +5,7 @@
     "subtitle": "Estimación y planificación de proyectos",
     "pages": "Páginas de Planner",
     "workspace": "Espacio de trabajo",
-    "owner": "Propietario",
     "member": "Miembro",
-    "newWorkspace": "Nuevo espacio",
-    "noShares": "Este espacio de trabajo todavía no se ha compartido.",
-    "retry": "Reintentar",
     "tabs": {
       "estimation": "Estimación",
       "backlog": "Hoja de ruta",
@@ -39,7 +35,6 @@
     "add": "Añadir Miembro",
     "edit": "Editar",
     "delete": "Eliminar",
-    "close": "Cerrar",
     "clear": "Limpiar",
     "shareLink": "Compartir Enlace",
     "current": "Actual",
@@ -76,15 +71,7 @@
     "createTitle": "Crear un equipo",
     "createDescription": "Agrupe a las personas que trabajan juntas y gestione el acceso por separado.",
     "name": "Nombre del equipo",
-    "share": "Compartir",
-    "shareTitle": "Compartir {{name}}",
-    "shareDescription": "Añada una cuenta existente por email y elija acceso de lectura o edición.",
-    "permission": "Permiso",
-    "permissionFor": "Permiso para {{email}}",
-    "viewer": "Ver",
-    "editor": "Editar",
     "noShares": "Este equipo todavía no se ha compartido.",
-    "removeShare": "Eliminar a {{email}}",
     "rename": "Renombrar",
     "renameAria": "Renombrar {{name}}",
     "renameTitle": "Renombrar equipo",
@@ -419,7 +406,6 @@
     "switchToSignIn": "¿Ya tiene cuenta? Inicie sesión"
   },
   "pageMessage": {
-    "loading": "Cargando...",
     "notFound": "Este enlace no es válido o ya no está disponible.",
     "error": "Algo salió mal al cargar.",
     "thanks": "¡Gracias! Su evaluación se ha enviado.",
@@ -492,7 +478,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Crea un espacio de planificación y vincula después tus equipos Ladders existentes desde la página Vacaciones.",
+      "description": "Crea un espacio de planificación y añade después sus equipos en Configuración.",
       "name": "Nombre del espacio de trabajo",
       "submit": "Crear espacio de trabajo",
       "title": "Tu espacio de planificación"
@@ -501,9 +487,7 @@
       "invalidPlanStart": "La fecha de inicio del plan del espacio de trabajo no es válida",
       "migrationRequired": "Confirma que la migración de Planner está instalada en tu proyecto de Supabase.",
       "providerRequired": "Se necesita WorkspaceProvider",
-      "signInToLoad": "Inicia sesión antes de cargar los espacios de trabajo",
-      "signInToOpen": "Inicia sesión antes de abrir Planner",
-      "signInToShare": "Inicia sesión antes de compartir un espacio de trabajo"
+      "signInToOpen": "Inicia sesión antes de abrir Planner"
     },
     "loading": "Cargando tu espacio de trabajo...",
     "select": "Seleccionar espacio de trabajo"
@@ -556,9 +540,13 @@
       "name": "Nombre",
       "rolePeople": "Personas de {{role}}",
       "roleWeeks": "Semanas de {{role}}",
-      "mainProject": "Proyecto principal"
+      "project": "Proyecto"
     },
-    "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona"
+    "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona",
+    "project": {
+      "choose": "Elige un proyecto",
+      "new": "+ Nuevo proyecto"
+    }
   },
   "featureCard": {
     "showDetails": "Mostrar detalles por área",
@@ -673,26 +661,27 @@
   "teamConfiguration": {
     "title": "Configuración del equipo",
     "errors": {
-      "signInToLink": "Inicia sesión antes de vincular equipos",
-      "signInToLoad": "Inicia sesión antes de cargar los equipos"
+      "signInToCreate": "Inicia sesión antes de añadir equipos",
+      "teamNameRequired": "Ponle nombre al equipo primero"
     },
     "members": {
       "copyLink": "Copiar el enlace de vacaciones de {{memberName}}",
-      "empty": "No hay miembros en los equipos vinculados. Vincula un equipo de Ladders para empezar.",
+      "empty": "Los equipos de este espacio de trabajo aún no tienen miembros. Añádelos en Ladders.",
       "linkCopied": "Enlace de vacaciones copiado",
       "roleLabel": "Rol de planificación de {{memberName}}",
       "title": "Miembros del equipo",
       "unassigned": "Sin asignar"
     },
     "teams": {
-      "description": "Elige los equipos que pertenecen a este espacio de trabajo. Un equipo solo vive en un espacio de trabajo, así que elegirlo aquí lo saca del que está ahora. Crea o mueve miembros en Ladders, no aquí.",
-      "empty": "Crea primero un equipo en Ladders con la misma cuenta.",
-      "loading": "Cargando equipos...",
-      "save": "Guardar equipos vinculados",
-      "title": "Equipos de Ladders"
+      "title": "Equipos",
+      "description": "Los equipos de este espacio de trabajo. Los equipos se quedan en el espacio donde se crearon; gestiona sus miembros en Ladders.",
+      "empty": "Este espacio de trabajo aún no tiene equipos.",
+      "nameLabel": "Nombre del nuevo equipo",
+      "namePlaceholder": "Nombre del equipo",
+      "create": "Añadir equipo"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacaciones",
       "workingDay": "Día laborable"
@@ -766,7 +755,7 @@
     "description_other": "Semanas-persona disponibles (cinco días laborables por persona), próximas {{count}} semanas verificadas.",
     "empty": {
       "selectionRequired": "Selecciona al menos un área o equipo para mostrar la velocidad.",
-      "teamRequired": "Vincula un equipo en Configuración para mostrar su velocidad."
+      "teamRequired": "Añade un equipo en Configuración para mostrar su velocidad."
     },
     "filters": {
       "all": {
@@ -812,7 +801,8 @@
       "rolePairRequired": "Indica tanto el número de personas como el de semanas para {{role}}, o deja ambos en cero.",
       "unverifiedStart": "Elige una fecha de inicio de un año con festivos verificados (2026 o 2027).",
       "unverifiedWorkingYear": "Los festivos de Barcelona no están verificados para {{year}}.",
-      "unverifiedYear": "Los festivos de Barcelona no están verificados para {{year}}"
+      "unverifiedYear": "Los festivos de Barcelona no están verificados para {{year}}",
+      "projectRequired": "Elige un proyecto para esta funcionalidad."
     }
   },
   "holidays": {
@@ -836,10 +826,10 @@
     "santJoan": "San Juan",
     "whitMonday": "Lunes de Pentecostés"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Proyectos",
     "manage": "Gestionar proyectos",
-    "description": "Agrupa las funcionalidades bajo su proyecto principal. Al eliminar un proyecto, sus funcionalidades se conservan y pasan a Sin proyecto.",
+    "description": "Agrupa las funcionalidades bajo el proyecto principal al que pertenecen. Un proyecto se puede eliminar cuando ya no tiene funcionalidades.",
     "none": "Sin proyecto",
     "empty": "Aún no hay proyectos.",
     "fields": {
@@ -853,7 +843,9 @@
       "done": "Hecho"
     },
     "errors": {
-      "invalidName": "El nombre del proyecto debe tener entre 1 y 80 caracteres."
-    }
+      "invalidName": "El nombre del proyecto debe tener entre 1 y 80 caracteres.",
+      "hasFeatures": "Mueve o elimina antes las funcionalidades de este proyecto."
+    },
+    "inUse": "Elimina o mueve antes las funcionalidades de este proyecto."
   }
 }

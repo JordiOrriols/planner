@@ -3,6 +3,9 @@ import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createMigratedDatabase } from "./support/migratedDatabase";
 
+// These scenarios link teams into plans; teams have stayed in their workspace since this migration.
+const TEAMS_STAY = "20261017010000_teams_stay_in_their_workspace.sql";
+
 const owner = "11111111-1111-4111-8111-111111111111";
 const viewer = "22222222-2222-4222-8222-222222222222";
 const stranger = "33333333-3333-4333-8333-333333333333";
@@ -26,17 +29,18 @@ async function link(workspaceId = workspace, teams = [team]) {
   await db.query("select public.planner_set_workspace_teams($1,$2)", [workspaceId, teams]);
 }
 beforeAll(async () => {
-  db = await createMigratedDatabase([
-    { id: owner, email: "owner@example.com" },
-    { id: viewer, email: "viewer@example.com" },
-    { id: stranger, email: "stranger@example.com" },
-  ]);
+  db = await createMigratedDatabase(
+    [
+      { id: owner, email: "owner@example.com" },
+      { id: viewer, email: "viewer@example.com" },
+      { id: stranger, email: "stranger@example.com" },
+    ],
+    { until: TEAMS_STAY }
+  );
 });
 beforeEach(async () => {
   await login(null, "postgres");
-  await db.exec(
-    "delete from public.workspaces; delete from public.members; delete from public.team_collaborators"
-  );
+  await db.exec("delete from public.workspaces; delete from public.members");
   await login(owner);
   const teams = await db.query<{ id: string }>(
     "select id from public.teams where owner_id = auth.uid() and is_default"
@@ -113,8 +117,8 @@ describe("Registered-account workspace sharing", () => {
     ).toHaveLength(0);
   });
 
-  it("shares main projects with workspace editors and keeps features in their own workspace", async () => {
-    const mainProject = (
+  it("shares projects with workspace editors and keeps features in their own workspace", async () => {
+    const project = (
       await db.query<{ id: string }>(
         "insert into public.projects(workspace_id,name) values($1,'Payments') returning id",
         [workspace]
@@ -130,7 +134,7 @@ describe("Registered-account workspace sharing", () => {
     const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name,project_id) values($1,'Checkout',$2) returning id",
-        [workspace, mainProject]
+        [workspace, project]
       )
     ).rows[0]!.id;
     const otherWorkspace = (
@@ -141,7 +145,7 @@ describe("Registered-account workspace sharing", () => {
     await expect(
       db.query("insert into public.features(workspace_id,name,project_id) values($1,'Leak',$2)", [
         otherWorkspace,
-        mainProject,
+        project,
       ])
     ).rejects.toThrow();
 
@@ -155,7 +159,7 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.projects set name='Renamed' where id=$1 returning id", [
-          mainProject,
+          project,
         ])
       ).rows
     ).toHaveLength(0);
@@ -174,12 +178,12 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.projects set name='Billing' where id=$1 returning name", [
-          mainProject,
+          project,
         ])
       ).rows
     ).toEqual([{ name: "Billing" }]);
     expect(
-      (await db.query("delete from public.projects where id=$1 returning id", [mainProject])).rows
+      (await db.query("delete from public.projects where id=$1 returning id", [project])).rows
     ).toHaveLength(1);
     expect(
       (await db.query("select workspace_id,project_id from public.features where id=$1", [feature]))
@@ -288,21 +292,21 @@ describe("Registered-account workspace sharing", () => {
       workspace,
     ]);
     await login(viewer);
-    const project = (
+    const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
       )
     ).rows[0]!.id;
-    await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project]);
-    await db.query("select public.planner_reorder_features($1,$2)", [workspace, [project]]);
+    await db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature]);
+    await db.query("select public.planner_reorder_features($1,$2)", [workspace, [feature]]);
     await db.query("update public.features set delivered=true,description='Updated' where id=$1", [
-      project,
+      feature,
     ]);
     expect(
       (
         await db.query("select delivered,priority,description from public.features where id=$1", [
-          project,
+          feature,
         ])
       ).rows
     ).toEqual([{ delivered: true, priority: 1, description: "Updated" }]);
@@ -340,15 +344,15 @@ describe("Registered-account workspace sharing", () => {
       (await db.query("delete from public.workspaces where id=$1 returning id", [workspace])).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
-    ).toEqual([{ id: project }]);
+      (await db.query("delete from public.features where id=$1 returning id", [feature])).rows
+    ).toEqual([{ id: feature }]);
   });
 
   it("denies viewer writes, outsider reads and anonymous sharing", async () => {
     await db.query("select public.share_workspace($1,'viewer@example.com','planner','viewer')", [
       workspace,
     ]);
-    const project = (
+    const feature = (
       await db.query<{ id: string }>(
         "insert into public.features(workspace_id,name) values($1,'Feature') returning id",
         [workspace]
@@ -361,12 +365,12 @@ describe("Registered-account workspace sharing", () => {
     expect(
       (
         await db.query("update public.features set delivered=true where id=$1 returning id", [
-          project,
+          feature,
         ])
       ).rows
     ).toEqual([]);
     expect(
-      (await db.query("delete from public.features where id=$1 returning id", [project])).rows
+      (await db.query("delete from public.features where id=$1 returning id", [feature])).rows
     ).toEqual([]);
     expect(
       (
@@ -377,7 +381,7 @@ describe("Registered-account workspace sharing", () => {
       ).rows
     ).toEqual([]);
     await expect(
-      db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, project])
+      db.query("select public.planner_toggle_backlog($1,$2,true)", [workspace, feature])
     ).rejects.toThrow(/edit access required/);
     await expect(
       db.query("select public.planner_reorder_features($1,$2)", [workspace, []])
@@ -684,11 +688,11 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       (await db.query("select * from public.planner_vacation_member($1)", [member.vacation_token]))
         .rows
     ).toEqual([{ id: member.id, name: "Ada", role: "backend" }]);
-    const availability = (
+    const vacations = (
       await db.query("select * from public.planner_vacation_list($1)", [member.vacation_token])
     ).rows;
-    expect(availability).toHaveLength(2);
-    expect(availability.every((row) => row["member_id"] === member.id)).toBe(true);
+    expect(vacations).toHaveLength(2);
+    expect(vacations.every((row) => row["member_id"] === member.id)).toBe(true);
     for (const table of ["vacations", "teams", "members", "evaluations"]) {
       await expect(db.exec(`select * from public.${table}`)).rejects.toThrow(/permission denied/);
     }
@@ -764,15 +768,15 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
     expect(await roster(secondWorkspace)).toEqual([]);
     expect((await db.query("select * from public.vacations")).rows).toHaveLength(1);
   });
-  it("drops the legacy invitation members, their availability and RPCs", async () => {
+  it("drops the legacy invitation members, their vacation records and RPCs", async () => {
     await login(null, "postgres");
     expect(
       (
-        await db.query<{ members: string | null; availability: string | null }>(
-          "select to_regclass('public.planner_members')::text as members, to_regclass('public.planner_availability')::text as availability"
+        await db.query<{ members: string | null; vacations: string | null }>(
+          "select to_regclass('public.planner_members')::text as members, to_regclass('public.planner_availability')::text as vacations"
         )
       ).rows
-    ).toEqual([{ members: null, availability: null }]);
+    ).toEqual([{ members: null, vacations: null }]);
     expect(
       (
         await db.query("select proname from pg_proc where proname = any($1::text[])", [

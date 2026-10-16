@@ -3,27 +3,35 @@ import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
-import { EMPTY_PROJECT, type MainProject, type ProjectInput } from "@/types/planner";
+import { EMPTY_FEATURE, type Project, type FeatureInput } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
-export default function ProjectForm({
+const NEW_PROJECT = "__new_project__";
+
+export default function FeatureForm({
   open,
   onClose,
   onSave,
   initial,
-  mainProjects = [],
+  projects = [],
+  onCreateProject,
 }: {
-  mainProjects?: MainProject[];
+  projects?: Project[];
   open: boolean;
   onClose: () => void;
-  onSave: (input: ProjectInput) => Promise<void>;
-  initial: ProjectInput | null;
+  onSave: (input: FeatureInput) => Promise<void>;
+  onCreateProject: (name: string) => Promise<Project>;
+  initial: FeatureInput | null;
 }) {
   const { t } = useTranslation();
   const formId = useId();
 
-  const [form, setForm] = useState<ProjectInput>({ ...EMPTY_PROJECT, ...initial });
+  const [form, setForm] = useState<FeatureInput>({ ...EMPTY_FEATURE, ...initial });
+  const [createdProject, setCreatedProject] = useState<Project | null>(null);
+  const [creatingProject, setCreatingProject] = useState(!initial && !projects.length);
+  const [newProjectName, setNewProjectName] = useState("");
+  const projectOptions = createdProject ? [...projects, createdProject] : projects;
   const action = useAsyncAction();
   return (
     <Modal
@@ -51,7 +59,16 @@ export default function ProjectForm({
           event.preventDefault();
           if (action.busy) return;
           void action.run(async () => {
-            await onSave(form);
+            let projectId = form.project_id;
+            if (creatingProject) {
+              // Keep the new project selected so a failed feature save can be retried.
+              const project = await onCreateProject(newProjectName);
+              setCreatedProject(project);
+              setCreatingProject(false);
+              setForm((previous) => ({ ...previous, project_id: project.id }));
+              projectId = project.id;
+            }
+            await onSave({ ...form, project_id: projectId });
             onClose();
           });
         }}
@@ -65,22 +82,39 @@ export default function ProjectForm({
           maxLength={120}
           autoFocus
         />
-        <Label htmlFor="project-main-project">{t("featureForm.fields.mainProject")}</Label>
+        <Label htmlFor="project-main-project">{t("featureForm.fields.project")}</Label>
         <select
           id="project-main-project"
           className="field"
-          value={form.main_project_id ?? ""}
-          onChange={(event) =>
-            setForm((previous) => ({ ...previous, main_project_id: event.target.value || null }))
-          }
+          required
+          value={creatingProject ? NEW_PROJECT : (form.project_id ?? "")}
+          onChange={(event) => {
+            const value = event.target.value;
+            setCreatingProject(value === NEW_PROJECT);
+            if (value !== NEW_PROJECT)
+              setForm((previous) => ({ ...previous, project_id: value || null }));
+          }}
         >
-          <option value="">{t("mainProjects.none")}</option>
-          {mainProjects.map((project) => (
+          <option value="" disabled>
+            {t("featureForm.project.choose")}
+          </option>
+          {projectOptions.map((project) => (
             <option key={project.id} value={project.id}>
               {project.name}
             </option>
           ))}
+          <option value={NEW_PROJECT}>{t("featureForm.project.new")}</option>
         </select>
+        {creatingProject && (
+          <Input
+            aria-label={t("projects.fields.newName")}
+            placeholder={t("projects.fields.newName")}
+            value={newProjectName}
+            onChange={(event) => setNewProjectName(event.target.value)}
+            required
+            maxLength={80}
+          />
+        )}
         <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
         <textarea
           id="project-description"

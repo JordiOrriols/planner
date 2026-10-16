@@ -7,8 +7,8 @@ import { ROLES, ROLE_LABELS, fmtDate, fmtMonth, roleDevs } from "@/lib/planning"
 import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
-import type { CapacityWeek, ScheduledProject, ScheduledRole } from "@/lib/planning";
-import type { MainProject } from "@/types/planner";
+import type { CapacityWeek, ScheduledFeature, ScheduledRole } from "@/lib/planning";
+import type { Project } from "@/types/planner";
 
 function workRuns(role: ScheduledRole) {
   const runs: { start: Date; end: Date; personDays: number }[] = [];
@@ -36,15 +36,15 @@ function workRuns(role: ScheduledRole) {
 export default function GanttChart({
   weeks,
   schedule,
-  mainProjects = [],
+  projects = [],
   onReorder,
   onRemove,
   onDeliveredChange,
   disabled = false,
 }: {
   weeks: CapacityWeek[];
-  schedule: ScheduledProject[];
-  mainProjects?: MainProject[];
+  schedule: ScheduledFeature[];
+  projects?: Project[];
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
   onDeliveredChange?: (id: string, delivered: boolean) => void;
@@ -60,13 +60,13 @@ export default function GanttChart({
     return () => clearInterval(timer);
   }, []);
   const N = weeks.length;
-  const mainProjectNames = new Map(mainProjects.map((item) => [item.id, item.name]));
+  const projectNames = new Map(projects.map((item) => [item.id, item.name]));
   const groupByProject = schedule.some(
-    (item) => item.project.main_project_id && mainProjectNames.has(item.project.main_project_id)
+    (item) => item.feature.project_id && projectNames.has(item.feature.project_id)
   );
-  const projectKey = (item: ScheduledProject) =>
-    item.project.main_project_id && mainProjectNames.has(item.project.main_project_id)
-      ? item.project.main_project_id
+  const projectKey = (item: ScheduledFeature) =>
+    item.feature.project_id && projectNames.has(item.feature.project_id)
+      ? item.feature.project_id
       : null;
   const columns = `220px ${N ? `repeat(${N}, minmax(28px, 1fr))` : "1fr"}`;
   const todayOffset = weeks[0] ? differenceInCalendarDays(today, weeks[0].weekStart) : -1;
@@ -167,11 +167,11 @@ export default function GanttChart({
               const spanWeeks =
                 s.startIdx != null && s.endIdx != null ? (s.endIdx - s.startIdx + 1) * 7 : 0;
               const groupKey = projectKey(s);
-              const groupName = groupKey ? mainProjectNames.get(groupKey)! : t("mainProjects.none");
+              const groupName = groupKey ? projectNames.get(groupKey)! : t("projects.none");
               const startsGroup =
                 groupByProject && (idx === 0 || projectKey(schedule[idx - 1]!) !== groupKey);
               return (
-                <React.Fragment key={s.project.id}>
+                <React.Fragment key={s.feature.id}>
                   {startsGroup && (
                     <div
                       role="heading"
@@ -194,7 +194,7 @@ export default function GanttChart({
                     <ContextMenu.Trigger asChild disabled={!onRemove && !onDeliveredChange}>
                       <div
                         tabIndex={onRemove || onDeliveredChange ? 0 : undefined}
-                        aria-label={t("gantt.row.label", { featureName: s.project.name })}
+                        aria-label={t("gantt.row.label", { featureName: s.feature.name })}
                         onKeyDown={(event) => {
                           if (
                             (!onRemove && !onDeliveredChange) ||
@@ -217,7 +217,7 @@ export default function GanttChart({
                         }}
                         className={cn(
                           "grid items-stretch border-b border-border/60",
-                          dropId === s.project.id && "bg-brand/10 ring-1 ring-inset ring-brand"
+                          dropId === s.feature.id && "bg-brand/10 ring-1 ring-inset ring-brand"
                         )}
                         style={{
                           gridTemplateColumns: columns,
@@ -228,17 +228,17 @@ export default function GanttChart({
                           className="sticky left-0 bg-card z-10 flex items-center gap-1 px-2 text-xs"
                           style={{ gridRow: "1 / -1" }}
                           onDragOver={(event) => {
-                            if (!onReorder || disabled || !draggedId || draggedId === s.project.id)
+                            if (!onReorder || disabled || !draggedId || draggedId === s.feature.id)
                               return;
                             event.preventDefault();
                             event.dataTransfer.dropEffect = "move";
-                            setDropId(s.project.id);
+                            setDropId(s.feature.id);
                           }}
                           onDragLeave={() => setDropId(null)}
                           onDrop={(event) => {
                             event.preventDefault();
-                            if (onReorder && !disabled && draggedId && draggedId !== s.project.id)
-                              onReorder(draggedId, s.project.id);
+                            if (onReorder && !disabled && draggedId && draggedId !== s.feature.id)
+                              onReorder(draggedId, s.feature.id);
                             setDraggedId(null);
                             setDropId(null);
                           }}
@@ -250,8 +250,8 @@ export default function GanttChart({
                             <button
                               type="button"
                               className="flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-1 text-left font-medium cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
-                              aria-label={t("gantt.row.reorder", { featureName: s.project.name })}
-                              title={t("gantt.row.reorderHelp", { featureName: s.project.name })}
+                              aria-label={t("gantt.row.reorder", { featureName: s.feature.name })}
+                              title={t("gantt.row.reorderHelp", { featureName: s.feature.name })}
                               draggable={!disabled}
                               disabled={disabled}
                               onDragStart={(event) => {
@@ -260,8 +260,8 @@ export default function GanttChart({
                                   return;
                                 }
                                 event.dataTransfer.effectAllowed = "move";
-                                event.dataTransfer.setData("text/plain", s.project.id);
-                                setDraggedId(s.project.id);
+                                event.dataTransfer.setData("text/plain", s.feature.id);
+                                setDraggedId(s.feature.id);
                               }}
                               onDragEnd={() => {
                                 setDraggedId(null);
@@ -271,18 +271,18 @@ export default function GanttChart({
                                 if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
                                 event.preventDefault();
                                 const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
-                                if (!disabled && target) onReorder(s.project.id, target.project.id);
+                                if (!disabled && target) onReorder(s.feature.id, target.feature.id);
                               }}
                             >
                               <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />
-                              <span className="truncate">{s.project.name}</span>
+                              <span className="truncate">{s.feature.name}</span>
                             </button>
                           ) : (
                             <span
                               className="min-w-0 flex-1 truncate font-medium"
-                              title={s.project.name}
+                              title={s.feature.name}
                             >
-                              {s.project.name}
+                              {s.feature.name}
                             </span>
                           )}
                         </div>
@@ -305,24 +305,24 @@ export default function GanttChart({
                             <div
                               role="group"
                               aria-label={t("gantt.bar.projectSpan", {
-                                featureName: s.project.name,
+                                featureName: s.feature.name,
                                 startDate: fmtDate(s.start),
                                 endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
-                                deliveryStatus: s.project.delivered
+                                deliveryStatus: s.feature.delivered
                                   ? t("gantt.bar.deliveredSuffix")
                                   : "",
                               })}
                               title={t("gantt.bar.projectSpan", {
-                                featureName: s.project.name,
+                                featureName: s.feature.name,
                                 startDate: fmtDate(s.start),
                                 endDate: s.end ? fmtDate(s.end) : t("gantt.bar.incomplete"),
-                                deliveryStatus: s.project.delivered
+                                deliveryStatus: s.feature.delivered
                                   ? t("gantt.bar.deliveredSuffix")
                                   : "",
                               })}
                               className={cn(
                                 "absolute inset-y-1 overflow-hidden rounded ring-1 ring-inset",
-                                s.project.delivered
+                                s.feature.delivered
                                   ? "bg-emerald-600 ring-emerald-700/30"
                                   : "bg-slate-400/40 ring-slate-500/15"
                               )}
@@ -331,13 +331,13 @@ export default function GanttChart({
                                 width: `${(spanDays / spanWeeks) * 100}%`,
                               }}
                             >
-                              {!s.project.delivered &&
+                              {!s.feature.delivered &&
                                 s.roles.flatMap((roleSchedule) =>
                                   workRuns(roleSchedule).map((run) => {
                                     const { role } = roleSchedule;
-                                    const people = roleDevs(s.project, role);
+                                    const people = roleDevs(s.feature, role);
                                     const label = t("gantt.bar.roleSpan", {
-                                      featureName: s.project.name,
+                                      featureName: s.feature.name,
                                       role: ROLE_LABELS[role],
                                       startDate: fmtDate(run.start),
                                       endDate: fmtDate(run.end),
@@ -394,9 +394,9 @@ export default function GanttChart({
                           <ContextMenu.Item
                             className="rounded px-3 py-2 outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
                             disabled={disabled}
-                            onSelect={() => onDeliveredChange(s.project.id, !s.project.delivered)}
+                            onSelect={() => onDeliveredChange(s.feature.id, !s.feature.delivered)}
                           >
-                            {s.project.delivered
+                            {s.feature.delivered
                               ? t("gantt.actions.undoDelivery")
                               : t("gantt.actions.markDelivered")}
                           </ContextMenu.Item>
@@ -405,7 +405,7 @@ export default function GanttChart({
                           <ContextMenu.Item
                             className="rounded px-3 py-2 text-destructive outline-none data-[highlighted]:bg-muted data-[disabled]:opacity-50"
                             disabled={disabled}
-                            onSelect={() => onRemove(s.project.id)}
+                            onSelect={() => onRemove(s.feature.id)}
                           >
                             {t("gantt.actions.remove")}
                           </ContextMenu.Item>

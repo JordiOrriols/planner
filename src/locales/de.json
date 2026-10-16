@@ -5,11 +5,7 @@
     "subtitle": "Projektschätzung und Planung",
     "pages": "Planner-Seiten",
     "workspace": "Arbeitsbereich",
-    "owner": "Besitzer",
     "member": "Mitglied",
-    "newWorkspace": "Neuer Arbeitsbereich",
-    "noShares": "Dieser Arbeitsbereich wurde noch nicht geteilt.",
-    "retry": "Erneut versuchen",
     "tabs": {
       "estimation": "Schätzung",
       "backlog": "Roadmap",
@@ -39,7 +35,6 @@
     "add": "Mitglied hinzufügen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
-    "close": "Schließen",
     "shareLink": "Link teilen",
     "current": "Aktuell",
     "currentPlus": "Aktuell +",
@@ -75,15 +70,7 @@
     "createTitle": "Team erstellen",
     "createDescription": "Gruppieren Sie gemeinsam arbeitende Mitglieder und verwalten Sie den Zugriff separat.",
     "name": "Teamname",
-    "share": "Teilen",
-    "shareTitle": "{{name}} teilen",
-    "shareDescription": "Fügen Sie ein bestehendes Konto per E-Mail hinzu und wählen Sie Lese- oder Bearbeitungszugriff.",
-    "permission": "Berechtigung",
-    "permissionFor": "Berechtigung für {{email}}",
-    "viewer": "Anzeigen",
-    "editor": "Bearbeiten",
     "noShares": "Dieses Team wurde noch nicht geteilt.",
-    "removeShare": "{{email}} entfernen",
     "rename": "Umbenennen",
     "renameAria": "{{name}} umbenennen",
     "renameTitle": "Team umbenennen",
@@ -418,7 +405,6 @@
     "switchToSignIn": "Sie haben bereits ein Konto? Anmelden"
   },
   "pageMessage": {
-    "loading": "Wird geladen...",
     "notFound": "Dieser Link ist ungültig oder nicht mehr verfügbar.",
     "error": "Beim Laden ist etwas schiefgelaufen.",
     "thanks": "Danke! Ihre Bewertung wurde gesendet.",
@@ -491,7 +477,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Erstelle einen Planungsarbeitsbereich und verknüpfe anschließend deine bestehenden Ladders-Teams auf der Seite Urlaub.",
+      "description": "Erstelle einen Planungsarbeitsbereich und füge dann in der Konfiguration seine Teams hinzu.",
       "name": "Name des Arbeitsbereichs",
       "submit": "Arbeitsbereich erstellen",
       "title": "Dein Planungsarbeitsbereich"
@@ -500,9 +486,7 @@
       "invalidPlanStart": "Ungültiges Startdatum für den Arbeitsplan",
       "migrationRequired": "Stelle sicher, dass die Planner-Migration in deinem Supabase-Projekt installiert ist.",
       "providerRequired": "WorkspaceProvider ist erforderlich",
-      "signInToLoad": "Melde dich an, bevor du Arbeitsbereiche lädst",
-      "signInToOpen": "Melde dich an, bevor du Planner öffnest",
-      "signInToShare": "Melde dich an, bevor du einen Arbeitsbereich teilst"
+      "signInToOpen": "Melde dich an, bevor du Planner öffnest"
     },
     "loading": "Dein Arbeitsbereich wird geladen...",
     "select": "Arbeitsbereich auswählen"
@@ -555,9 +539,13 @@
       "name": "Name",
       "rolePeople": "{{role}} Personen",
       "roleWeeks": "{{role}} Wochen",
-      "mainProject": "Hauptprojekt"
+      "project": "Projekt"
     },
-    "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen"
+    "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen",
+    "project": {
+      "choose": "Projekt auswählen",
+      "new": "+ Neues Projekt"
+    }
   },
   "featureCard": {
     "showDetails": "Bereichsdetails anzeigen",
@@ -672,26 +660,27 @@
   "teamConfiguration": {
     "title": "Teamkonfiguration",
     "errors": {
-      "signInToLink": "Melde dich an, bevor du Teams verknüpfst",
-      "signInToLoad": "Melde dich an, bevor du Teams lädst"
+      "signInToCreate": "Melde dich an, bevor du Teams hinzufügst",
+      "teamNameRequired": "Gib dem Team zuerst einen Namen"
     },
     "members": {
       "copyLink": "Urlaubslink für {{memberName}} kopieren",
-      "empty": "Keine Mitglieder in den verknüpften Teams. Verknüpfe ein Ladders-Team, um loszulegen.",
+      "empty": "Die Teams dieses Arbeitsbereichs haben noch keine Mitglieder. Füge sie in Ladders hinzu.",
       "linkCopied": "Urlaubslink kopiert",
       "roleLabel": "Planungsrolle für {{memberName}}",
       "title": "Teammitglieder",
       "unassigned": "Nicht zugewiesen"
     },
     "teams": {
-      "description": "Wähle die Teams, die zu diesem Arbeitsbereich gehören. Ein Team lebt nur in einem Arbeitsbereich, deshalb verschiebt die Auswahl hier es aus seinem aktuellen. Erstelle oder verschiebe Mitglieder in Ladders, nicht hier.",
-      "empty": "Erstelle zuerst mit demselben Konto ein Team in Ladders.",
-      "loading": "Teams werden geladen...",
-      "save": "Verknüpfte Teams speichern",
-      "title": "Ladders-Teams"
+      "title": "Teams",
+      "description": "Die Teams dieses Arbeitsbereichs. Teams bleiben in dem Arbeitsbereich, in dem sie erstellt wurden; verwalte ihre Mitglieder in Ladders.",
+      "empty": "Dieser Arbeitsbereich hat noch keine Teams.",
+      "nameLabel": "Name des neuen Teams",
+      "namePlaceholder": "Teamname",
+      "create": "Team hinzufügen"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Urlaub",
       "workingDay": "Arbeitstag"
@@ -765,7 +754,7 @@
     "description_other": "Verfügbare Personenwochen (fünf Arbeitstage pro Person), nächste {{count}} bestätigte Wochen.",
     "empty": {
       "selectionRequired": "Wähle mindestens einen Bereich oder ein Team aus, um die Geschwindigkeit anzuzeigen.",
-      "teamRequired": "Verknüpfe in der Konfiguration ein Team, um dessen Geschwindigkeit anzuzeigen."
+      "teamRequired": "Füge in der Konfiguration ein Team hinzu, um dessen Geschwindigkeit anzuzeigen."
     },
     "filters": {
       "all": {
@@ -811,7 +800,8 @@
       "rolePairRequired": "Lege für {{role}} sowohl Personen als auch Wochen fest oder lasse beide Angaben auf null.",
       "unverifiedStart": "Wähle ein Startdatum in einem Jahr mit bestätigten Feiertagen (2026 oder 2027).",
       "unverifiedWorkingYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt.",
-      "unverifiedYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt"
+      "unverifiedYear": "Die Feiertage Barcelonas sind für {{year}} nicht bestätigt",
+      "projectRequired": "Wähle ein Projekt für dieses Feature."
     }
   },
   "holidays": {
@@ -835,10 +825,10 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Pfingstmontag"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projekte",
     "manage": "Projekte verwalten",
-    "description": "Ordne Features ihrem Hauptprojekt zu. Beim Löschen eines Projekts bleiben seine Features erhalten und landen unter Kein Projekt.",
+    "description": "Gruppiere Features unter dem Hauptprojekt, zu dem sie gehören. Ein Projekt kann gelöscht werden, sobald es keine Features mehr hat.",
     "none": "Kein Projekt",
     "empty": "Noch keine Projekte.",
     "fields": {
@@ -852,7 +842,9 @@
       "done": "Fertig"
     },
     "errors": {
-      "invalidName": "Projektnamen müssen zwischen 1 und 80 Zeichen lang sein."
-    }
+      "invalidName": "Projektnamen müssen zwischen 1 und 80 Zeichen lang sein.",
+      "hasFeatures": "Verschiebe oder lösche zuerst die Features dieses Projekts."
+    },
+    "inUse": "Lösche oder verschiebe zuerst die Features dieses Projekts."
   }
 }

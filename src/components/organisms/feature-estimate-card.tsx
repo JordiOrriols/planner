@@ -2,21 +2,21 @@ import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
 import { ChevronDown, Pencil, Trash2 } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
-import type { Project } from "@/types/planner";
+import type { Feature } from "@/types/planner";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
-export default function ProjectEstimateCard({
-  project,
-  mainProjectName,
+export default function FeatureEstimateCard({
+  feature,
+  projectName,
   onEdit,
   onDelete,
   disabled,
   readOnly,
 }: {
-  project: Project;
-  mainProjectName?: string | undefined;
+  feature: Feature;
+  projectName?: string | undefined;
   onEdit: () => void;
   onDelete: () => void;
   disabled: boolean;
@@ -26,30 +26,30 @@ export default function ProjectEstimateCard({
   const [expanded, setExpanded] = useState(false);
   const detailId = useId();
 
-  const peak = peakDevs(project);
-  const dur = durationWeeks(project);
-  const dw = totalDevWeeks(project);
+  const peak = peakDevs(feature);
+  const dur = durationWeeks(feature);
+  const dw = totalDevWeeks(feature);
   const activeRoles = ROLES.filter(
-    (r) => (project[`${r}_devs`] || 0) > 0 || (project[`${r}_weeks`] || 0) > 0
+    (r) => (feature[`${r}_devs`] || 0) > 0 || (feature[`${r}_weeks`] || 0) > 0
   );
 
   return (
     <article
-      aria-label={project.name}
+      aria-label={feature.name}
       className="panel flex flex-col gap-4 transition-shadow hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="flex min-w-0 items-center gap-2 font-heading font-semibold text-[15px] tracking-tight">
-            {mainProjectName && (
+            {projectName && (
               <span className="shrink-0 rounded-md bg-brand/10 px-2 py-0.5 text-[11px] font-medium tracking-normal text-brand">
-                {mainProjectName}
+                {projectName}
               </span>
             )}
-            <span className="truncate">{project.name}</span>
+            <span className="truncate">{feature.name}</span>
           </h3>
-          {project.description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
+          {feature.description && (
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{feature.description}</p>
           )}
         </div>
         {!readOnly && (
@@ -59,7 +59,7 @@ export default function ProjectEstimateCard({
               variant="ghost"
               className="h-8 w-8"
               onClick={onEdit}
-              aria-label={t("featureCard.actions.edit", { featureName: project.name })}
+              aria-label={t("featureCard.actions.edit", { featureName: feature.name })}
               disabled={disabled}
             >
               <Pencil className="h-4 w-4" />
@@ -69,7 +69,7 @@ export default function ProjectEstimateCard({
               variant="ghost"
               className="h-8 w-8 text-destructive hover:text-destructive"
               onClick={onDelete}
-              aria-label={t("featureCard.actions.delete", { featureName: project.name })}
+              aria-label={t("featureCard.actions.delete", { featureName: feature.name })}
               disabled={disabled}
             >
               <Trash2 className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function ProjectEstimateCard({
                 key={role}
                 label={ROLE_LABELS[role]}
                 labelClassName={ROLE_COLORS[role].textClassName}
-                value={`${project[`${role}_devs`] * project[`${role}_weeks`]}`}
+                value={`${feature[`${role}_devs`] * feature[`${role}_weeks`]}`}
                 sub={t("common.units.personWeeksShort")}
               />
             ))}
@@ -137,8 +137,8 @@ export default function ProjectEstimateCard({
         )}
       >
         {ROLES.map((role) => {
-          const people = project[`${role}_devs`];
-          const weeks = project[`${role}_weeks`];
+          const people = feature[`${role}_devs`];
+          const weeks = feature[`${role}_weeks`];
           return (
             <section
               key={role}

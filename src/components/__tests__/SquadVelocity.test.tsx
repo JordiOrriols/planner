@@ -86,7 +86,7 @@ const linkedTeams = [
   { id: "product", name: "Product" },
   { id: "platform", name: "Platform" },
 ];
-const availability = [
+const vacations = [
   { member_id: "front", date: "2026-02-02", is_working: false },
   { member_id: "front", date: "2026-02-07", is_working: true },
   ...["2026-02-02", "2026-02-03", "2026-02-04"].map((date) => ({
@@ -100,7 +100,7 @@ function renderVelocity(startDate = "2026-02-02") {
     <SquadVelocity
       members={members}
       linkedTeams={linkedTeams}
-      availability={availability}
+      vacations={vacations}
       startDate={parseISO(startDate)}
       sprintStart="2026-02-02"
       history={[]}
@@ -205,7 +205,7 @@ describe("Squad velocity area and team series", () => {
       <SquadVelocity
         members={members}
         linkedTeams={linkedTeams}
-        availability={availability}
+        vacations={vacations}
         startDate={parseISO("2027-12-27")}
         sprintStart="2026-02-02"
         history={[]}
@@ -220,7 +220,7 @@ describe("Squad velocity area and team series", () => {
       <SquadVelocity
         members={[]}
         linkedTeams={[]}
-        availability={[]}
+        vacations={[]}
         startDate={parseISO("2026-02-02")}
         sprintStart="2026-02-02"
         history={[]}
@@ -231,12 +231,12 @@ describe("Squad velocity area and team series", () => {
       "teams"
     );
     expect(screen.getByRole("button", { name: "Select velocity teams" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("Link a team in Configuration");
+    expect(screen.getByRole("status")).toHaveTextContent("Add a team in Configuration");
     rendered.rerender(
       <SquadVelocity
         members={members}
         linkedTeams={linkedTeams}
-        availability={availability}
+        vacations={vacations}
         startDate={parseISO("2026-02-02")}
         sprintStart="2026-02-02"
         history={[]}
@@ -251,7 +251,7 @@ describe("Squad velocity area and team series", () => {
     const props = {
       members,
       linkedTeams,
-      availability,
+      vacations,
       history,
       sprintStart: "2026-02-02",
       startDate: parseISO("2026-03-02"),
@@ -268,10 +268,7 @@ describe("Squad velocity area and team series", () => {
     rendered.rerender(
       <SquadVelocity
         {...props}
-        availability={[
-          ...availability,
-          { member_id: "front", date: "2026-03-02", is_working: false },
-        ]}
+        vacations={[...vacations, { member_id: "front", date: "2026-03-02", is_working: false }]}
       />
     );
     expect(firstWeek()).toEqual([38, 60]);
@@ -284,7 +281,7 @@ describe("Squad velocity area and team series", () => {
     const props = {
       members,
       linkedTeams,
-      availability,
+      vacations,
       startDate: parseISO("2026-02-16"),
       sprintStart: "2026-02-02",
       history: [] as SprintResult[],

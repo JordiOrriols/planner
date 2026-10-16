@@ -9,7 +9,7 @@ import { ROLES, ROLE_LABELS, fmtShortDate } from "@/lib/planning";
 import { calibratedRate, forecastSprints, sprintCapacity } from "@/lib/sprints";
 import { ROLE_COLORS } from "@/config/roleColors";
 import VelocityCalibration from "@/components/organisms/velocity-calibration";
-import type { Availability, LinkedTeam, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, LinkedTeam, PlannerMember, SprintResult } from "@/types/planner";
 
 const TEAM_COLORS = [
   "#0369a1",
@@ -31,7 +31,7 @@ const SELECTOR = buttonVariants({
 export default function SquadVelocity({
   members,
   linkedTeams,
-  availability,
+  vacations,
   startDate,
   sprintStart,
   history,
@@ -39,7 +39,7 @@ export default function SquadVelocity({
 }: {
   members: PlannerMember[];
   linkedTeams: LinkedTeam[];
-  availability: Availability[];
+  vacations: Vacation[];
   startDate: Date;
   sprintStart: string;
   history: SprintResult[];
@@ -52,7 +52,7 @@ export default function SquadVelocity({
   let error: string | null = null;
   try {
     sprints = forecastSprints(sprintStart, startDate);
-    rate = calibratedRate(sprintStart, history, members, availability);
+    rate = calibratedRate(sprintStart, history, members, vacations);
   } catch (cause) {
     error = cause instanceof Error ? cause.message : String(cause);
   }
@@ -83,7 +83,7 @@ export default function SquadVelocity({
   const series = selected.map((option) => ({
     ...option,
     values: sprints.map(({ start }) =>
-      Number((sprintCapacity(option.members, availability, start) * (rate ?? 1)).toFixed(2))
+      Number((sprintCapacity(option.members, vacations, start) * (rate ?? 1)).toFixed(2))
     ),
   }));
   const chartData = sprints.map((sprint, index) => ({
@@ -297,7 +297,7 @@ export default function SquadVelocity({
           anchor={sprintStart}
           history={history}
           members={members}
-          availability={availability}
+          vacations={vacations}
           onSave={onSaveCalibration}
           onClose={() => setCalibrating(false)}
         />

@@ -5,11 +5,7 @@
     "subtitle": "Project estimation & planning",
     "pages": "Planner pages",
     "workspace": "Workspace",
-    "owner": "Owner",
     "member": "Member",
-    "newWorkspace": "New workspace",
-    "noShares": "This workspace has not been shared yet.",
-    "retry": "Retry",
     "tabs": {
       "estimation": "Estimation",
       "backlog": "Roadmap",
@@ -39,7 +35,6 @@
     "add": "Add Member",
     "edit": "Edit",
     "delete": "Delete",
-    "close": "Close",
     "shareLink": "Share Link",
     "current": "Current",
     "currentPlus": "Current +",
@@ -75,15 +70,7 @@
     "createTitle": "Create a team",
     "createDescription": "Group members who work together and manage access separately.",
     "name": "Team name",
-    "share": "Share",
-    "shareTitle": "Share {{name}}",
-    "shareDescription": "Add an existing account by email and choose read-only or edit access.",
-    "permission": "Permission",
-    "permissionFor": "Permission for {{email}}",
-    "viewer": "View",
-    "editor": "Edit",
     "noShares": "This team has not been shared yet.",
-    "removeShare": "Remove {{email}}",
     "rename": "Rename",
     "renameAria": "Rename {{name}}",
     "renameTitle": "Rename team",
@@ -418,7 +405,6 @@
     "switchToSignIn": "Already have an account? Sign in"
   },
   "pageMessage": {
-    "loading": "Loading...",
     "notFound": "This link is not valid or is no longer available.",
     "error": "Something went wrong while loading.",
     "thanks": "Thanks! Your evaluation has been sent.",
@@ -491,7 +477,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Create a planning workspace, then link your existing Ladders teams on the Vacations page.",
+      "description": "Create a planning workspace, then add its teams in Configuration.",
       "name": "Workspace name",
       "submit": "Create workspace",
       "title": "Your planning workspace"
@@ -500,9 +486,7 @@
       "invalidPlanStart": "Invalid workspace plan start date",
       "migrationRequired": "Confirm the Planner migration is installed in your Supabase project.",
       "providerRequired": "WorkspaceProvider is required",
-      "signInToLoad": "Sign in before loading workspaces",
-      "signInToOpen": "Sign in before opening Planner",
-      "signInToShare": "Sign in before sharing a workspace"
+      "signInToOpen": "Sign in before opening Planner"
     },
     "loading": "Loading your workspace...",
     "select": "Select a workspace"
@@ -555,9 +539,13 @@
       "name": "Name",
       "rolePeople": "{{role}} people",
       "roleWeeks": "{{role}} weeks",
-      "mainProject": "Main project"
+      "project": "Project"
     },
-    "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks"
+    "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks",
+    "project": {
+      "choose": "Choose a project",
+      "new": "+ New project"
+    }
   },
   "featureCard": {
     "showDetails": "Show role details",
@@ -672,26 +660,27 @@
   "teamConfiguration": {
     "title": "Team configuration",
     "errors": {
-      "signInToLink": "Sign in before linking teams",
-      "signInToLoad": "Sign in before loading teams"
+      "signInToCreate": "Sign in before adding teams",
+      "teamNameRequired": "Name the team first"
     },
     "members": {
       "copyLink": "Copy vacation link for {{memberName}}",
-      "empty": "No members in linked teams. Link a Ladders team to get started.",
+      "empty": "No members in this workspace's teams yet. Add them in Ladders.",
       "linkCopied": "Vacation link copied",
       "roleLabel": "Planning role for {{memberName}}",
       "title": "Team members",
       "unassigned": "Unassigned"
     },
     "teams": {
-      "description": "Choose the teams that belong to this workspace. A team lives in one workspace only, so choosing it here moves it out of the one it is in now. Create or move members in Ladders, not here.",
-      "empty": "Create a team in Ladders using the same account first.",
-      "loading": "Loading teams...",
-      "save": "Save linked teams",
-      "title": "Ladders teams"
+      "title": "Teams",
+      "description": "The teams of this workspace. Teams stay in the workspace they were created in; manage their members in Ladders.",
+      "empty": "This workspace has no teams yet.",
+      "nameLabel": "New team name",
+      "namePlaceholder": "Team name",
+      "create": "Add team"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacations",
       "workingDay": "Working Day"
@@ -765,7 +754,7 @@
     "description_other": "Available person-weeks (five working days per person), next {{count}} verified weeks.",
     "empty": {
       "selectionRequired": "Select at least one area or team to show velocity.",
-      "teamRequired": "Link a team in Configuration to show team velocity."
+      "teamRequired": "Add a team in Configuration to show team velocity."
     },
     "filters": {
       "all": {
@@ -811,7 +800,8 @@
       "rolePairRequired": "Set both people and weeks for {{role}}, or leave both at zero.",
       "unverifiedStart": "Choose a start date in a verified holiday year (2026 or 2027).",
       "unverifiedWorkingYear": "Barcelona holidays are not verified for {{year}}.",
-      "unverifiedYear": "Barcelona holidays are not verified for {{year}}"
+      "unverifiedYear": "Barcelona holidays are not verified for {{year}}",
+      "projectRequired": "Choose a project for this feature."
     }
   },
   "holidays": {
@@ -835,10 +825,10 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Whit Monday"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projects",
     "manage": "Manage projects",
-    "description": "Group features under the main project they belong to. Deleting a project keeps its features and moves them to No project.",
+    "description": "Group features under the main project they belong to. A project can be deleted once it has no features.",
     "none": "No project",
     "empty": "No projects yet.",
     "fields": {
@@ -852,7 +842,9 @@
       "done": "Done"
     },
     "errors": {
-      "invalidName": "Project names need between 1 and 80 characters."
-    }
+      "invalidName": "Project names need between 1 and 80 characters.",
+      "hasFeatures": "Move or delete the features of this project first."
+    },
+    "inUse": "Delete or move this project's features first."
   }
 }

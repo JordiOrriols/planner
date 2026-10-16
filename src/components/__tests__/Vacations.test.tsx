@@ -6,31 +6,22 @@ import userEvent from "@testing-library/user-event";
 import Vacations from "@/pages/vacations";
 import TeamConfiguration from "@/pages/team-configuration";
 
-const {
-  setAvailability,
-  clearAvailability,
-  setSprintCalibration,
-  setWorkspaceTeams,
-  listTeams,
-  refresh,
-  state,
-} = vi.hoisted(() => ({
-  setAvailability: vi.fn(),
-  setWorkspaceTeams: vi.fn(),
-  listTeams: vi.fn(),
-  clearAvailability: vi.fn(),
-  setSprintCalibration: vi.fn(),
-  refresh: vi.fn(),
-  state: { canEdit: true, isOwner: false },
-}));
+const { setVacations, clearVacation, setSprintCalibration, createTeam, refresh, state } =
+  vi.hoisted(() => ({
+    setVacations: vi.fn(),
+    createTeam: vi.fn(),
+    clearVacation: vi.fn(),
+    setSprintCalibration: vi.fn(),
+    refresh: vi.fn(),
+    state: { canEdit: true, isOwner: false },
+  }));
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({
     repository: {
-      setAvailability,
-      clearAvailability,
+      setVacations,
+      clearVacation,
       setSprintCalibration,
-      setWorkspaceTeams,
-      listTeams,
+      createTeam,
     },
   }),
 }));
@@ -55,7 +46,7 @@ vi.mock("@/data/WorkspaceProvider", () => ({
       },
     ],
     linkedTeams: [{ id: "team", name: "Team" }],
-    availability: [{ member_id: "grace", date: "2026-11-02", is_working: false }],
+    vacations: [{ member_id: "grace", date: "2026-11-02", is_working: false }],
     workspace: { id: "workspace", sprint_start_date: "2026-02-02", sprint_history: [] },
     isOwner: state.isOwner,
     canEdit: state.canEdit,
@@ -73,9 +64,8 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 10, 1));
   state.canEdit = true;
   state.isOwner = false;
-  setAvailability.mockResolvedValue(undefined);
-  setWorkspaceTeams.mockResolvedValue(undefined);
-  listTeams.mockResolvedValue([]);
+  setVacations.mockResolvedValue(undefined);
+  createTeam.mockResolvedValue({ id: "new", name: "Platform" });
   refresh.mockResolvedValue(undefined);
 });
 afterEach(() => vi.useRealTimers());
@@ -111,36 +101,33 @@ describe("Team vacations shared editor", () => {
     expect(
       within(configuration).getByRole("combobox", { name: "Planning role for Ada" })
     ).toBeVisible();
+    const teams = screen.getByRole("region", { name: "Teams" });
+    expect(within(teams).getByText("Team")).toBeVisible();
     if (isOwner) {
-      expect(screen.getByRole("heading", { name: "Ladders teams" })).toBeVisible();
-      expect(screen.getByRole("button", { name: "Save linked teams" })).toBeVisible();
+      expect(within(teams).getByRole("button", { name: "Add team" })).toBeDisabled();
     } else {
-      expect(screen.queryByRole("button", { name: "Save linked teams" })).not.toBeInTheDocument();
+      expect(within(teams).queryByRole("button", { name: "Add team" })).not.toBeInTheDocument();
     }
   });
 
-  it("offers only the owner's own teams to move into the workspace and saves the choice", async () => {
+  it("lists the workspace teams read-only and lets the owner add one to this workspace", async () => {
     state.isOwner = true;
-    listTeams.mockResolvedValue([
-      { id: "team", name: "Team", access_level: "owner" },
-      { id: "mine", name: "Mine", access_level: "owner" },
-      { id: "shared", name: "Shared with me", access_level: "editor" },
-      { id: "watched", name: "Watched", access_level: "viewer" },
-    ]);
     render(
       <QueryClientProvider client={new QueryClient()}>
         <TeamConfiguration />
       </QueryClientProvider>
     );
-    const mine = await screen.findByRole("checkbox", { name: "Mine" });
-    expect(screen.getByRole("checkbox", { name: "Team" })).toBeChecked();
-    expect(screen.queryByRole("checkbox", { name: "Shared with me" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: "Watched" })).not.toBeInTheDocument();
-    expect(screen.getByText(/moves it out of the one it is in now/)).toBeVisible();
-    await userEvent.click(mine);
-    await userEvent.click(screen.getByRole("button", { name: "Save linked teams" }));
+    const teams = screen.getByRole("region", { name: "Teams" });
+    expect(within(teams).queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(within(teams).getByText(/stay in the workspace they were created in/)).toBeVisible();
+    await userEvent.type(
+      within(teams).getByRole("textbox", { name: "New team name" }),
+      " Platform "
+    );
+    await userEvent.click(within(teams).getByRole("button", { name: "Add team" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(setWorkspaceTeams).toHaveBeenCalledExactlyOnceWith("workspace", ["team", "mine"]);
+    expect(createTeam).toHaveBeenCalledExactlyOnceWith("workspace", " Platform ");
+    expect(within(teams).getByRole("textbox", { name: "New team name" })).toHaveValue("");
   });
 
   it("uses highlighted calendar ranges and one-click actions for the selected member", async () => {
@@ -154,19 +141,14 @@ describe("Team vacations shared editor", () => {
     await userEvent.click(screen.getByRole("button", { name: "2026-11-04" }));
     await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(setAvailability).toHaveBeenCalledExactlyOnceWith(
-      "ada",
-      "2026-11-02",
-      "2026-11-04",
-      false
-    );
+    expect(setVacations).toHaveBeenCalledExactlyOnceWith("ada", "2026-11-02", "2026-11-04", false);
     expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
     await userEvent.click(screen.getByRole("button", { name: "Working Day" }));
     await waitFor(() =>
-      expect(setAvailability).toHaveBeenLastCalledWith("ada", "2026-11-02", "2026-11-04", true)
+      expect(setVacations).toHaveBeenLastCalledWith("ada", "2026-11-02", "2026-11-04", true)
     );
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Member" }), "grace");
     expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
@@ -182,7 +164,7 @@ describe("Team vacations shared editor", () => {
     expect(screen.getByRole("button", { name: "2026-11-02" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
-    expect(setAvailability).not.toHaveBeenCalled();
+    expect(setVacations).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
   });
 });

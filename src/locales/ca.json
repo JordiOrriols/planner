@@ -5,11 +5,7 @@
     "subtitle": "Estimació i planificació de projectes",
     "pages": "Pàgines de Planner",
     "workspace": "Espai de treball",
-    "owner": "Propietari",
     "member": "Membre",
-    "newWorkspace": "Nou espai",
-    "noShares": "Aquest espai de treball encara no s'ha compartit.",
-    "retry": "Torna-ho a provar",
     "tabs": {
       "estimation": "Estimació",
       "backlog": "Full de ruta",
@@ -39,7 +35,6 @@
     "add": "Afegir Membre",
     "edit": "Editar",
     "delete": "Eliminar",
-    "close": "Tancar",
     "clear": "Netejar",
     "shareLink": "Compartir Enllaç",
     "current": "Actual",
@@ -76,15 +71,7 @@
     "createTitle": "Crear un equip",
     "createDescription": "Agrupeu les persones que treballen juntes i gestioneu l'accés per separat.",
     "name": "Nom de l'equip",
-    "share": "Compartir",
-    "shareTitle": "Compartir {{name}}",
-    "shareDescription": "Afegiu un compte existent per email i trieu accés de lectura o edició.",
-    "permission": "Permís",
-    "permissionFor": "Permís per a {{email}}",
-    "viewer": "Veure",
-    "editor": "Editar",
     "noShares": "Aquest equip encara no s'ha compartit.",
-    "removeShare": "Eliminar {{email}}",
     "rename": "Canviar nom",
     "renameAria": "Canviar el nom de {{name}}",
     "renameTitle": "Canviar el nom de l'equip",
@@ -419,7 +406,6 @@
     "switchToSignIn": "Ja teniu compte? Inicieu sessió"
   },
   "pageMessage": {
-    "loading": "Carregant...",
     "notFound": "Aquest enllaç no és vàlid o ja no està disponible.",
     "error": "Alguna cosa ha fallat en carregar.",
     "thanks": "Gràcies! La vostra avaluació s'ha enviat.",
@@ -492,7 +478,7 @@
   },
   "workspace": {
     "create": {
-      "description": "Crea un espai de planificació i després enllaça els teus equips de Ladders existents des de la pàgina Vacances.",
+      "description": "Crea un espai de planificació i després afegeix-hi els equips a Configuració.",
       "name": "Nom de l'espai de treball",
       "submit": "Crea un espai de treball",
       "title": "El teu espai de planificació"
@@ -501,9 +487,7 @@
       "invalidPlanStart": "La data d'inici del pla de l'espai de treball no és vàlida",
       "migrationRequired": "Confirma que la migració de Planner està instal·lada al teu projecte de Supabase.",
       "providerRequired": "Cal WorkspaceProvider",
-      "signInToLoad": "Inicia la sessió abans de carregar els espais de treball",
-      "signInToOpen": "Inicia la sessió abans d'obrir Planner",
-      "signInToShare": "Inicia la sessió abans de compartir un espai de treball"
+      "signInToOpen": "Inicia la sessió abans d'obrir Planner"
     },
     "loading": "Carregant el teu espai de treball...",
     "select": "Selecciona un espai de treball"
@@ -556,9 +540,13 @@
       "name": "Nom",
       "rolePeople": "Persones de {{role}}",
       "roleWeeks": "Setmanes de {{role}}",
-      "mainProject": "Projecte principal"
+      "project": "Projecte"
     },
-    "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona"
+    "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona",
+    "project": {
+      "choose": "Tria un projecte",
+      "new": "+ Nou projecte"
+    }
   },
   "featureCard": {
     "showDetails": "Mostra els detalls per àrea",
@@ -673,26 +661,27 @@
   "teamConfiguration": {
     "title": "Configuració de l'equip",
     "errors": {
-      "signInToLink": "Inicia la sessió abans d'enllaçar equips",
-      "signInToLoad": "Inicia la sessió abans de carregar els equips"
+      "signInToCreate": "Inicia la sessió abans d'afegir equips",
+      "teamNameRequired": "Posa nom a l'equip primer"
     },
     "members": {
       "copyLink": "Copia l'enllaç de vacances de {{memberName}}",
-      "empty": "No hi ha membres als equips enllaçats. Enllaça un equip de Ladders per començar.",
+      "empty": "Els equips d'aquest espai de treball encara no tenen membres. Afegeix-los a Ladders.",
       "linkCopied": "S'ha copiat l'enllaç de vacances",
       "roleLabel": "Rol de planificació de {{memberName}}",
       "title": "Membres de l'equip",
       "unassigned": "Sense assignar"
     },
     "teams": {
-      "description": "Tria els equips que pertanyen a aquest espai de treball. Un equip només viu en un espai de treball, així que triar-lo aquí el treu del que és ara. Crea o mou membres a Ladders, no aquí.",
-      "empty": "Crea primer un equip a Ladders amb el mateix compte.",
-      "loading": "Carregant els equips...",
-      "save": "Desa els equips enllaçats",
-      "title": "Equips de Ladders"
+      "title": "Equips",
+      "description": "Els equips d'aquest espai de treball. Els equips es queden a l'espai on es van crear; gestiona'n els membres a Ladders.",
+      "empty": "Aquest espai de treball encara no té equips.",
+      "nameLabel": "Nom del nou equip",
+      "namePlaceholder": "Nom de l'equip",
+      "create": "Afegeix un equip"
     }
   },
-  "availabilityEditor": {
+  "vacationEditor": {
     "actions": {
       "vacations": "Vacances",
       "workingDay": "Dia laborable"
@@ -766,7 +755,7 @@
     "description_other": "Setmanes-persona disponibles (cinc dies laborables per persona), pròximes {{count}} setmanes verificades.",
     "empty": {
       "selectionRequired": "Selecciona almenys una àrea o un equip per mostrar la velocitat.",
-      "teamRequired": "Enllaça un equip a Configuració per mostrar-ne la velocitat."
+      "teamRequired": "Afegeix un equip a Configuració per mostrar-ne la velocitat."
     },
     "filters": {
       "all": {
@@ -812,7 +801,8 @@
       "rolePairRequired": "Indica tant el nombre de persones com el de setmanes per a {{role}}, o deixa'ls tots dos a zero.",
       "unverifiedStart": "Tria una data d'inici d'un any amb festius verificats (2026 o 2027).",
       "unverifiedWorkingYear": "Els festius de Barcelona no estan verificats per al {{year}}.",
-      "unverifiedYear": "Els festius de Barcelona no estan verificats per al {{year}}"
+      "unverifiedYear": "Els festius de Barcelona no estan verificats per al {{year}}",
+      "projectRequired": "Tria un projecte per a aquesta funcionalitat."
     }
   },
   "holidays": {
@@ -836,10 +826,10 @@
     "santJoan": "Sant Joan",
     "whitMonday": "Dilluns de Pentecosta"
   },
-  "mainProjects": {
+  "projects": {
     "title": "Projectes",
     "manage": "Gestiona els projectes",
-    "description": "Agrupa les funcionalitats sota el seu projecte principal. En suprimir un projecte, les seves funcionalitats es conserven i passen a Sense projecte.",
+    "description": "Agrupa les funcionalitats sota el projecte principal al qual pertanyen. Un projecte es pot eliminar quan ja no té funcionalitats.",
     "none": "Sense projecte",
     "empty": "Encara no hi ha projectes.",
     "fields": {
@@ -853,7 +843,9 @@
       "done": "Fet"
     },
     "errors": {
-      "invalidName": "El nom del projecte ha de tenir entre 1 i 80 caràcters."
-    }
+      "invalidName": "El nom del projecte ha de tenir entre 1 i 80 caràcters.",
+      "hasFeatures": "Mou o elimina abans les funcionalitats d'aquest projecte."
+    },
+    "inUse": "Elimina o mou abans les funcionalitats d'aquest projecte."
   }
 }

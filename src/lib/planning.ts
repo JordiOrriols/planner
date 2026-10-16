@@ -4,10 +4,10 @@ import { hasHolidayCalendar, isHoliday } from "./barcelonaHolidays";
 import {
   ROLES,
   type Role,
-  type Project,
-  type ProjectInput,
+  type Feature,
+  type FeatureInput,
   type PlannerMember,
-  type Availability,
+  type Vacation,
 } from "@/types/planner";
 
 export { ROLES };
@@ -25,20 +25,20 @@ export const ROLE_LABELS: Record<Role, string> = {
     return i18n.t("planningRoles.qa");
   },
 };
-export const roleDevs = (p: ProjectInput, role: Role) => p[`${role}_devs`];
-export const roleWeeks = (p: ProjectInput, role: Role) => p[`${role}_weeks`];
+export const roleDevs = (p: FeatureInput, role: Role) => p[`${role}_devs`];
+export const roleWeeks = (p: FeatureInput, role: Role) => p[`${role}_weeks`];
 /** Most people working at once: design, then backend and frontend together, then QA. */
-export const peakDevs = (p: ProjectInput) =>
+export const peakDevs = (p: FeatureInput) =>
   Math.max(
     roleDevs(p, "design"),
     roleDevs(p, "backend") + roleDevs(p, "frontend"),
     roleDevs(p, "qa")
   );
-export const durationWeeks = (p: ProjectInput) =>
+export const durationWeeks = (p: FeatureInput) =>
   roleWeeks(p, "design") +
   Math.max(roleWeeks(p, "backend"), roleWeeks(p, "frontend")) +
   roleWeeks(p, "qa");
-export const totalDevWeeks = (p: ProjectInput) =>
+export const totalDevWeeks = (p: FeatureInput) =>
   ROLES.reduce((sum, role) => sum + roleDevs(p, role) * roleWeeks(p, role), 0);
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
 export const fmtDate = (date: Date) =>
@@ -55,7 +55,7 @@ export const fmtMonth = (date: Date, compact = false) =>
     year: compact ? "2-digit" : "numeric",
   }).format(date);
 
-export function validateProject(input: ProjectInput) {
+export function validateFeature(input: FeatureInput) {
   if (!input.name.trim()) throw new Error(i18n.t("planning.validation.featureNameRequired"));
   for (const role of ROLES) {
     const devs = roleDevs(input, role),
@@ -81,13 +81,9 @@ export function parseDate(value: string): Date {
   return date;
 }
 
-export function isWorking(
-  member: Pick<PlannerMember, "id">,
-  date: Date,
-  availability: Availability[]
-) {
+export function isWorking(member: Pick<PlannerMember, "id">, date: Date, vacations: Vacation[]) {
   const key = format(date, "yyyy-MM-dd");
-  const override = availability.find((item) => item.member_id === member.id && item.date === key);
+  const override = vacations.find((item) => item.member_id === member.id && item.date === key);
   if (!hasHolidayCalendar(key))
     throw new Error(
       i18n.t("planning.validation.unverifiedWorkingYear", { year: date.getFullYear() })
@@ -100,8 +96,8 @@ export interface CapacityWeek {
   capacity: number;
   allocated: number;
 }
-export interface ScheduledProject {
-  project: Project;
+export interface ScheduledFeature {
+  feature: Feature;
   startIdx: number | null;
   endIdx: number | null;
   start: Date | null;
@@ -125,7 +121,7 @@ export interface ScheduledRole {
 }
 export function squadVelocity(
   members: PlannerMember[],
-  availability: Availability[],
+  vacations: Vacation[],
   startDate: Date,
   numWeeks = 16
 ): CapacityWeek[] {
@@ -140,7 +136,7 @@ export function squadVelocity(
     const capacity = verifiedDays.reduce(
       (sum, date) =>
         sum +
-        members.filter((member) => member.role !== null && isWorking(member, date, availability))
+        members.filter((member) => member.role !== null && isWorking(member, date, vacations))
           .length /
           5,
       0
@@ -152,31 +148,31 @@ export function squadVelocity(
 
 // Daily person-days prevent partial-week leave and role capacity from being rounded away.
 export function computeSchedule(
-  projects: Project[],
+  features: Feature[],
   members: PlannerMember[],
-  availability: Availability[],
+  vacations: Vacation[],
   startDate: Date,
   horizon = 52
 ) {
   if (!isValid(startDate) || !hasHolidayCalendar(format(startDate, "yyyy-MM-dd")))
     throw new Error(i18n.t("planning.validation.unverifiedStart"));
-  const weeks = squadVelocity(members, availability, startDate, horizon);
-  const sorted = [...projects]
+  const weeks = squadVelocity(members, vacations, startDate, horizon);
+  const sorted = [...features]
     .filter((p) => p.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
-  const schedule: ScheduledProject[] = sorted.map((project) => {
-    validateProject(project);
+  const schedule: ScheduledFeature[] = sorted.map((feature) => {
+    validateFeature(feature);
     const missing = ROLES.filter(
-      (role) => roleDevs(project, role) > 0 && !members.some((member) => member.role === role)
+      (role) => roleDevs(feature, role) > 0 && !members.some((member) => member.role === role)
     );
     return {
-      project,
+      feature,
       startIdx: null,
       endIdx: null,
       start: null,
       end: null,
       complete: false,
-      roles: ROLES.filter((role) => roleDevs(project, role) > 0).map((role) => ({
+      roles: ROLES.filter((role) => roleDevs(feature, role) > 0).map((role) => ({
         role,
         start: null,
         end: null,
@@ -184,7 +180,7 @@ export function computeSchedule(
         allocations: [],
       })),
       reason:
-        totalDevWeeks(project) === 0
+        totalDevWeeks(feature) === 0
           ? i18n.t("planning.unscheduled.noEstimates")
           : missing.length
             ? i18n.t("planning.unscheduled.noRoleCapacity", {
@@ -194,10 +190,10 @@ export function computeSchedule(
     };
   });
   const remaining = new Map(
-    sorted.map((project) => [
-      project.id,
+    sorted.map((feature) => [
+      feature.id,
       Object.fromEntries(
-        ROLES.map((role) => [role, roleDevs(project, role) * roleWeeks(project, role) * 5])
+        ROLES.map((role) => [role, roleDevs(feature, role) * roleWeeks(feature, role) * 5])
       ) as Record<Role, number>,
     ])
   );
@@ -208,13 +204,13 @@ export function computeSchedule(
       const free = Object.fromEntries(
         ROLES.map((role) => [
           role,
-          members.filter((member) => member.role === role && isWorking(member, date, availability))
+          members.filter((member) => member.role === role && isWorking(member, date, vacations))
             .length,
         ])
       ) as Record<Role, number>;
       for (const item of schedule) {
         if (item.reason || item.complete) continue;
-        const effort = remaining.get(item.project.id)!;
+        const effort = remaining.get(item.feature.id)!;
         // Snapshot dependencies before today's work so successive phases start on later days.
         const designDone = effort.design === 0;
         const developmentDone = designDone && effort.backend === 0 && effort.frontend === 0;
@@ -222,7 +218,7 @@ export function computeSchedule(
           const { role } = roleSchedule;
           if (role !== "design" && !designDone) continue;
           if (role === "qa" && !developmentDone) continue;
-          const allocated = Math.min(free[role], roleDevs(item.project, role), effort[role]);
+          const allocated = Math.min(free[role], roleDevs(item.feature, role), effort[role]);
           if (allocated <= 0) continue;
           effort[role] = Math.max(0, effort[role] - allocated);
           free[role] -= allocated;

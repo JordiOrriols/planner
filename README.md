@@ -109,33 +109,36 @@ by deploying the apps.
 ## Workspaces and access
 
 The workspace dropdown and **Share** sit opposite the page tabs in the tab bar.
-Choose an existing workspace or **New workspace** from the same dropdown.
+Both come from UI's shared `WorkspaceBar`, the same one Ladders and Pulse use. The
+dropdown lists the workspaces shared with you for Planner (`list_workspaces`), and
+**New workspace** sits in the same menu. Workspace settings (plan start and sprint
+calibration) load with the selected workspace's data.
 
-- A verified signed-in user creates a workspace and links one or more existing
-  Ladders teams on **Vacations**. Linking a new team requires team edit access.
+- A verified signed-in user creates a workspace; its owner adds teams to it in
+  **Team configuration**. Teams stay in the workspace they are created in, and a
+  workspace that still holds teams cannot be deleted.
 - Workspace owners and explicitly shared editors manage feature estimates,
   roadmap priorities, delivery status and the plan start date.
 - Owners use **Share** beside the workspace selector to add a registered account
-  by email with **View** or **Edit** access, change permissions or remove a share.
+  by email with **View** or **Edit** access to Planner, Ladders or Pulse, change
+  permissions or remove a share.
   This reuses the same UI package dialog and form hook as Ladders team sharing.
   Shared workspaces appear when collaborators sign in using their platform account.
-  Only owners manage sharing, team links and workspace deletion.
-  Removing a workspace share does not revoke any existing linked-team viewing access.
-- Linked team collaborators can view plans. Existing Planner collaborators
+  Only owners manage sharing, teams and workspace deletion.
+  Removing a workspace share does not revoke viewing access granted through a Ladders share.
+- Ladders collaborators of the workspace can view its plans. Existing Planner collaborators
   retain their workspace access, but new independent Planner invitations are
   no longer created.
 - Team owners/editors set a member's shared planning role and availability.
-  A workspace owner does not gain team edit rights by linking it.
 - Planning roles are backend, frontend, design or QA, separate from Ladders job
   titles. Unassigned members are explicitly excluded from scheduling capacity.
 - Team membership is live, not copied. Members are identified by Ladders UUID,
   so moving or renaming someone preserves their global vacations.
-- Unlinking a team keeps its vacations; deleting a Ladders member deletes that
-  member's shared availability.
+- Deleting a Ladders member deletes that member's shared availability.
 - Workspace data is isolated by Row Level Security, including direct API calls.
 
 The team Vacations page shows squad velocity first, then the vacation calendar.
-Team linking and member planning roles are in the separate **Team configuration** tab.
+The workspace teams and member planning roles are in the separate **Team configuration** tab.
 Use **Group by** to choose **Areas** (Backend, Frontend, Design, QA) or linked
 **Teams**, then select which groups to show in the adjacent multi-select dropdown.
 Several selected groups stack into one bar per week; one selected group uses a
@@ -220,14 +223,14 @@ Role colors live in `src/config/roleColors.ts`, which uses the roadmap palette.
 Estimation's role-colored effort titles, the feature form, the roadmap legend and
 bars, and velocity charts all read from it.
 
-Features can optionally belong to a **main project**. Owners/editors use
-**Manage projects** on Estimation to add, rename or delete the workspace's
-project list. Names must be unique ignoring case, and deleting a project keeps
-its features, which move to **No project**. Choose a feature's project in the
-feature form. Estimation shows the project label before the feature title. The
-Roadmap keeps strict priority order and inserts a project heading whenever
-consecutive features belong to a different project. No headings appear when no
-roadmap feature has a project.
+Every feature belongs to a **main project**, and features reach their workspace
+through that project. Owners/editors use **Manage projects** on Estimation to
+add, rename or delete the workspace's project list. Names must be unique
+ignoring case, and a project can only be deleted once it has no features. The
+feature form requires a project; choose **+ New project** to create one inline
+while saving the feature. Estimation shows the project label before the feature
+title. The Roadmap keeps strict priority order and inserts a project heading
+whenever consecutive features belong to a different project.
 Feature creation and editing share footer actions: a primary Create/Save button
 beside Discard. Discard closes without saving; failed saves keep the draft open.
 People and weeks must be whole numbers. Both values must be positive for an
@@ -327,6 +330,23 @@ project with approval:
     through `share_workspace`, `update_workspace_share`, `remove_workspace_share`
     and `list_workspace_shares`. Planner shares move there and
     `planner_workspace_collaborators` is dropped.
+18. `20261016230000_ladders_shares_live_on_workspaces.sql`: Ladders team shares
+    move onto `workspace_collaborators` (app `ladders`), so sharing a team shares
+    every team in its workspace. The team share RPCs keep their signatures and
+    `team_collaborators` is dropped.
+19. `20261017000000_list_and_create_workspaces.sql`: `list_workspaces(app_name)`
+    and `create_workspace(workspace_name)` let every app list and create
+    workspaces the same way. Planner also lists, read-only, the workspaces of the
+    Ladders teams the account can view.
+20. `20261017010000_teams_stay_in_their_workspace.sql`: teams cannot move to
+    another workspace, a workspace that still holds teams cannot be deleted,
+    `planner_set_workspace_teams` is dropped and `create_team(p_name, p_workspace)`
+    adds a team to a workspace of its owner.
+21. `20261017020000_features_belong_to_a_project.sql`: every feature belongs to
+    a project. Project-less features move into a **General** project of their
+    workspace, `features.workspace_id` is dropped, feature access and the roadmap
+    RPCs go through the project, and a project with features cannot be deleted
+    (deleting the workspace still removes everything).
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this
