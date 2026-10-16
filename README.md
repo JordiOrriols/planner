@@ -117,6 +117,9 @@ existing `/backlog` route remains valid). Feature Estimation first shows feature
 on the roadmap in priority order, followed by **Backlog** / **Not prioritized
 features** for ideas not yet on the roadmap. Use **Add feature** on Roadmap to
 prioritize an estimate; removing it returns it to the unprioritized group.
+Plan starts and Roadmap finishes share the same date-card presentation.
+Owners/editors can reveal the start-date input with its edit button; successful
+changes are saved to the workspace and return to the read-only card.
 
 For each feature, enter people and weeks for backend, frontend, design and
 QA. People and weeks must be whole numbers. Both values must be positive for an

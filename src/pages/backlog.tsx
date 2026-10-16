@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, EmptyState, Modal } from "@jordiorriols/ui";
-import { GanttChartSquare, Plus } from "@jordiorriols/ui/icons";
+import { GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
+import { PlanDateCard } from "@/components/molecules/plan-date-card";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import GanttChart from "@/components/organisms/gantt-chart";
@@ -13,6 +14,7 @@ export default function Backlog() {
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
+  const [editingStart, setEditingStart] = useState(false);
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
   const availableProjects = projects.filter((project) => !project.in_backlog);
@@ -66,6 +68,7 @@ export default function Backlog() {
       try {
         await repository.setPlanStart(workspace.id, date);
         await refresh();
+        setEditingStart(false);
       } finally {
         setDraftStart(null);
       }
@@ -93,29 +96,44 @@ export default function Backlog() {
           <p className="text-xs text-muted-foreground">Squad size</p>
           <p className="font-semibold">{members.length} people</p>
         </div>
-        <div className="panel">
-          <label htmlFor="plan-start" className="text-xs text-muted-foreground">
-            Plan starts
-          </label>
-          <input
-            id="plan-start"
-            className="field mt-1"
-            type="date"
-            min="2026-01-01"
-            max="2027-12-31"
-            value={startDate}
-            disabled={!canEdit || action.busy}
-            onChange={(event) => changeStart(event.target.value)}
-          />
-        </div>
-        <div className="panel">
-          <p className="text-xs text-muted-foreground">Roadmap finishes</p>
-          <p className="font-semibold">
-            {completed.length === backlog.length && finish
-              ? fmtDate(finish)
-              : "Not fully scheduled"}
-          </p>
-        </div>
+        <PlanDateCard
+          label="Plan starts"
+          value={fmtDate(parseDate(workspace.plan_start_date))}
+          action={
+            canEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                aria-label={editingStart ? "Cancel editing plan start" : "Edit plan start"}
+                disabled={action.busy}
+                onClick={() => setEditingStart((editing) => !editing)}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+            )
+          }
+        >
+          {editingStart ? (
+            <input
+              id="plan-start"
+              className="field mt-1"
+              type="date"
+              aria-label="Plan starts"
+              min="2026-01-01"
+              max="2027-12-31"
+              value={startDate}
+              disabled={!canEdit || action.busy}
+              onChange={(event) => changeStart(event.target.value)}
+            />
+          ) : undefined}
+        </PlanDateCard>
+        <PlanDateCard
+          label="Roadmap finishes"
+          value={
+            completed.length === backlog.length && finish ? fmtDate(finish) : "Not fully scheduled"
+          }
+        />
       </div>
       {(error || action.error) && (
         <p role="alert" className="text-destructive">

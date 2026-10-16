@@ -103,7 +103,8 @@ describe("Planner estimate and backlog controls", () => {
     rendered.unmount();
     state.projects[0]!.in_backlog = true;
     renderBacklog();
-    expect(screen.getByLabelText("Plan starts")).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Edit plan start" }));
+    expect(screen.getByLabelText("Plan starts", { selector: "input" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Add feature" })).toBeVisible();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
@@ -122,23 +123,32 @@ describe("Planner estimate and backlog controls", () => {
   it("uses the saved workspace date and retains a changed start after page remount", async () => {
     state.planStart = "2026-02-02";
     const rendered = renderBacklog();
-    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-02-02");
-    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
+    expect(screen.getByRole("region", { name: "Plan starts" })).toHaveTextContent("Feb 2, 2026");
+    expect(screen.queryByLabelText("Plan starts", { selector: "input" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Edit plan start" }));
+    expect(screen.getByLabelText("Plan starts", { selector: "input" })).toHaveValue("2026-02-02");
+    fireEvent.change(screen.getByLabelText("Plan starts", { selector: "input" }), {
+      target: { value: "2026-03-02" },
+    });
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     expect(setPlanStart).toHaveBeenCalledExactlyOnceWith("squad", "2026-03-02");
     rendered.unmount();
     renderBacklog();
-    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-03-02");
+    expect(screen.getByRole("region", { name: "Plan starts" })).toHaveTextContent("Mar 2, 2026");
+    expect(screen.queryByLabelText("Plan starts", { selector: "input" })).not.toBeInTheDocument();
   });
 
   it("shows save failures and restores the persisted date instead of implying it was saved", async () => {
     setPlanStart.mockRejectedValueOnce(new Error("Plan start could not be saved"));
     renderBacklog();
-    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
+    await userEvent.click(screen.getByRole("button", { name: "Edit plan start" }));
+    fireEvent.change(screen.getByLabelText("Plan starts", { selector: "input" }), {
+      target: { value: "2026-03-02" },
+    });
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Plan start could not be saved")
     );
-    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-10-15");
+    expect(screen.getByLabelText("Plan starts", { selector: "input" })).toHaveValue("2026-10-15");
     expect(refresh).not.toHaveBeenCalled();
   });
 
@@ -151,16 +161,22 @@ describe("Planner estimate and backlog controls", () => {
         })
     );
     const rendered = renderBacklog();
-    fireEvent.change(screen.getByLabelText("Plan starts"), { target: { value: "2026-03-02" } });
-    await waitFor(() => expect(screen.getByLabelText("Plan starts")).toBeDisabled());
+    await userEvent.click(screen.getByRole("button", { name: "Edit plan start" }));
+    fireEvent.change(screen.getByLabelText("Plan starts", { selector: "input" }), {
+      target: { value: "2026-03-02" },
+    });
+    await waitFor(() =>
+      expect(screen.getByLabelText("Plan starts", { selector: "input" })).toBeDisabled()
+    );
     finish();
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
     rendered.unmount();
     state.isOwner = false;
     state.planStart = "2026-04-01";
     renderBacklog();
-    expect(screen.getByLabelText("Plan starts")).toBeDisabled();
-    expect(screen.getByLabelText("Plan starts")).toHaveValue("2026-04-01");
+    expect(screen.queryByRole("button", { name: "Edit plan start" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Plan starts", { selector: "input" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Plan starts" })).toHaveTextContent("Apr 1, 2026");
   });
   it("requires integer steps and makes decimal input invalid for all roles", async () => {
     const save = vi.fn();
