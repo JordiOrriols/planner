@@ -558,6 +558,8 @@
     "summary": "Peak team: {{people}} people · Ideal duration: {{weeks}} weeks · Effort: {{effort}} person-weeks"
   },
   "featureCard": {
+    "showDetails": "Show role details",
+    "hideDetails": "Hide role details",
     "actions": {
       "delete": "Delete {{featureName}}",
       "edit": "Edit {{featureName}}"

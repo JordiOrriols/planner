@@ -558,6 +558,8 @@
     "summary": "Équipe maximale : {{people}} personnes · Durée idéale : {{weeks}} semaines · Effort : {{effort}} semaines-personne"
   },
   "featureCard": {
+    "showDetails": "Afficher les détails par domaine",
+    "hideDetails": "Masquer les détails par domaine",
     "actions": {
       "delete": "Supprimer {{featureName}}",
       "edit": "Modifier {{featureName}}"

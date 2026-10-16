@@ -559,6 +559,8 @@
     "summary": "Equip màxim: {{people}} persones · Durada ideal: {{weeks}} setmanes · Esforç: {{effort}} setmanes-persona"
   },
   "featureCard": {
+    "showDetails": "Mostra els detalls per àrea",
+    "hideDetails": "Amaga els detalls per àrea",
     "actions": {
       "delete": "Suprimeix {{featureName}}",
       "edit": "Edita {{featureName}}"

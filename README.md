@@ -182,8 +182,10 @@ changes are saved to the workspace and return to the read-only card.
 
 For each feature, enter people and weeks for backend, frontend, design and
 QA. Estimation uses full-width feature cards: overall Peak team, Duration and Effort
-appear above a separate role breakdown with people, weeks and person-weeks for
-each area. Role columns stack on smaller screens; unused areas show zero.
+appear alongside a compact effort summary for active roles. Role details are
+collapsed by default; expanding them replaces the compact summary with people,
+weeks and person-weeks for each area. Role columns stack on smaller screens;
+unused areas show zero.
 People and weeks must be whole numbers. Both values must be positive for an
 active role (or both zero). Decimal input is rejected by the form, repository and
 database, never silently rounded. Existing fractional estimates are preserved

@@ -559,6 +559,8 @@
     "summary": "Equipo máximo: {{people}} personas · Duración ideal: {{weeks}} semanas · Esfuerzo: {{effort}} semanas-persona"
   },
   "featureCard": {
+    "showDetails": "Mostrar detalles por área",
+    "hideDetails": "Ocultar detalles por área",
     "actions": {
       "delete": "Eliminar {{featureName}}",
       "edit": "Editar {{featureName}}"

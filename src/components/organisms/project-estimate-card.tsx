@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import React from "react";
-import { Pencil, Trash2 } from "@jordiorriols/ui/icons";
+import React, { useId, useState } from "react";
+import { ChevronDown, Pencil, Trash2 } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/types/planner";
 import {
@@ -27,6 +27,8 @@ export default function ProjectEstimateCard({
   readOnly: boolean;
 }) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const detailId = useId();
 
   const peak = peakDevs(project);
   const dur = durationWeeks(project);
@@ -92,7 +94,7 @@ export default function ProjectEstimateCard({
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
         <Stat
           label={t("featureCard.metrics.peakTeam")}
           value={`${peak}`}
@@ -108,9 +110,39 @@ export default function ProjectEstimateCard({
           value={`${dw}`}
           sub={t("common.units.personWeeksShort")}
         />
+        {!expanded && (
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {activeRoles.map((role) => (
+              <Stat
+                key={role}
+                label={ROLE_LABELS[role]}
+                value={`${project[`${role}_devs`] * project[`${role}_weeks`]}`}
+                sub={t("common.units.personWeeksShort")}
+              />
+            ))}
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ml-auto"
+          aria-expanded={expanded}
+          aria-controls={detailId}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {t(expanded ? "featureCard.hideDetails" : "featureCard.showDetails")}
+          <ChevronDown className={cn("ml-2 size-4", expanded && "rotate-180")} />
+        </Button>
       </div>
 
-      <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        id={detailId}
+        hidden={!expanded}
+        className={cn(
+          "gap-3 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-4",
+          expanded && "grid"
+        )}
+      >
         {ROLES.map((role) => {
           const people = project[`${role}_devs`];
           const weeks = project[`${role}_weeks`];

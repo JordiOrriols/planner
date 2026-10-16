@@ -558,6 +558,8 @@
     "summary": "Picco del team: {{people}} persone · Durata ideale: {{weeks}} settimane · Impegno: {{effort}} settimane-persona"
   },
   "featureCard": {
+    "showDetails": "Mostra dettagli per area",
+    "hideDetails": "Nascondi dettagli per area",
     "actions": {
       "delete": "Elimina {{featureName}}",
       "edit": "Modifica {{featureName}}"

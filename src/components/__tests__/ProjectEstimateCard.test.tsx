@@ -1,6 +1,7 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { APP_LANGUAGES } from "@jordiorriols/ui";
 import ProjectEstimateCard from "@/components/organisms/project-estimate-card";
 import i18n from "@/i18n";
@@ -51,6 +52,16 @@ describe("Feature estimate breakdown", () => {
       const t = i18n.getFixedT(language);
       renderCard();
       const card = screen.getByRole("article", { name: project.name });
+      expect(within(card).queryByRole("region")).not.toBeInTheDocument();
+      const toggle = screen.getByRole("button", { name: t("featureCard.showDetails") });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(
+        within(card)
+          .getAllByText(t("common.units.personWeeksShort"))
+          .filter((element) => !element.closest("[hidden]"))
+      ).toHaveLength(5);
+      await userEvent.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
       for (const role of ROLES) {
         const area = within(card).getByRole("region", { name: t(`planningRoles.${role}`) });
         const values = within(area).getAllByRole("definition");
@@ -83,8 +94,9 @@ describe("Feature estimate breakdown", () => {
     }
   );
 
-  it("shows zero estimates for unused areas without hiding their labels", () => {
+  it("shows zero estimates for unused areas without hiding their labels", async () => {
     renderCard({ ...project, ...EMPTY_PROJECT, name: project.name }, true);
+    await userEvent.click(screen.getByRole("button", { name: i18n.t("featureCard.showDetails") }));
     for (const role of ROLES) {
       const area = screen.getByRole("region", { name: i18n.t(`planningRoles.${role}`) });
       expect(
@@ -94,6 +106,8 @@ describe("Feature estimate breakdown", () => {
       ).toEqual(["0", "0", `0${i18n.t("common.units.personWeeksShort")}`]);
     }
     expect(screen.getByText(i18n.t("featureCard.noEstimates"))).toBeVisible();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Edit Checkout/ })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: i18n.t("featureCard.hideDetails") }));
+    expect(screen.queryByRole("region")).not.toBeInTheDocument();
   });
 });

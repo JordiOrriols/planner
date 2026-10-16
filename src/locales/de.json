@@ -558,6 +558,8 @@
     "summary": "Maximale Teamgröße: {{people}} Personen · Ideale Dauer: {{weeks}} Wochen · Aufwand: {{effort}} Personenwochen"
   },
   "featureCard": {
+    "showDetails": "Bereichsdetails anzeigen",
+    "hideDetails": "Bereichsdetails ausblenden",
     "actions": {
       "delete": "{{featureName}} löschen",
       "edit": "{{featureName}} bearbeiten"
