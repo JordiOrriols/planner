@@ -6,6 +6,7 @@ import {
   validateProject,
   parseDate,
   durationWeeks,
+  peakDevs,
   totalDevWeeks,
 } from "../planning";
 import { BARCELONA_HOLIDAYS, isHoliday } from "../barcelonaHolidays";
@@ -189,6 +190,13 @@ describe("design and QA phase dependencies", () => {
     { ...member, id: "designer", role: "design" },
     { ...member, id: "qa", role: "qa" },
   ];
+
+  it("counts the peak team from the busiest phase, not every role at once", () => {
+    expect(peakDevs(phased)).toBe(2);
+    expect(peakDevs({ ...phased, backend_devs: 2 })).toBe(3);
+    expect(peakDevs({ ...phased, qa_devs: 4 })).toBe(4);
+    expect(peakDevs({ ...phased, design_devs: 5 })).toBe(5);
+  });
 
   it("finishes design before development and waits for both development roles before QA", () => {
     const result = computeSchedule([phased], fullSquad, [], date("2026-02-02"), 4);

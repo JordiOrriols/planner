@@ -107,7 +107,8 @@ describe("Feature estimate breakdown", () => {
       const peak = within(card).getByText(t("featureCard.metrics.peakTeam")).parentElement!;
       const duration = within(card).getByText(t("featureCard.metrics.duration")).parentElement!;
       const effort = within(card).getAllByText(t("featureCard.metrics.effort"))[0]!.parentElement!;
-      expect(peak).toHaveTextContent(`6${t("common.units.people")}`);
+      // Design, development and QA run one after another; development is the busiest phase.
+      expect(peak).toHaveTextContent(`3${t("common.units.people")}`);
       expect(duration).toHaveTextContent(`5${t("common.units.weeks")}`);
       expect(effort).toHaveTextContent(`11${t("common.units.personWeeksShort")}`);
       expect(

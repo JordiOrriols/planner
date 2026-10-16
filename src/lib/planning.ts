@@ -27,8 +27,13 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 export const roleDevs = (p: ProjectInput, role: Role) => p[`${role}_devs`];
 export const roleWeeks = (p: ProjectInput, role: Role) => p[`${role}_weeks`];
+/** Most people working at once: design, then backend and frontend together, then QA. */
 export const peakDevs = (p: ProjectInput) =>
-  ROLES.reduce((sum, role) => sum + roleDevs(p, role), 0);
+  Math.max(
+    roleDevs(p, "design"),
+    roleDevs(p, "backend") + roleDevs(p, "frontend"),
+    roleDevs(p, "qa")
+  );
 export const durationWeeks = (p: ProjectInput) =>
   roleWeeks(p, "design") +
   Math.max(roleWeeks(p, "backend"), roleWeeks(p, "frontend")) +

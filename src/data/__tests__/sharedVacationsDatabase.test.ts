@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { readFile } from "node:fs/promises";
-import { PGlite } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { createMigratedDatabase } from "./support/migratedDatabase";
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const viewer = "22222222-2222-4222-8222-222222222222";
@@ -26,51 +26,11 @@ async function link(workspaceId = workspace, teams = [team]) {
   await db.query("select public.planner_set_workspace_teams($1,$2)", [workspaceId, teams]);
 }
 beforeAll(async () => {
-  db = new PGlite();
-  await db.exec(`
-    create role anon; create role authenticated;
-    create schema auth;
-    create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz);
-    create function auth.uid() returns uuid language sql stable as $$
-      select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
-    $$;
-    grant usage on schema auth, public to authenticated, anon;
-    grant execute on function auth.uid() to authenticated, anon;
-    insert into auth.users values
-      ('${owner}', 'owner@example.com', now()),
-      ('${viewer}', 'viewer@example.com', now()),
-      ('${stranger}', 'stranger@example.com', now());
-  `);
-  // PGlite provides core gen_random_uuid(), but not Supabase's pgcrypto extension.
-  for (const file of [
-    "0001_init.sql",
-    "0002_editable_drafts.sql",
-    "0003_teams_and_sharing.sql",
-    "0004_create_team_rpc.sql",
-  ]) {
-    const sql = await readFile(
-      new URL(`../../../supabase/migrations/${file}`, import.meta.url),
-      "utf8"
-    );
-    await db.exec(sql.replace("create extension if not exists pgcrypto;", ""));
-  }
-  for (const file of [
-    "20261003140000_planner_workspaces.sql",
-    "20261003150000_planner_team_and_priority.sql",
-    "20261003170000_planner_whole_estimates.sql",
-    "20261003183000_planner_ladders_teams.sql",
-    "20261014223000_planner_vacation_team_calendar.sql",
-    "20261014224000_planner_project_delivery.sql",
-    "20261014225000_planner_workspace_plan_start.sql",
-    "20261014230000_planner_workspace_sharing.sql",
-    "20261016092000_planner_restore_working_calendar.sql",
-    "20261016110000_planner_sprint_calibration.sql",
-    "20261016130000_planner_main_projects.sql",
-  ]) {
-    await db.exec(
-      await readFile(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8")
-    );
-  }
+  db = await createMigratedDatabase([
+    { id: owner, email: "owner@example.com" },
+    { id: viewer, email: "viewer@example.com" },
+    { id: stranger, email: "stranger@example.com" },
+  ]);
 });
 beforeEach(async () => {
   await login(null, "postgres");
@@ -864,30 +824,29 @@ describe("Shared Ladders roster and independent vacation token permissions", () 
       (await db.query("select * from public.planner_workspace_roster($1)", [workspace])).rows
     ).toHaveLength(0);
   });
-  it("preserves legacy members and their availability without guessing identity mappings", async () => {
-    const legacy = (
-      await db.query<{ id: string }>(
-        "select id from public.planner_create_workspace('Legacy','Ada','backend')"
-      )
-    ).rows[0]!.id;
-    const legacyMember = (
-      await db.query<{ id: string }>(
-        "select id from public.planner_members where workspace_id=$1",
-        [legacy]
-      )
-    ).rows[0]!.id;
-    await db.query("select public.planner_set_availability($1,'2026-11-02','2026-11-02',false)", [
-      legacyMember,
-    ]);
-    await link(legacy);
-    expect((await db.query("select * from public.planner_availability")).rows).toHaveLength(1);
-    expect((await db.query("select * from public.planner_team_availability")).rows).toHaveLength(0);
+  it("drops the legacy invitation members, their availability and RPCs", async () => {
+    await login(null, "postgres");
     expect(
       (
-        await db.query<{ id: string }>("select id from public.planner_workspace_roster($1)", [
-          legacy,
+        await db.query<{ members: string | null; availability: string | null }>(
+          "select to_regclass('public.planner_members')::text as members, to_regclass('public.planner_availability')::text as availability"
+        )
+      ).rows
+    ).toEqual([{ members: null, availability: null }]);
+    expect(
+      (
+        await db.query("select proname from pg_proc where proname = any($1::text[])", [
+          [
+            "planner_create_workspace",
+            "planner_invite_member",
+            "planner_list_invitations",
+            "planner_accept_invitation",
+            "planner_update_member",
+            "planner_set_availability",
+            "planner_can_edit_availability",
+          ],
         ])
       ).rows
-    ).toEqual([{ id: member.id }]);
+    ).toEqual([]);
   });
 });

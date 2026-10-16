@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { readFile } from "node:fs/promises";
-import { PGlite } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { createMigratedDatabase } from "./support/migratedDatabase";
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const teammate = "22222222-2222-4222-8222-222222222222";
@@ -13,68 +13,24 @@ async function login(id: string) {
   await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
   await db.exec("set role authenticated");
 }
+async function shareWithTeammate(access: "viewer" | "editor") {
+  await db.query("select public.planner_share_workspace($1,'member@example.com',$2)", [
+    workspace,
+    access,
+  ]);
+}
 beforeAll(async () => {
-  db = new PGlite();
-  await db.exec(`
-    create role anon; create role authenticated;
-    create schema auth;
-    create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz);
-    create function auth.uid() returns uuid language sql stable as $$
-      select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
-    $$;
-    grant usage on schema auth, public to authenticated;
-    grant execute on function auth.uid() to authenticated;
-    insert into auth.users values
-      ('${owner}', 'owner@example.com', now()),
-      ('${teammate}', 'member@example.com', now()),
-      ('${stranger}', 'stranger@example.com', now());
-  `);
-  const migration = await readFile(
-    new URL("../../../supabase/migrations/20261003140000_planner_workspaces.sql", import.meta.url),
-    "utf8"
-  );
-  await db.exec(migration);
-  const priorityMigration = await readFile(
-    new URL(
-      "../../../supabase/migrations/20261003150000_planner_team_and_priority.sql",
-      import.meta.url
-    ),
-    "utf8"
-  );
-  await db.exec(priorityMigration);
-  await db.exec(
-    await readFile(
-      new URL(
-        "../../../supabase/migrations/20261003170000_planner_whole_estimates.sql",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  );
-  await db.exec(
-    await readFile(
-      new URL(
-        "../../../supabase/migrations/20261014224000_planner_project_delivery.sql",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  );
-  await db.exec(
-    await readFile(
-      new URL(
-        "../../../supabase/migrations/20261014225000_planner_workspace_plan_start.sql",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  );
+  db = await createMigratedDatabase([
+    { id: owner, email: "owner@example.com" },
+    { id: teammate, email: "member@example.com" },
+    { id: stranger, email: "stranger@example.com" },
+  ]);
 });
 beforeEach(async () => {
   await db.exec("reset role; delete from public.planner_workspaces");
   await login(owner);
   const created = await db.query<{ id: string }>(
-    "select id from public.planner_create_workspace('Squad', 'Owner', 'backend')"
+    "select id from public.planner_create_linked_workspace('Squad')"
   );
   workspace = created.rows[0]!.id;
 });
@@ -96,15 +52,8 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       "update public.planner_workspaces set plan_start_date='2026-02-02' where id=$1",
       [workspace]
     );
-    await db.query(
-      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
-      [workspace]
-    );
+    await shareWithTeammate("viewer");
     await login(teammate);
-    const invitation = (
-      await db.query<{ member_id: string }>("select * from public.planner_list_invitations()")
-    ).rows[0]!;
-    await db.query("select public.planner_accept_invitation($1)", [invitation.member_id]);
     expect(
       (
         await db.query("select plan_start_date::text from public.planner_workspaces where id=$1", [
@@ -141,7 +90,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       db.query("update public.planner_workspaces set plan_start_date=null where id=$1", [workspace])
     ).rejects.toThrow(/null/);
   });
-  it("defaults delivery to false and allows only the owner to change it without changing estimates", async () => {
+  it("defaults delivery to false and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
     const project = (
       await db.query<{ id: string; delivered: boolean }>(
         "insert into public.planner_projects(workspace_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
@@ -164,15 +113,8 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       in_backlog: true,
       priority: 0,
     });
-    await db.query(
-      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
-      [workspace]
-    );
+    await shareWithTeammate("viewer");
     await login(teammate);
-    const invitation = (
-      await db.query<{ member_id: string }>("select * from public.planner_list_invitations()")
-    ).rows[0]!;
-    await db.query("select public.planner_accept_invitation($1)", [invitation.member_id]);
     expect(
       (
         await db.query(
@@ -226,13 +168,6 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       ])
     ).rejects.toThrow(/planner_projects_whole_estimates/);
   });
-  it("creates only prefixed tables and atomically registers the owner", async () => {
-    const members = await db.query<{ user_id: string }>(
-      "select user_id from public.planner_members"
-    );
-    expect(members.rows).toEqual([{ user_id: owner }]);
-    await expect(db.exec("select * from public.teams")).rejects.toThrow();
-  });
   it("keeps outsiders out of both workspaces and data", async () => {
     await db.query("insert into public.planner_projects(workspace_id,name) values($1,'Private')", [
       workspace,
@@ -251,78 +186,17 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     await expect(db.query("select * from public.planner_workspaces")).rejects.toThrow(
       /permission denied/
     );
-    await expect(db.query("select public.planner_list_invitations()")).rejects.toThrow(
-      /permission denied/
-    );
+    await expect(
+      db.query("select public.planner_list_workspace_shares($1)", [workspace])
+    ).rejects.toThrow(/permission denied/);
     await db.exec("reset role");
     await db.query("update auth.users set email_confirmed_at = null where id=$1", [stranger]);
     await login(stranger);
-    await expect(
-      db.query("select public.planner_create_workspace('Bad','Unverified','qa')")
-    ).rejects.toThrow(/verified email/);
+    await expect(db.query("select public.planner_create_linked_workspace('Bad')")).rejects.toThrow(
+      /verified email/
+    );
     await db.exec("reset role");
     await db.query("update auth.users set email_confirmed_at = now() where id=$1", [stranger]);
-  });
-  it("lets only the invited verified email accept and read, without giving project write access", async () => {
-    await db.query(
-      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
-      [workspace]
-    );
-    await login(stranger);
-    expect((await db.query("select * from public.planner_list_invitations()")).rows).toHaveLength(
-      0
-    );
-    await login(teammate);
-    const invitations = await db.query<{ member_id: string }>(
-      "select * from public.planner_list_invitations()"
-    );
-    const member = invitations.rows[0]!.member_id;
-    await login(stranger);
-    await expect(db.query("select public.planner_accept_invitation($1)", [member])).rejects.toThrow(
-      /No invitation/
-    );
-    await login(teammate);
-    await db.query("select public.planner_accept_invitation($1)", [member]);
-    expect((await db.query("select * from public.planner_workspaces")).rows).toHaveLength(1);
-    await expect(
-      db.query("insert into public.planner_projects(workspace_id,name) values($1,'Bad')", [
-        workspace,
-      ])
-    ).rejects.toThrow(/row-level security/);
-  });
-  it("allows members to edit only their own availability and restores defaults on delete", async () => {
-    await db.query(
-      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
-      [workspace]
-    );
-    const ownerMember = (
-      await db.query<{ id: string }>(
-        "select id from public.planner_members where user_id = auth.uid()"
-      )
-    ).rows[0]!.id;
-    await login(teammate);
-    const member = (
-      await db.query<{ member_id: string }>("select * from public.planner_list_invitations()")
-    ).rows[0]!.member_id;
-    await db.query("select public.planner_accept_invitation($1)", [member]);
-    await db.query("select public.planner_set_availability($1,'2026-10-05','2026-10-07',false)", [
-      member,
-    ]);
-    expect((await db.query("select * from public.planner_availability")).rows).toHaveLength(3);
-    await db.query("select public.planner_set_availability($1,'2026-10-06','2026-10-06',true)", [
-      member,
-    ]);
-    const overrides = await db.query<{ is_working: boolean }>(
-      "select is_working from public.planner_availability where date = '2026-10-06'"
-    );
-    expect(overrides.rows[0]?.is_working).toBe(true);
-    await expect(
-      db.query("select public.planner_set_availability($1,'2026-10-05','2026-10-07',false)", [
-        ownerMember,
-      ])
-    ).rejects.toThrow(/cannot change/);
-    await db.query("delete from public.planner_availability where member_id=$1", [member]);
-    expect((await db.query("select * from public.planner_availability")).rows).toHaveLength(0);
   });
   it("rejects inconsistent estimates and performs complete backlog reorder atomically", async () => {
     await expect(
@@ -352,21 +226,7 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       ])
     ).rejects.toThrow(/Backlog changed/);
   });
-  it("cascades availability when the owner removes an invited team member", async () => {
-    await db.query(
-      "select public.planner_invite_member($1,'member@example.com','Member','frontend')",
-      [workspace]
-    );
-    const member = (
-      await db.query<{ id: string }>("select id from public.planner_members where user_id is null")
-    ).rows[0]!.id;
-    await db.query("select public.planner_set_availability($1,'2026-10-05','2026-10-05',false)", [
-      member,
-    ]);
-    await db.query("delete from public.planner_members where id=$1", [member]);
-    expect((await db.query("select * from public.planner_availability")).rows).toHaveLength(0);
-  });
-  it("appends projects with deterministic priorities and restricts team role changes", async () => {
+  it("appends projects with deterministic priorities and denies outsiders backlog changes", async () => {
     const projects = await db.query<{ id: string }>(
       "insert into public.planner_projects(workspace_id,name) values($1,'A'),($1,'B') returning id",
       [workspace]
@@ -380,21 +240,12 @@ describe("Planner migration and real PostgreSQL permissions", () => {
         )
       ).rows.map((row) => row.priority)
     ).toEqual([1, 2]);
-    const member = (await db.query<{ id: string }>("select id from public.planner_members"))
-      .rows[0]!.id;
-    await db.query("select public.planner_update_member($1,'Owner','design')", [member]);
-    expect(
-      (await db.query<{ role: string }>("select role from public.planner_members")).rows[0]?.role
-    ).toBe("design");
     await login(stranger);
-    await expect(
-      db.query("select public.planner_update_member($1,'Bad','qa')", [member])
-    ).rejects.toThrow(/Only the owner/);
     await expect(
       db.query("select public.planner_toggle_backlog($1,$2,true)", [
         workspace,
         projects.rows[0]!.id,
       ])
-    ).rejects.toThrow(/Only the owner/);
+    ).rejects.toThrow(/Workspace edit access required/);
   });
 });
