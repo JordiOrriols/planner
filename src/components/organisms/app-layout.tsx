@@ -21,13 +21,19 @@ const NAV = [
   { to: "/", key: "planner.tabs.estimation", icon: Calculator, end: true },
   { to: "/backlog", key: "planner.tabs.backlog", icon: GanttChartSquare, end: false },
   { to: "/vacations", key: "planner.tabs.vacations", icon: CalendarDays, end: false },
-  { to: "/team-configuration", key: "teamConfiguration.title", icon: Settings, end: false },
+  {
+    to: "/team-configuration",
+    key: "teamConfiguration.title",
+    icon: Settings,
+    end: false,
+    editorsOnly: true,
+  },
 ];
 
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
   const { signOut, user } = useData();
-  const { workspace, workspaces, workspaceApi, selectWorkspace, refresh } = useWorkspace();
+  const { workspace, workspaces, workspaceApi, selectWorkspace, refresh, canEdit } = useWorkspace();
   const action = useAsyncAction();
   return (
     <AppPage>
@@ -75,14 +81,16 @@ export default function AppLayout() {
               />
             }
           >
-            {NAV.map(({ to, key, icon: Icon, end }) => (
-              <AppNavigationItem key={to} asChild>
-                <NavLink to={to} end={end} aria-label={t(key)}>
-                  <Icon />
-                  <span>{t(key)}</span>
-                </NavLink>
-              </AppNavigationItem>
-            ))}
+            {NAV.filter((item) => canEdit || !item.editorsOnly).map(
+              ({ to, key, icon: Icon, end }) => (
+                <AppNavigationItem key={to} asChild>
+                  <NavLink to={to} end={end} aria-label={t(key)}>
+                    <Icon />
+                    <span>{t(key)}</span>
+                  </NavLink>
+                </AppNavigationItem>
+              )
+            )}
           </AppNavigation>
         }
       />

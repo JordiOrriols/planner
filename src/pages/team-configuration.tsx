@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Button } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useWorkspace } from "@/data/WorkspaceProvider";
@@ -62,11 +63,12 @@ function WorkspaceTeams({ linkedTeams, isOwner }: { linkedTeams: LinkedTeam[]; i
 
 export default function TeamConfiguration() {
   const { t } = useTranslation();
-  const { members, linkedTeams, refresh, isOwner } = useWorkspace();
+  const { members, linkedTeams, refresh, isOwner, canEdit } = useWorkspace();
   const { repository } = useData();
   const [copiedMember, setCopiedMember] = useState<string | null>(null);
   const action = useAsyncAction();
   if (!repository) throw new Error(t("vacations.errors.signInRequired"));
+  if (!canEdit) return <Navigate to="/" replace />;
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{t("teamConfiguration.title")}</h1>

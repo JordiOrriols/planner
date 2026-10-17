@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Vacations from "@/pages/vacations";
 import TeamConfiguration from "@/pages/team-configuration";
 
@@ -13,7 +14,7 @@ const { setVacations, clearVacation, setSprintCalibration, createTeam, refresh, 
     clearVacation: vi.fn(),
     setSprintCalibration: vi.fn(),
     refresh: vi.fn(),
-    state: { canEdit: true, isOwner: false },
+    state: { canEdit: true, isOwner: false, linkedToGrace: false },
   }));
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({
@@ -41,7 +42,7 @@ vi.mock("@/data/WorkspaceProvider", () => ({
         name: "Grace",
         team_id: "team",
         role: "frontend",
-        can_edit: false,
+        can_edit: state.linkedToGrace,
         vacation_token: null,
       },
     ],
@@ -64,6 +65,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 10, 1));
   state.canEdit = true;
   state.isOwner = false;
+  state.linkedToGrace = false;
   setVacations.mockResolvedValue(undefined);
   createTeam.mockResolvedValue({ id: "new", name: "Platform" });
   refresh.mockResolvedValue(undefined);
@@ -166,5 +168,39 @@ describe("Team vacations shared editor", () => {
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
     expect(setVacations).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
+  });
+
+  it("starts a viewer linked to a member on their own, editable calendar", async () => {
+    state.canEdit = false;
+    state.linkedToGrace = true;
+    render(<Vacations />);
+    expect(screen.getByRole("combobox", { name: "Member" })).toHaveValue("grace");
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-09" }));
+    await userEvent.click(screen.getByRole("button", { name: "2026-11-10" }));
+    await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
+    await waitFor(() =>
+      expect(setVacations).toHaveBeenCalledExactlyOnceWith(
+        "grace",
+        "2026-11-09",
+        "2026-11-10",
+        false
+      )
+    );
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Member" }), "ada");
+    expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
+  });
+
+  it("sends viewers away from team configuration", () => {
+    state.canEdit = false;
+    render(
+      <MemoryRouter initialEntries={["/team-configuration"]}>
+        <Routes>
+          <Route path="/" element={<p>Estimation</p>} />
+          <Route path="/team-configuration" element={<TeamConfiguration />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(screen.getByText("Estimation")).toBeInTheDocument();
   });
 });
