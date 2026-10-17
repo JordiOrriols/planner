@@ -333,7 +333,10 @@ describe("Features belong to a project", () => {
   });
 
   it("keeps a team workspace that still holds projects after its team is deleted", async () => {
-    db = await createMigratedDatabase(accounts);
+    // create_team(name) gave a team its own workspace until it was dropped.
+    db = await createMigratedDatabase(accounts, {
+      until: "20261017070000_drop_team_era_functions.sql",
+    });
     await login(owner);
     const team = (await value<string>("select (public.create_team('Solo')).id as value"))!;
     const workspace = (await value<string>(

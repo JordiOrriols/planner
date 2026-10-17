@@ -9,6 +9,8 @@ const WORKSPACE_COLLABORATORS = "20261016220000_workspace_collaborators.sql";
 const LADDERS_SHARES = "20261016230000_ladders_shares_live_on_workspaces.sql";
 // Teams could still move between workspaces before this migration.
 const TEAMS_STAY = "20261017010000_teams_stay_in_their_workspace.sql";
+// The per-team create and share functions these tests still call are dropped here.
+const TEAM_ERA_DROPPED = "20261017070000_drop_team_era_functions.sql";
 const owner = "11111111-1111-4111-8111-111111111111";
 const stranger = "33333333-3333-4333-8333-333333333333";
 const accounts = [
@@ -87,7 +89,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("gives new teams and Planner workspaces a workspace that only their owner can read", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAM_ERA_DROPPED });
     await login(owner);
     const team = await createTeam("Platform");
     const planner = (await value<string>(
@@ -327,7 +329,7 @@ describe("Shared workspaces migration", () => {
   });
 
   it("shares a workspace per app, so another app's share grants no Planner access", async () => {
-    db = await createMigratedDatabase(accounts);
+    db = await createMigratedDatabase(accounts, { until: TEAM_ERA_DROPPED });
     await login(owner);
     const roadmap = (await value<string>(
       "select (public.planner_create_linked_workspace('Roadmap')).id as value"
