@@ -1,12 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createClient, redirectAuthCallback, takeAuthCallback } = vi.hoisted(() => ({
-  createClient: vi.fn(() => ({ auth: {} })),
+const { createSharedSupabaseClient, redirectAuthCallback, takeAuthCallback } = vi.hoisted(() => ({
+  createSharedSupabaseClient: vi.fn(() => ({ auth: {} })),
   redirectAuthCallback: vi.fn(() => false),
   takeAuthCallback: vi.fn(() => ({ kind: "code", code: "abc" })),
 }));
-vi.mock("@supabase/supabase-js", () => ({ createClient }));
-vi.mock("@jordiorriols/ui", () => ({ redirectAuthCallback, takeAuthCallback }));
+vi.mock("@jordiorriols/ui", () => ({
+  createSharedSupabaseClient,
+  redirectAuthCallback,
+  takeAuthCallback,
+}));
 
 describe("Planner auth callback initialization", () => {
   beforeEach(() => {
@@ -25,13 +28,12 @@ describe("Planner auth callback initialization", () => {
       takeAuthCallback.mock.invocationCallOrder[0]!
     );
     expect(takeAuthCallback.mock.invocationCallOrder[0]).toBeLessThan(
-      createClient.mock.invocationCallOrder[0]!
+      createSharedSupabaseClient.mock.invocationCallOrder[0]!
     );
     expect(authCallback).toEqual({ kind: "code", code: "abc" });
-    expect(createClient).toHaveBeenCalledWith(
+    expect(createSharedSupabaseClient).toHaveBeenCalledWith(
       "https://example.supabase.co",
-      "test-publishable-key",
-      { auth: { flowType: "pkce", persistSession: true, detectSessionInUrl: false } }
+      "test-publishable-key"
     );
     expect(supabase).not.toBeNull();
   });
@@ -40,7 +42,7 @@ describe("Planner auth callback initialization", () => {
     redirectAuthCallback.mockReturnValue(true);
     const { supabase } = await import("../supabaseClient");
     expect(supabase).toBeNull();
-    expect(createClient).not.toHaveBeenCalled();
+    expect(createSharedSupabaseClient).not.toHaveBeenCalled();
     expect(takeAuthCallback).not.toHaveBeenCalled();
   });
 });
