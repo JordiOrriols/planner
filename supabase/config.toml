@@ -244,16 +244,66 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Shared account emails for Planner, Ladders and Pulse.
+# Hosted projects: copy these subjects and HTML into Auth > Email Templates.
+[auth.email.template.confirmation]
+subject = "Confirm your email address | JordiOrriols.cat"
+content_path = "./supabase/templates/confirmation.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./supabase/templates/password_changed_notification.html"
+[auth.email.template.invite]
+subject = "You've been invited | JordiOrriols.cat"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Your sign-in link | JordiOrriols.cat"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new email address | JordiOrriols.cat"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.recovery]
+subject = "Reset your password | JordiOrriols.cat"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.reauthentication]
+subject = "Your verification code | JordiOrriols.cat"
+content_path = "./supabase/templates/reauthentication.html"
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your password was changed | JordiOrriols.cat"
+content_path = "./supabase/templates/password_changed.html"
+
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your email address was changed | JordiOrriols.cat"
+content_path = "./supabase/templates/email_changed.html"
+
+[auth.email.notification.phone_changed]
+enabled = true
+subject = "Your phone number was changed | JordiOrriols.cat"
+content_path = "./supabase/templates/phone_changed.html"
+
+[auth.email.notification.identity_linked]
+enabled = true
+subject = "A new sign-in method was linked | JordiOrriols.cat"
+content_path = "./supabase/templates/identity_linked.html"
+
+[auth.email.notification.identity_unlinked]
+enabled = true
+subject = "A sign-in method was removed | JordiOrriols.cat"
+content_path = "./supabase/templates/identity_unlinked.html"
+
+[auth.email.notification.mfa_factor_enrolled]
+enabled = true
+subject = "A new verification method was added | JordiOrriols.cat"
+content_path = "./supabase/templates/mfa_factor_enrolled.html"
+
+[auth.email.notification.mfa_factor_unenrolled]
+enabled = true
+subject = "A verification method was removed | JordiOrriols.cat"
+content_path = "./supabase/templates/mfa_factor_unenrolled.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
