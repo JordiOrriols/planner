@@ -10,7 +10,8 @@ import AppLayout from "@/components/organisms/app-layout";
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({ user: { email: "viewer@example.com" }, signOut: vi.fn() }),
 }));
-const { workspaceApi, selectWorkspace } = vi.hoisted(() => ({
+const { workspaceApi, selectWorkspace, access } = vi.hoisted(() => ({
+  access: { canEdit: true },
   workspaceApi: {
     listWorkspaces: vi.fn(),
     createWorkspace: vi.fn(),
@@ -29,8 +30,8 @@ vi.mock("@/data/WorkspaceProvider", () => ({
       { id: "other", name: "Shared", owner_id: "someone", access_level: "viewer" },
     ],
     workspaceApi,
-    isOwner: true,
-    canEdit: true,
+    isOwner: access.canEdit,
+    canEdit: access.canEdit,
     selectWorkspace,
     refresh: vi.fn(),
   }),
@@ -93,5 +94,19 @@ describe("Planner shared project navigation", () => {
     await userEvent.click(within(navigation).getByTestId("workspace-share"));
     expect(await screen.findByTestId("share-workspace-dialog")).toBeInTheDocument();
     expect(workspaceApi.listShares).toHaveBeenCalledWith("workspace");
+  });
+
+  it("hides team configuration from viewers", () => {
+    access.canEdit = false;
+    render(
+      <MemoryRouter>
+        <I18nextProvider i18n={i18n}>
+          <AppLayout />
+        </I18nextProvider>
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("link", { name: "Vacations" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Team configuration" })).not.toBeInTheDocument();
+    access.canEdit = true;
   });
 });

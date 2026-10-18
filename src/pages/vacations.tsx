@@ -11,7 +11,11 @@ export default function Vacations() {
   const { members, linkedTeams, vacations, refresh, workspace, canEdit } = useWorkspace();
   const { repository } = useData();
   const [selected, setSelected] = useState("");
-  const selectedMember = members.find((member) => member.id === selected) ?? members[0];
+  // Viewers linked to a member start on the one they can edit: their own.
+  const selectedMember =
+    members.find((member) => member.id === selected) ??
+    members.find((member) => member.can_edit) ??
+    members[0];
   const [month, setMonth] = useState(new Date());
   if (!repository) throw new Error(t("vacations.errors.signInRequired"));
   const assignable = members.filter((member) => member.role !== null);
