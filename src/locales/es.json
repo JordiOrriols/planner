@@ -1,4 +1,9 @@
 {
+  "uat": {
+    "label": "UAT",
+    "summary": "UAT · {{weeks}} semanas",
+    "span": "UAT: del {{startDate}} al {{endDate}}"
+  },
   "planner": {
     "name": "Planner",
     "brand": "Planner",

@@ -109,7 +109,7 @@ describe("Feature estimate breakdown", () => {
       const effort = within(card).getAllByText(t("featureCard.metrics.effort"))[0]!.parentElement!;
       // Design, development and QA run one after another; development is the busiest phase.
       expect(peak).toHaveTextContent(`3${t("common.units.people")}`);
-      expect(duration).toHaveTextContent(`5${t("common.units.weeks")}`);
+      expect(duration).toHaveTextContent(`7${t("common.units.weeks")}`);
       expect(effort).toHaveTextContent(`11${t("common.units.personWeeksShort")}`);
       expect(
         peak.compareDocumentPosition(

@@ -3,6 +3,11 @@
 Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 
+Every estimated feature includes two calendar weeks of UAT after its last delivery
+phase (including QA). This applies to existing and new features. UAT extends the
+forecast end date but does not reserve team capacity or add person-weeks of effort.
+Unestimated or incomplete features do not receive invented UAT dates.
+
 ## Start locally
 
 Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI). The shared UI library is installed from GitHub Packages as

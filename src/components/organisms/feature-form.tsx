@@ -173,6 +173,7 @@ export default function FeatureForm({
             </div>
           ))}
         </div>
+        <p className="text-sm text-muted-foreground">{t("uat.summary", { weeks: 2 })}</p>
         <p className="text-xs text-muted-foreground">
           {t("featureForm.summary", {
             people: peakDevs(form),

@@ -1,5 +1,13 @@
 import i18n from "@/i18n";
-import { addDays, addWeeks, format, isValid, parseISO, startOfWeek } from "date-fns";
+import {
+  addDays,
+  addWeeks,
+  differenceInCalendarDays,
+  format,
+  isValid,
+  parseISO,
+  startOfWeek,
+} from "date-fns";
 import { hasHolidayCalendar, isHoliday } from "./barcelonaHolidays";
 import {
   ROLES,
@@ -11,6 +19,7 @@ import {
 } from "@/types/planner";
 
 export { ROLES };
+export const UAT_WEEKS = 2;
 export const ROLE_LABELS: Record<Role, string> = {
   get backend() {
     return i18n.t("planningRoles.backend");
@@ -37,7 +46,8 @@ export const peakDevs = (p: FeatureInput) =>
 export const durationWeeks = (p: FeatureInput) =>
   roleWeeks(p, "design") +
   Math.max(roleWeeks(p, "backend"), roleWeeks(p, "frontend")) +
-  roleWeeks(p, "qa");
+  roleWeeks(p, "qa") +
+  (totalDevWeeks(p) > 0 ? UAT_WEEKS : 0);
 export const totalDevWeeks = (p: FeatureInput) =>
   ROLES.reduce((sum, role) => sum + roleDevs(p, role) * roleWeeks(p, role), 0);
 export const getMonday = (date: Date) => startOfWeek(date, { weekStartsOn: 1 });
@@ -95,6 +105,7 @@ export interface CapacityWeek {
   weekStart: Date;
   capacity: number;
   allocated: number;
+  calendarVerified?: boolean;
 }
 export interface ScheduledFeature {
   feature: Feature;
@@ -105,6 +116,7 @@ export interface ScheduledFeature {
   reason: string | null;
   complete: boolean;
   roles: ScheduledRole[];
+  uat?: { start: Date; end: Date };
 }
 export interface ScheduledRole {
   role: Role;
@@ -252,11 +264,31 @@ export function computeSchedule(
       item.reason = i18n.t("planning.unscheduled.horizonExceeded");
   }
   const finalWeek = weeks.at(-1);
+  const calendarLimited =
+    weeks.length < horizon ||
+    (!!finalWeek && !hasHolidayCalendar(format(addDays(finalWeek.weekStart, 6), "yyyy-MM-dd")));
+  for (const item of schedule) {
+    if (!item.complete || !item.end) continue;
+    const deliveryEnd = item.end;
+    item.end = addWeeks(deliveryEnd, UAT_WEEKS);
+    item.uat = { start: addDays(deliveryEnd, 1), end: item.end };
+    item.endIdx = Math.floor(differenceInCalendarDays(item.end, getMonday(startDate)) / 7);
+  }
+  const lastIndex = Math.max(weeks.length - 1, ...schedule.map((item) => item.endIdx ?? -1));
+  while (weeks.length <= lastIndex) {
+    const weekStart = addWeeks(getMonday(startDate), weeks.length);
+    weeks.push(
+      squadVelocity(members, vacations, weekStart, 1)[0] ?? {
+        weekStart,
+        capacity: 0,
+        allocated: 0,
+        calendarVerified: false,
+      }
+    );
+  }
   return {
     weeks,
     schedule,
-    calendarLimited:
-      weeks.length < horizon ||
-      (!!finalWeek && !hasHolidayCalendar(format(addDays(finalWeek.weekStart, 6), "yyyy-MM-dd"))),
+    calendarLimited,
   };
 }

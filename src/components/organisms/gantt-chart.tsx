@@ -100,6 +100,10 @@ export default function GanttChart({
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-sm bg-violet-400/60" />
+          {t("uat.summary", { weeks: 2 })}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-slate-400/40" />
           {t("gantt.legend.paused")}
         </span>
@@ -156,12 +160,14 @@ export default function GanttChart({
 
           <div className="mt-2">
             {schedule.map((s, idx) => {
-              const lastWork = s.roles
-                .flatMap((role) => role.allocations)
-                .reduce<Date | null>(
-                  (last, allocation) => (!last || allocation.end > last ? allocation.end : last),
-                  null
-                );
+              const lastWork =
+                s.end ??
+                s.roles
+                  .flatMap((role) => role.allocations)
+                  .reduce<Date | null>(
+                    (last, allocation) => (!last || allocation.end > last ? allocation.end : last),
+                    null
+                  );
               const spanDays =
                 s.start && lastWork ? differenceInCalendarDays(lastWork, s.start) + 1 : 0;
               const spanWeeks =
@@ -331,6 +337,24 @@ export default function GanttChart({
                                 width: `${(spanDays / spanWeeks) * 100}%`,
                               }}
                             >
+                              {!s.feature.delivered && s.uat && (
+                                <div
+                                  role="img"
+                                  aria-label={t("uat.span", {
+                                    startDate: fmtDate(s.uat.start),
+                                    endDate: fmtDate(s.uat.end),
+                                  })}
+                                  title={t("uat.span", {
+                                    startDate: fmtDate(s.uat.start),
+                                    endDate: fmtDate(s.uat.end),
+                                  })}
+                                  className="absolute inset-y-0 bg-violet-400/60 shadow-inner"
+                                  style={{
+                                    left: `${(differenceInCalendarDays(s.uat.start, s.start) / spanDays) * 100}%`,
+                                    width: `${((differenceInCalendarDays(s.uat.end, s.uat.start) + 1) / spanDays) * 100}%`,
+                                  }}
+                                />
+                              )}
                               {!s.feature.delivered &&
                                 s.roles.flatMap((roleSchedule) =>
                                   workRuns(roleSchedule).map((run) => {
@@ -428,7 +452,7 @@ export default function GanttChart({
               </div>
               {weeks.map((week, index) => (
                 <div key={index} className="text-center py-1 border-l">
-                  {week.capacity.toFixed(1)}
+                  {week.calendarVerified === false ? "—" : week.capacity.toFixed(1)}
                 </div>
               ))}
               <div className="sticky left-0 bg-card z-10 px-2 py-1 font-medium">
