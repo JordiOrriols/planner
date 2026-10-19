@@ -1,4 +1,22 @@
 {
+  "publicRoadmap": {
+    "title": "Roadmap",
+    "share": "Share roadmap",
+    "sharingDescription": "Anyone with this link can see feature names, projects and overall delivery dates. Staffing, vacations and technical estimates stay private. The roadmap updates automatically.",
+    "link": "Public roadmap link",
+    "create": "Create share link",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "open": "Open roadmap",
+    "revoke": "Revoke link",
+    "revokeDescription": "This link will stop working for everyone. You can create a new link later.",
+    "invalid": "Invalid roadmap link.",
+    "unavailable": "This roadmap is unavailable. The link may have been revoked. Try again or ask the sender for a new link.",
+    "empty": "No features on this roadmap yet.",
+    "unscheduled": "Dates not yet available",
+    "span": "{{name}}: {{start}} to {{end}}",
+    "forecastNotice": "Dates are forecasts, not commitments. The roadmap refreshes automatically. Green indicates delivered features."
+  },
   "uat": {
     "label": "UAT",
     "summary": "UAT · {{weeks}} weeks",

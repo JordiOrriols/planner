@@ -1,4 +1,22 @@
 {
+  "publicRoadmap": {
+    "title": "Hoja de ruta",
+    "share": "Compartir hoja de ruta",
+    "sharingDescription": "Cualquiera con este enlace puede ver los nombres de las funcionalidades, proyectos y fechas de entrega. El personal, las vacaciones y las estimaciones técnicas son privados. Se actualiza automáticamente.",
+    "link": "Enlace público de la hoja de ruta",
+    "create": "Crear enlace",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "open": "Abrir hoja de ruta",
+    "revoke": "Revocar enlace",
+    "revokeDescription": "Este enlace dejará de funcionar para todos. Puedes crear uno nuevo más adelante.",
+    "invalid": "Enlace no válido.",
+    "unavailable": "La hoja de ruta no está disponible. Es posible que el enlace se haya revocado. Inténtalo de nuevo o pide un enlace nuevo.",
+    "empty": "Todavía no hay funcionalidades.",
+    "unscheduled": "Fechas aún no disponibles",
+    "span": "{{name}}: del {{start}} al {{end}}",
+    "forecastNotice": "Las fechas son previsiones, no compromisos. Se actualiza automáticamente. El verde indica funcionalidades entregadas."
+  },
   "uat": {
     "label": "UAT",
     "summary": "UAT · {{weeks}} semanas",

@@ -1,4 +1,22 @@
 {
+  "publicRoadmap": {
+    "title": "Feuille de route",
+    "share": "Partager la feuille de route",
+    "sharingDescription": "Toute personne disposant du lien peut voir les fonctionnalités, projets et dates de livraison. Les effectifs, congés et estimations techniques restent privés. La mise à jour est automatique.",
+    "link": "Lien public de la feuille de route",
+    "create": "Créer un lien",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "open": "Ouvrir la feuille de route",
+    "revoke": "Révoquer le lien",
+    "revokeDescription": "Ce lien cessera de fonctionner pour tous. Vous pourrez en créer un autre.",
+    "invalid": "Lien non valide.",
+    "unavailable": "Cette feuille de route est indisponible. Le lien a peut-être été révoqué. Réessayez ou demandez un nouveau lien.",
+    "empty": "Aucune fonctionnalité pour le moment.",
+    "unscheduled": "Dates non encore disponibles",
+    "span": "{{name}} : du {{start}} au {{end}}",
+    "forecastNotice": "Les dates sont des prévisions, pas des engagements. La mise à jour est automatique. Le vert indique les fonctionnalités livrées."
+  },
   "uat": {
     "label": "UAT",
     "summary": "UAT · {{weeks}} semaines",

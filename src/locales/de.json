@@ -1,4 +1,22 @@
 {
+  "publicRoadmap": {
+    "title": "Roadmap",
+    "share": "Roadmap teilen",
+    "sharingDescription": "Jeder mit diesem Link sieht Funktionsnamen, Projekte und Liefertermine. Personal, Urlaub und technische Schätzungen bleiben privat. Die Roadmap wird automatisch aktualisiert.",
+    "link": "Öffentlicher Roadmap-Link",
+    "create": "Link erstellen",
+    "copy": "Link kopieren",
+    "copied": "Link kopiert",
+    "open": "Roadmap öffnen",
+    "revoke": "Link widerrufen",
+    "revokeDescription": "Dieser Link funktioniert danach für niemanden mehr. Du kannst später einen neuen erstellen.",
+    "invalid": "Ungültiger Roadmap-Link.",
+    "unavailable": "Diese Roadmap ist nicht verfügbar. Der Link wurde möglicherweise widerrufen. Versuche es erneut oder bitte um einen neuen Link.",
+    "empty": "Noch keine Funktionen auf dieser Roadmap.",
+    "unscheduled": "Termine noch nicht verfügbar",
+    "span": "{{name}}: {{start}} bis {{end}}",
+    "forecastNotice": "Termine sind Prognosen, keine Zusagen. Die Roadmap wird automatisch aktualisiert. Grün kennzeichnet gelieferte Funktionen."
+  },
   "uat": {
     "label": "UAT",
     "summary": "UAT · {{weeks}} Wochen",
