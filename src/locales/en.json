@@ -14,8 +14,8 @@
     "unavailable": "This roadmap is unavailable. The link may have been revoked. Try again or ask the sender for a new link.",
     "empty": "No features on this roadmap yet.",
     "unscheduled": "Dates not yet available",
-    "span": "{{name}}: {{start}} to {{end}}",
-    "forecastNotice": "Dates are forecasts, not commitments. The roadmap refreshes automatically. Green indicates delivered features."
+    "span": "{{name}}: {{start}} to {{end}} · {{status}}",
+    "forecastNotice": "Dates are forecasts, not commitments. The roadmap refreshes automatically."
   },
   "uat": {
     "label": "UAT",
@@ -479,7 +479,8 @@
     "loading": {
       "page": "Loading page",
       "planner": "Loading Planner"
-    }
+    },
+    "footer": "Made with love by Jordi Orriols"
   },
   "common": {
     "actions": {
@@ -630,17 +631,14 @@
   },
   "gantt": {
     "actions": {
-      "markDelivered": "Mark delivered",
-      "remove": "Remove from roadmap",
-      "undoDelivery": "Undo delivery"
+      "remove": "Remove from roadmap"
     },
     "bar": {
-      "deliveredSuffix": " · Delivered",
       "incomplete": "not completed",
       "partialSuffix": " (partial forecast)",
       "peopleRequested_one": "{{count}} person requested",
       "peopleRequested_other": "{{count}} people requested",
-      "projectSpan": "{{featureName}}: {{startDate}} to {{endDate}}{{deliveryStatus}}",
+      "projectSpan": "{{featureName}}: {{startDate}} to {{endDate}} · {{status}}",
       "roleSpan": "{{featureName}} · {{role}}: {{startDate}} to {{endDate}} · {{requestedPeople}} · {{effort}} person-weeks{{forecastStatus}}"
     },
     "capacity": {
@@ -650,10 +648,9 @@
     "columns": {
       "featurePriority": "Feature · priority"
     },
-    "interactionHelp": "Drag feature names to reorder, or use Arrow Up / Arrow Down. Hover bars for details. Right-click a row (or press Shift+F10) for delivery and removal actions.",
+    "interactionHelp": "Drag feature rows to reorder, or focus the handle and use Arrow Up / Arrow Down. Click a status dot to change it. Hover bars for details. Right-click a row (or press Shift+F10) for status and removal actions.",
     "legend": {
       "bottomSuffix": " (bottom)",
-      "delivered": "Delivered",
       "fullHeightSuffix": " (full height)",
       "paused": "Gray · waiting / paused",
       "topSuffix": " (top)"
@@ -870,5 +867,19 @@
       "hasFeatures": "Move or delete the features of this project first."
     },
     "inUse": "Delete or move this project's features first."
+  },
+  "featureStatus": {
+    "label": "Status",
+    "pending": "Pending",
+    "in_progress": "In progress",
+    "done": "Done",
+    "paused": "Paused",
+    "current": "Status: {{status}}",
+    "change": "Change status of {{featureName}}"
+  },
+  "roadmapDisplay": {
+    "label": "Roadmap display",
+    "fullWidth": "Full width",
+    "wrapTitles": "Wrap titles"
   }
 }

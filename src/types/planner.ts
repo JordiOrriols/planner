@@ -1,10 +1,13 @@
 export const ROLES = ["backend", "frontend", "design", "qa"] as const;
 export type Role = (typeof ROLES)[number];
+export const FEATURE_STATUSES = ["pending", "in_progress", "done", "paused"] as const;
+export type FeatureStatus = (typeof FEATURE_STATUSES)[number];
 export type Estimates = Record<`${Role}_devs` | `${Role}_weeks`, number>;
 export type FeatureInput = Estimates & {
   name: string;
   description: string;
   project_id: string | null;
+  status: FeatureStatus;
 };
 export interface Project {
   id: string;
@@ -15,7 +18,6 @@ export type Feature = Omit<FeatureInput, "project_id"> & {
   id: string;
   project_id: string;
   in_backlog: boolean;
-  delivered: boolean;
   priority: number;
 };
 export interface Workspace {
@@ -52,6 +54,7 @@ export const EMPTY_FEATURE: FeatureInput = {
   name: "",
   description: "",
   project_id: null,
+  status: "pending",
   backend_devs: 0,
   backend_weeks: 0,
   frontend_devs: 0,

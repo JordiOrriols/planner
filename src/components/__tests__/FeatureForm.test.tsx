@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FeatureForm from "@/components/organisms/feature-form";
 import { EMPTY_FEATURE } from "@/types/planner";
@@ -57,12 +57,11 @@ describe("Feature form footer actions", () => {
     const select = screen.getByLabelText("Project");
     expect(select).toBeRequired();
     expect(select).toHaveValue("growth");
-    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
-      "Choose a project",
-      "Payments",
-      "Growth",
-      "+ New project",
-    ]);
+    expect(
+      within(select)
+        .getAllByRole("option")
+        .map((option) => option.textContent)
+    ).toEqual(["Choose a project", "Payments", "Growth", "+ New project"]);
     expect(screen.getByRole("option", { name: "Choose a project" })).toBeDisabled();
     await userEvent.selectOptions(select, "Payments");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));

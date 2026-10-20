@@ -6,6 +6,7 @@ import type { Feature } from "@/types/planner";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
+import { StatusBadge } from "@/components/organisms/roadmap-timeline";
 
 export default function FeatureEstimateCard({
   feature,
@@ -52,30 +53,33 @@ export default function FeatureEstimateCard({
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{feature.description}</p>
           )}
         </div>
-        {!readOnly && (
-          <div className="flex items-center gap-1 shrink-0">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={onEdit}
-              aria-label={t("featureCard.actions.edit", { featureName: feature.name })}
-              disabled={disabled}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={onDelete}
-              aria-label={t("featureCard.actions.delete", { featureName: feature.name })}
-              disabled={disabled}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          <StatusBadge status={feature.status} />
+          {!readOnly && (
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={onEdit}
+                aria-label={t("featureCard.actions.edit", { featureName: feature.name })}
+                disabled={disabled}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={onDelete}
+                aria-label={t("featureCard.actions.delete", { featureName: feature.name })}
+                disabled={disabled}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {activeRoles.length === 0 && (

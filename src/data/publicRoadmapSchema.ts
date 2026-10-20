@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FEATURE_STATUSES } from "@/types/planner";
 
 export const publicRoadmapSchema = z.object({
   name: z.string(),
@@ -7,7 +8,7 @@ export const publicRoadmapSchema = z.object({
     z.object({
       name: z.string(),
       project: z.string(),
-      delivered: z.boolean(),
+      status: z.enum(FEATURE_STATUSES),
       start: z.string().date().nullable(),
       end: z.string().date().nullable(),
       complete: z.boolean(),

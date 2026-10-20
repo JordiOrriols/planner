@@ -1,7 +1,14 @@
 import i18n from "@/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { ROLES, type FeatureInput, type Role, type SprintResult } from "@/types/planner";
+import {
+  FEATURE_STATUSES,
+  ROLES,
+  type FeatureInput,
+  type FeatureStatus,
+  type Role,
+  type SprintResult,
+} from "@/types/planner";
 import { validateSprintSettings } from "@/lib/sprints";
 import { parseDate, validateFeature } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
@@ -34,7 +41,7 @@ const featureSchema = z.object({
   description: z.string(),
   project_id: z.string().uuid(),
   in_backlog: z.boolean(),
-  delivered: z.boolean(),
+  status: z.enum(FEATURE_STATUSES),
   priority: z.number(),
   backend_devs: z.number(),
   backend_weeks: z.number(),
@@ -248,10 +255,10 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
       if (!data) throw new Error(i18n.t("planning.errors.featureNotDeleted"));
     },
-    async setDelivered(id: string, delivered: boolean) {
+    async setStatus(id: string, status: FeatureStatus) {
       const { data, error } = await client
         .from("features")
-        .update({ delivered })
+        .update({ status })
         .eq("id", id)
         .select("*")
         .single();

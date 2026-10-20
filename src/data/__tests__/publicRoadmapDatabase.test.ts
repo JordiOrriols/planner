@@ -93,7 +93,7 @@ describe("live public roadmap", () => {
         {
           name: "Checkout",
           project: "Payments",
-          delivered: false,
+          status: "pending",
           start: "2026-02-02",
           end: "2026-02-20",
           complete: true,

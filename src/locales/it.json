@@ -14,8 +14,8 @@
     "unavailable": "La roadmap non è disponibile. Il link potrebbe essere stato revocato. Riprova o chiedi un nuovo link.",
     "empty": "Nessuna funzionalità nella roadmap.",
     "unscheduled": "Date non ancora disponibili",
-    "span": "{{name}}: dal {{start}} al {{end}}",
-    "forecastNotice": "Le date sono previsioni, non impegni. La roadmap si aggiorna automaticamente. Il verde indica le funzionalità consegnate."
+    "span": "{{name}}: dal {{start}} al {{end}} · {{status}}",
+    "forecastNotice": "Le date sono previsioni, non impegni. La roadmap si aggiorna automaticamente."
   },
   "uat": {
     "label": "UAT",
@@ -479,7 +479,8 @@
     "loading": {
       "page": "Caricamento della pagina",
       "planner": "Caricamento di Planner"
-    }
+    },
+    "footer": "Fatto con amore da Jordi Orriols"
   },
   "common": {
     "actions": {
@@ -630,17 +631,14 @@
   },
   "gantt": {
     "actions": {
-      "markDelivered": "Segna come consegnato",
-      "remove": "Rimuovi dalla roadmap",
-      "undoDelivery": "Annulla consegna"
+      "remove": "Rimuovi dalla roadmap"
     },
     "bar": {
-      "deliveredSuffix": " · Consegnato",
       "incomplete": "non completato",
       "partialSuffix": " (previsione parziale)",
       "peopleRequested_one": "{{count}} persona richiesta",
       "peopleRequested_other": "{{count}} persone richieste",
-      "projectSpan": "{{featureName}}: dal {{startDate}} al {{endDate}}{{deliveryStatus}}",
+      "projectSpan": "{{featureName}}: dal {{startDate}} al {{endDate}} · {{status}}",
       "roleSpan": "{{featureName}} · {{role}}: dal {{startDate}} al {{endDate}} · {{requestedPeople}} · {{effort}} settimane-persona{{forecastStatus}}"
     },
     "capacity": {
@@ -650,10 +648,9 @@
     "columns": {
       "featurePriority": "Funzionalità · priorità"
     },
-    "interactionHelp": "Trascina i nomi delle funzionalità per riordinarli o usa Freccia su / Freccia giù. Passa il cursore sulle barre per i dettagli. Fai clic destro su una riga (o premi Maiusc+F10) per le azioni di consegna e rimozione.",
+    "interactionHelp": "Trascina le righe per riordinarle, oppure metti a fuoco la maniglia e usa Freccia su / Freccia giù. Fai clic sul punto di stato per cambiarlo. Passa il cursore sulle barre per i dettagli. Fai clic destro su una riga (o premi Maiusc+F10) per le azioni di stato e rimozione.",
     "legend": {
       "bottomSuffix": " (in basso)",
-      "delivered": "Consegnato",
       "fullHeightSuffix": " (altezza intera)",
       "paused": "Grigio · in attesa / in pausa",
       "topSuffix": " (in alto)"
@@ -870,5 +867,19 @@
       "hasFeatures": "Sposta o elimina prima le funzionalità di questo progetto."
     },
     "inUse": "Elimina o sposta prima le funzionalità di questo progetto."
+  },
+  "featureStatus": {
+    "label": "Stato",
+    "pending": "Da fare",
+    "in_progress": "In corso",
+    "done": "Completata",
+    "paused": "In pausa",
+    "current": "Stato: {{status}}",
+    "change": "Cambia lo stato di {{featureName}}"
+  },
+  "roadmapDisplay": {
+    "label": "Visualizzazione della roadmap",
+    "fullWidth": "Larghezza piena",
+    "wrapTitles": "Manda a capo i titoli"
   }
 }

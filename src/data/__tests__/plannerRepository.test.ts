@@ -114,7 +114,7 @@ describe("Planner repository", () => {
       "Only the owner can edit"
     );
   });
-  it("persists delivery separately from estimates and scopes the write to the feature", async () => {
+  it("persists status separately from estimates and scopes the write to the feature", async () => {
     const { fetch, response, repository } = setup();
     const feature = {
       ...EMPTY_FEATURE,
@@ -123,24 +123,24 @@ describe("Planner repository", () => {
       name: "Feature",
       in_backlog: true,
       priority: 0,
-      delivered: true,
+      status: "done",
     };
     const row = feature;
     fetch.mockResolvedValue(response(row));
-    expect(await repository.setDelivered(feature.id, true)).toEqual(feature);
+    expect(await repository.setStatus(feature.id, "done")).toEqual(feature);
     expect(String(fetch.mock.calls[0]?.[0])).toContain("/rest/v1/features?");
-    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ delivered: true });
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ status: "done" });
     const url = String(fetch.mock.calls[0]?.[0]);
     expect(url).toContain(`id=eq.${feature.id}`);
     expect(url).not.toContain("workspace_id");
-    fetch.mockResolvedValue(response({ ...row, delivered: false }));
-    expect((await repository.setDelivered(feature.id, false)).delivered).toBe(false);
+    fetch.mockResolvedValue(response({ ...row, status: "pending" }));
+    expect((await repository.setStatus(feature.id, "pending")).status).toBe("pending");
     fetch.mockResolvedValue(response({ message: "Only the owner can edit", code: "42501" }, 403));
-    await expect(repository.setDelivered(feature.id, true)).rejects.toThrow(
+    await expect(repository.setStatus(feature.id, "paused")).rejects.toThrow(
       "Only the owner can edit"
     );
     fetch.mockResolvedValue(response(null));
-    await expect(repository.setDelivered(feature.id, true)).rejects.toThrow();
+    await expect(repository.setStatus(feature.id, "paused")).rejects.toThrow();
   });
   it("does not silently truncate more than one page of features", async () => {
     const { fetch, response, repository } = setup();
@@ -150,7 +150,7 @@ describe("Planner repository", () => {
       name: "Checkout",
       project_id: "33333333-3333-4333-8333-333333333333",
       in_backlog: false,
-      delivered: false,
+      status: "pending",
       priority: 0,
     };
     fetch.mockImplementation(async (url) => {
@@ -306,7 +306,7 @@ describe("Planner repository", () => {
         project_id: project,
         id: workspace.owner_id,
         in_backlog: false,
-        delivered: false,
+        status: "pending",
         priority: 0,
       })
     );
@@ -326,7 +326,7 @@ describe("Planner repository", () => {
       name: "Checkout",
       project_id: project,
       in_backlog: false,
-      delivered: false,
+      status: "pending",
       priority: 0,
       projects: { workspace_id: workspace.id },
     };

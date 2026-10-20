@@ -3,7 +3,13 @@ import React, { useId, useState } from "react";
 import { Modal, Button, Input, Label } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
-import { EMPTY_FEATURE, type Project, type FeatureInput } from "@/types/planner";
+import {
+  EMPTY_FEATURE,
+  FEATURE_STATUSES,
+  type FeatureInput,
+  type FeatureStatus,
+  type Project,
+} from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 
@@ -115,6 +121,24 @@ export default function FeatureForm({
             maxLength={80}
           />
         )}
+        <Label htmlFor="feature-status">{t("featureStatus.label")}</Label>
+        <select
+          id="feature-status"
+          className="field"
+          value={form.status}
+          onChange={(event) =>
+            setForm((previous) => ({
+              ...previous,
+              status: event.target.value as FeatureStatus,
+            }))
+          }
+        >
+          {FEATURE_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {t(`featureStatus.${status}`)}
+            </option>
+          ))}
+        </select>
         <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
         <textarea
           id="project-description"

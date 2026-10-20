@@ -2,11 +2,29 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AppPage, AppMain, AppSkeleton, Button } from "@jordiorriols/ui";
-import { differenceInCalendarDays, addWeeks, format } from "date-fns";
+import {
+  AppFooter,
+  AppMain,
+  AppPage,
+  AppSkeleton,
+  Button,
+  LanguageSelector,
+} from "@jordiorriols/ui";
+import { differenceInCalendarDays, addWeeks } from "date-fns";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
-import { fmtDate, fmtMonth, getMonday, parseDate } from "@/lib/planning";
+import { fmtDate, getMonday, parseDate } from "@/lib/planning";
+import { cn } from "@/lib/utils";
+import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
+import {
+  FeatureTitle,
+  RoadmapDisplayToolbar,
+  StatusDot,
+  StatusLegend,
+  TimelineGuides,
+  TimelineHeader,
+  useLabelWidth,
+} from "@/components/organisms/roadmap-timeline";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
 
 const repository = supabase ? createPlannerRepository(supabase) : null;
@@ -14,65 +32,84 @@ const BRAND = "JordiOrriols.cat";
 
 export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   const { t } = useTranslation();
+  const labelWidth = useLabelWidth();
   const start = getMonday(parseDate(roadmap.startDate));
   const last = roadmap.features.reduce((latest, item) => {
     const end = item.end ?? item.start;
     return end && parseDate(end) > latest ? parseDate(end) : latest;
   }, start);
   const count = Math.max(4, Math.ceil((differenceInCalendarDays(last, start) + 1) / 7));
+  const weekStarts = Array.from({ length: count }, (_, index) => addWeeks(start, index));
   return (
     <section className="panel space-y-4" aria-label={t("publicRoadmap.title")}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <StatusLegend />
+        <span className="ml-auto">
+          <RoadmapDisplayToolbar />
+        </span>
+      </div>
       {!roadmap.features.length ? (
         <p>{t("publicRoadmap.empty")}</p>
       ) : (
         <div className="overflow-x-auto">
-          <div style={{ minWidth: Math.max(640, 200 + count * 32) }}>
-            <div
-              className="grid border-b text-xs text-muted-foreground"
-              style={{ gridTemplateColumns: `200px repeat(${count}, 1fr)` }}
-            >
-              <div className="sticky left-0 z-10 bg-card p-2">{t("common.feature")}</div>
-              {Array.from({ length: count }, (_, index) => (
-                <div key={index} className="border-l p-1 text-center">
-                  {fmtMonth(addWeeks(start, index), true)}
-                  <br />
-                  {format(addWeeks(start, index), "d")}
-                </div>
-              ))}
-            </div>
+          <div className="relative" style={{ minWidth: Math.max(640, labelWidth + count * 32) }}>
+            <TimelineGuides weekStarts={weekStarts} labelWidth={labelWidth} />
+            <TimelineHeader
+              weekStarts={weekStarts}
+              labelWidth={labelWidth}
+              title={t("common.feature")}
+              weekLabel={t("common.weekOf")}
+            />
             {roadmap.features.map((item, index) => {
               const from = item.start ? parseDate(item.start) : null;
               const to = item.end ? parseDate(item.end) : null;
+              const paused = item.status === "paused";
+              const label =
+                from && to
+                  ? t("publicRoadmap.span", {
+                      name: item.name,
+                      start: fmtDate(from),
+                      end: fmtDate(to),
+                      status: t(`featureStatus.${item.status}`),
+                    })
+                  : "";
               return (
-                <div key={index} className="grid grid-cols-[200px_minmax(0,1fr)] border-b">
-                  <div className="sticky left-0 z-10 bg-card px-2 py-3">
-                    <div className="truncate text-sm font-medium" title={item.name}>
-                      {item.name}
+                <div
+                  key={index}
+                  className="grid border-b border-border/60"
+                  style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
+                >
+                  <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
+                    <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    <StatusDot status={item.status} featureName={item.name} />
+                    <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
+                      <FeatureTitle name={item.name} className="block text-sm font-medium" />
+                      <FeatureTitle
+                        name={item.project}
+                        className="block text-xs text-muted-foreground"
+                      />
                     </div>
-                    <div className="truncate text-xs text-muted-foreground">{item.project}</div>
                   </div>
-                  <div className="relative flex min-h-16 items-center bg-muted/20">
+                  <div className="relative flex min-h-12 items-center">
                     {from && to ? (
                       <div
                         role="img"
-                        aria-label={t("publicRoadmap.span", {
-                          name: item.name,
-                          start: fmtDate(from),
-                          end: fmtDate(to),
-                        })}
-                        title={t("publicRoadmap.span", {
-                          name: item.name,
-                          start: fmtDate(from),
-                          end: fmtDate(to),
-                        })}
-                        className={`absolute h-7 rounded ${item.delivered ? "bg-emerald-600" : "bg-indigo-500/70"}`}
+                        aria-label={label}
+                        title={label}
+                        className={cn(
+                          "absolute h-6 rounded",
+                          item.status === "done" ? "bg-emerald-600" : "bg-indigo-500/70",
+                          paused && "opacity-50"
+                        )}
                         style={{
                           left: `${(differenceInCalendarDays(from, start) / (count * 7)) * 100}%`,
                           width: `${((differenceInCalendarDays(to, from) + 1) / (count * 7)) * 100}%`,
                         }}
                       />
                     ) : (
-                      <p className="px-3 text-xs text-muted-foreground">
+                      <p className="relative px-3 text-xs text-muted-foreground">
                         {t("publicRoadmap.unscheduled")}
                       </p>
                     )}
@@ -90,7 +127,8 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
 
 export default function RoadmapLink() {
   const { token = "" } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { fullWidth } = useRoadmapDisplay();
   const query = useQuery({
     queryKey: ["public-roadmap", token],
     retry: false,
@@ -101,10 +139,18 @@ export default function RoadmapLink() {
     },
   });
   return (
-    <AppPage>
-      <AppMain className="space-y-5">
+    <AppPage className="flex flex-col">
+      <AppMain className={cn("w-full flex-1 space-y-5", fullWidth && "max-w-none")}>
         <header>
-          <p className="text-sm font-semibold">{BRAND}</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold">{BRAND}</p>
+            <LanguageSelector
+              value={i18n.language}
+              label={t("header.language")}
+              className="inline-flex"
+              onValueChange={(language) => void i18n.changeLanguage(language)}
+            />
+          </div>
           <h1 className="mt-3 text-3xl font-semibold">
             {query.data?.name ?? t("publicRoadmap.title")}
           </h1>
@@ -119,6 +165,7 @@ export default function RoadmapLink() {
           query.data && <PublicRoadmapView roadmap={query.data} />
         )}
       </AppMain>
+      <AppFooter text={t("app.footer")} />
     </AppPage>
   );
 }

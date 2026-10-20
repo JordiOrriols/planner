@@ -14,8 +14,8 @@
     "unavailable": "Diese Roadmap ist nicht verfügbar. Der Link wurde möglicherweise widerrufen. Versuche es erneut oder bitte um einen neuen Link.",
     "empty": "Noch keine Funktionen auf dieser Roadmap.",
     "unscheduled": "Termine noch nicht verfügbar",
-    "span": "{{name}}: {{start}} bis {{end}}",
-    "forecastNotice": "Termine sind Prognosen, keine Zusagen. Die Roadmap wird automatisch aktualisiert. Grün kennzeichnet gelieferte Funktionen."
+    "span": "{{name}}: {{start}} bis {{end}} · {{status}}",
+    "forecastNotice": "Termine sind Prognosen, keine Zusagen. Die Roadmap wird automatisch aktualisiert."
   },
   "uat": {
     "label": "UAT",
@@ -479,7 +479,8 @@
     "loading": {
       "page": "Seite wird geladen",
       "planner": "Planner wird geladen"
-    }
+    },
+    "footer": "Mit Liebe gemacht von Jordi Orriols"
   },
   "common": {
     "actions": {
@@ -630,17 +631,14 @@
   },
   "gantt": {
     "actions": {
-      "markDelivered": "Als ausgeliefert markieren",
-      "remove": "Aus der Roadmap entfernen",
-      "undoDelivery": "Auslieferung rückgängig machen"
+      "remove": "Aus der Roadmap entfernen"
     },
     "bar": {
-      "deliveredSuffix": " · Ausgeliefert",
       "incomplete": "nicht abgeschlossen",
       "partialSuffix": " (Teilprognose)",
       "peopleRequested_one": "{{count}} Person angefragt",
       "peopleRequested_other": "{{count}} Personen angefragt",
-      "projectSpan": "{{featureName}}: {{startDate}} bis {{endDate}}{{deliveryStatus}}",
+      "projectSpan": "{{featureName}}: {{startDate}} bis {{endDate}} · {{status}}",
       "roleSpan": "{{featureName}} · {{role}}: {{startDate}} bis {{endDate}} · {{requestedPeople}} · {{effort}} Personenwochen{{forecastStatus}}"
     },
     "capacity": {
@@ -650,10 +648,9 @@
     "columns": {
       "featurePriority": "Funktion · Priorität"
     },
-    "interactionHelp": "Ziehe Funktionsnamen zum Sortieren oder nutze Pfeil nach oben / Pfeil nach unten. Fahre mit der Maus über die Balken, um Details anzuzeigen. Rechtsklicke auf eine Zeile (oder drücke Umschalt+F10) für Aktionen zum Ausliefern und Entfernen.",
+    "interactionHelp": "Ziehe Zeilen zum Sortieren oder fokussiere den Griff und nutze Pfeil nach oben / Pfeil nach unten. Klicke auf den Statuspunkt, um ihn zu ändern. Fahre mit der Maus über die Balken, um Details anzuzeigen. Rechtsklicke auf eine Zeile (oder drücke Umschalt+F10) für Status- und Entfernen-Aktionen.",
     "legend": {
       "bottomSuffix": " (unten)",
-      "delivered": "Ausgeliefert",
       "fullHeightSuffix": " (volle Höhe)",
       "paused": "Grau · wartend / pausiert",
       "topSuffix": " (oben)"
@@ -870,5 +867,19 @@
       "hasFeatures": "Verschiebe oder lösche zuerst die Features dieses Projekts."
     },
     "inUse": "Lösche oder verschiebe zuerst die Features dieses Projekts."
+  },
+  "featureStatus": {
+    "label": "Status",
+    "pending": "Offen",
+    "in_progress": "In Arbeit",
+    "done": "Erledigt",
+    "paused": "Pausiert",
+    "current": "Status: {{status}}",
+    "change": "Status von {{featureName}} ändern"
+  },
+  "roadmapDisplay": {
+    "label": "Roadmap-Ansicht",
+    "fullWidth": "Volle Breite",
+    "wrapTitles": "Titel umbrechen"
   }
 }

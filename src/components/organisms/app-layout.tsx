@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useMatch } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
   AppHeader,
@@ -16,6 +16,7 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { AppIcon } from "@/components/atoms/AppIcon";
+import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
 
 const NAV = [
   { to: "/", key: "planner.tabs.estimation", icon: Calculator, end: true },
@@ -35,6 +36,8 @@ export default function AppLayout() {
   const { signOut, user } = useData();
   const { workspace, workspaces, workspaceApi, selectWorkspace, refresh, canEdit } = useWorkspace();
   const action = useAsyncAction();
+  const roadmapPage = useMatch("/backlog");
+  const { fullWidth } = useRoadmapDisplay();
   return (
     <AppPage>
       <AppHeader
@@ -94,7 +97,7 @@ export default function AppLayout() {
           </AppNavigation>
         }
       />
-      <AppMain>
+      <AppMain className={roadmapPage && fullWidth ? "max-w-none" : undefined}>
         {action.error && (
           <p role="alert" className="px-6 text-destructive">
             {action.error}
