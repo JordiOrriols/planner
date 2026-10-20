@@ -19,7 +19,7 @@ import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import {
   FeatureTitle,
   RoadmapDisplayToolbar,
-  StatusDot,
+  STATUS_COLORS,
   StatusLegend,
   TimelineGuides,
   TimelineHeader,
@@ -83,7 +83,6 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                     <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
                       {index + 1}
                     </span>
-                    <StatusDot status={item.status} featureName={item.name} />
                     <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
                       <FeatureTitle name={item.name} className="block text-sm font-medium" />
                       <FeatureTitle
@@ -100,7 +99,7 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                         title={label}
                         className={cn(
                           "absolute h-6 rounded",
-                          item.status === "done" ? "bg-emerald-600" : "bg-indigo-500/70",
+                          STATUS_COLORS[item.status],
                           paused && "opacity-50"
                         )}
                         style={{
