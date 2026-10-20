@@ -59,7 +59,7 @@ describe("nontechnical roadmap", () => {
     expect(screen.getByText("Dates not yet available")).toBeVisible();
   });
 
-  it("shows each status as a dot, colours done features and dims paused ones", () => {
+  it("colours each bar by status, without status dots, and dims paused ones", () => {
     render(
       <PublicRoadmapView
         roadmap={roadmap(
@@ -70,12 +70,18 @@ describe("nontechnical roadmap", () => {
         )}
       />
     );
+    expect(screen.queryByRole("img", { name: /^Status: / })).not.toBeInTheDocument();
     for (const status of ["Pending", "In progress", "Done", "Paused"])
-      expect(screen.getByRole("img", { name: `Status: ${status}` })).toBeInTheDocument();
+      expect(screen.getByText(status, { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /^Checkout:.* · Pending$/ })).toHaveClass(
+      "bg-slate-400"
+    );
+    expect(screen.getByRole("img", { name: /^Search:.* · In progress$/ })).toHaveClass(
+      "bg-blue-500"
+    );
     expect(screen.getByRole("img", { name: /^Billing:.* · Done$/ })).toHaveClass("bg-emerald-600");
-    expect(screen.getByRole("img", { name: /^Search:/ })).toHaveClass("bg-indigo-500/70");
     const paused = screen.getByRole("img", { name: /^Exports:.* · Paused$/ });
-    expect(paused).toHaveClass("opacity-50");
+    expect(paused).toHaveClass("bg-amber-500", "opacity-50");
     expect(screen.getByRole("img", { name: /^Checkout:/ })).not.toHaveClass("opacity-50");
   });
 
