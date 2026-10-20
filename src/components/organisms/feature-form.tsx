@@ -79,15 +79,6 @@ export default function FeatureForm({
           });
         }}
       >
-        <Label htmlFor="project-name">{t("featureForm.fields.name")}</Label>
-        <Input
-          id="project-name"
-          value={form.name}
-          onChange={(event) => setForm((previous) => ({ ...previous, name: event.target.value }))}
-          required
-          maxLength={120}
-          autoFocus
-        />
         <Label htmlFor="project-main-project">{t("featureForm.fields.project")}</Label>
         <select
           id="project-main-project"
@@ -121,6 +112,25 @@ export default function FeatureForm({
             maxLength={80}
           />
         )}
+        <Label htmlFor="project-name">{t("featureForm.fields.name")}</Label>
+        <Input
+          id="project-name"
+          value={form.name}
+          onChange={(event) => setForm((previous) => ({ ...previous, name: event.target.value }))}
+          required
+          maxLength={120}
+          autoFocus
+        />
+        <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
+        <textarea
+          id="project-description"
+          className="field"
+          value={form.description}
+          onChange={(event) =>
+            setForm((previous) => ({ ...previous, description: event.target.value }))
+          }
+          rows={2}
+        />
         <Label htmlFor="feature-status">{t("featureStatus.label")}</Label>
         <select
           id="feature-status"
@@ -139,16 +149,6 @@ export default function FeatureForm({
             </option>
           ))}
         </select>
-        <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
-        <textarea
-          id="project-description"
-          className="field"
-          value={form.description}
-          onChange={(event) =>
-            setForm((previous) => ({ ...previous, description: event.target.value }))
-          }
-          rows={2}
-        />
         <div className="rounded-xl border overflow-hidden">
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 text-xs font-medium">
             <span>{t("featureForm.columns.role")}</span>

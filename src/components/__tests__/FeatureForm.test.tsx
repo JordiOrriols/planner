@@ -42,6 +42,27 @@ describe("Feature form footer actions", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("orders fields as project, name, description, status, then estimates", () => {
+    render(
+      <FeatureForm
+        open
+        initial={{ ...EMPTY_FEATURE, name: "Checkout", project_id: "payments" }}
+        projects={projects}
+        onSave={vi.fn()}
+        onCreateProject={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    const fields = ["Project", "Name", "Description", "Status"].map((label) =>
+      screen.getByLabelText(label)
+    );
+    const estimates = screen.getByText("Role");
+    for (const [index, field] of fields.entries()) {
+      const next = fields[index + 1] ?? estimates;
+      expect(field.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
   it("assigns the feature to a project from the workspace list", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
