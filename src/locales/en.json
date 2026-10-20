@@ -650,10 +650,7 @@
     },
     "interactionHelp": "Drag feature rows to reorder, or focus the handle and use Arrow Up / Arrow Down. Click a status dot to change it. Hover bars for details. Right-click a row (or press Shift+F10) for status and removal actions.",
     "legend": {
-      "bottomSuffix": " (bottom)",
-      "fullHeightSuffix": " (full height)",
-      "paused": "Gray · waiting / paused",
-      "topSuffix": " (top)"
+      "paused": "Gray · waiting / paused"
     },
     "row": {
       "label": "Schedule row: {{featureName}}",

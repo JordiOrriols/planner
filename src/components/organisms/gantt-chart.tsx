@@ -14,7 +14,6 @@ import {
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusDot,
-  StatusLegend,
   TimelineGuides,
   TimelineHeader,
   timelineColumns,
@@ -88,24 +87,16 @@ export default function GanttChart({
               className={cn("size-2 rounded-sm", ROLE_COLORS[role].className)}
             />
             {ROLE_LABELS[role]}
-            {t(
-              role === "backend"
-                ? "gantt.legend.topSuffix"
-                : role === "frontend"
-                  ? "gantt.legend.bottomSuffix"
-                  : "gantt.legend.fullHeightSuffix"
-            )}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-violet-400/60" />
-          {t("uat.summary", { weeks: 2 })}
+          {t("uat.label")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-slate-400/40" />
           {t("gantt.legend.paused")}
         </span>
-        <StatusLegend />
         <span className="ml-auto">
           <RoadmapDisplayToolbar />
         </span>

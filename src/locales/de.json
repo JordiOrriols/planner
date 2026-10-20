@@ -650,10 +650,7 @@
     },
     "interactionHelp": "Ziehe Zeilen zum Sortieren oder fokussiere den Griff und nutze Pfeil nach oben / Pfeil nach unten. Klicke auf den Statuspunkt, um ihn zu ändern. Fahre mit der Maus über die Balken, um Details anzuzeigen. Rechtsklicke auf eine Zeile (oder drücke Umschalt+F10) für Status- und Entfernen-Aktionen.",
     "legend": {
-      "bottomSuffix": " (unten)",
-      "fullHeightSuffix": " (volle Höhe)",
-      "paused": "Grau · wartend / pausiert",
-      "topSuffix": " (oben)"
+      "paused": "Grau · wartend / pausiert"
     },
     "row": {
       "label": "Planungszeile: {{featureName}}",

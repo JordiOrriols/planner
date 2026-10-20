@@ -650,10 +650,7 @@
     },
     "interactionHelp": "Trascina le righe per riordinarle, oppure metti a fuoco la maniglia e usa Freccia su / Freccia giù. Fai clic sul punto di stato per cambiarlo. Passa il cursore sulle barre per i dettagli. Fai clic destro su una riga (o premi Maiusc+F10) per le azioni di stato e rimozione.",
     "legend": {
-      "bottomSuffix": " (in basso)",
-      "fullHeightSuffix": " (altezza intera)",
-      "paused": "Grigio · in attesa / in pausa",
-      "topSuffix": " (in alto)"
+      "paused": "Grigio · in attesa / in pausa"
     },
     "row": {
       "label": "Riga di pianificazione: {{featureName}}",
