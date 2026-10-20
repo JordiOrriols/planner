@@ -12,7 +12,7 @@ export function EntryGate({ children }: { children: ReactNode }) {
   const { user, loading, authError } = useData();
   const { pathname } = useLocation();
 
-  if (/^\/vacations\/[^/]+\/?$/.test(pathname)) return children;
+  if (/^\/(?:vacations|roadmap)\/[^/]+\/?$/.test(pathname)) return children;
 
   if (loading) {
     return <AppSkeleton label={t("app.loading.planner")} />;

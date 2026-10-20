@@ -5,6 +5,7 @@ import { ROLES, type FeatureInput, type Role, type SprintResult } from "@/types/
 import { validateSprintSettings } from "@/lib/sprints";
 import { parseDate, validateFeature } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
+import { publicRoadmapSchema } from "./publicRoadmapSchema";
 
 const workspaceSchema = z.object({
   id: z.string().uuid(),
@@ -107,6 +108,25 @@ export function createPlannerRepository(client: SupabaseClient) {
     }
   }
   return {
+    async roadmapShare(workspace: string, enabled?: boolean) {
+      return z
+        .string()
+        .uuid()
+        .nullable()
+        .parse(
+          await rpc("planner_roadmap_share", {
+            workspace,
+            ...(enabled === undefined ? {} : { enabled }),
+          })
+        );
+    },
+    async loadRoadmapLink(token: string) {
+      if (!z.string().uuid().safeParse(token).success)
+        throw new Error(i18n.t("publicRoadmap.invalid"));
+      const { data, error } = await client.functions.invoke("roadmap", { body: { token } });
+      if (error) throw new Error(i18n.t("publicRoadmap.unavailable"), { cause: error });
+      return publicRoadmapSchema.parse(data);
+    },
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);
       if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));

@@ -134,7 +134,7 @@ describe("role-aware Gantt allocations", () => {
     expect(bar).not.toHaveClass("bg-slate-400/40");
     expect(bar).toBeEmptyDOMElement();
     expect(screen.queryByRole("img", { name: /^Mixed ·/ })).not.toBeInTheDocument();
-    expect(bar.parentElement).toHaveStyle({ gridColumn: "2 / 4" });
+    expect(bar.parentElement).toHaveStyle({ gridColumn: "2 / 6" });
   });
 
   it("places the blue Today marker at the day center and spans the full chart", () => {
@@ -144,10 +144,10 @@ describe("role-aware Gantt allocations", () => {
     const marker = screen.getByRole("img", { name: "Today: Feb 4, 2026" });
     expect(marker).toHaveClass("inset-y-0", "bg-blue-500");
     expect(marker.parentElement).toHaveClass("inset-y-0", "left-[220px]", "pointer-events-none");
-    expect(parseFloat(marker.style.left)).toBeCloseTo((2.5 / 14) * 100);
+    expect(parseFloat(marker.style.left)).toBeCloseTo((2.5 / 28) * 100);
   });
 
-  it.each(["2026-02-01", "2026-02-16"])(
+  it.each(["2026-02-01", "2026-03-02"])(
     "omits Today when %s is outside the visible weeks",
     (today) => {
       vi.useFakeTimers({ toFake: ["Date"] });
@@ -164,23 +164,25 @@ describe("role-aware Gantt allocations", () => {
     expect(screen.getByRole("img", { name: "Today: Feb 8, 2026" })).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(60_000));
     const marker = screen.getByRole("img", { name: "Today: Feb 9, 2026" });
-    expect(parseFloat(marker.style.left)).toBeCloseTo((7.5 / 14) * 100);
+    expect(parseFloat(marker.style.left)).toBeCloseTo((7.5 / 28) * 100);
   });
   it("stacks simultaneous two-week roles inside one 24px project bar without weekly breaks", () => {
     renderSchedule([mixed]);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 13, 2026" });
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 27, 2026" });
     const backend = screen.getByRole("img", { name: /^Mixed · Backend:/ });
     const frontend = screen.getByRole("img", { name: /^Mixed · Frontend:/ });
     for (const bar of [backend, frontend]) {
       expect(bar.parentElement).toBe(container);
-      expect(bar).toHaveStyle({ left: "0%", width: "100%", height: "50%" });
+      expect(bar).toHaveStyle({ left: "0%", height: "50%" });
+      expect(parseFloat(bar.style.width)).toBeCloseTo((12 / 26) * 100);
       expect(bar).toBeEmptyDOMElement();
     }
     expect(container.parentElement!.parentElement).toHaveStyle({ gridTemplateRows: "32px" });
     expect(backend).toHaveStyle({ top: "0" });
     expect(frontend).toHaveStyle({ top: "50%" });
-    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 4" });
-    expect(parseFloat(container.style.width)).toBeCloseTo((12 / 14) * 100);
+    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 6" });
+    expect(parseFloat(container.style.width)).toBeCloseTo((26 / 28) * 100);
+    expect(screen.getByRole("img", { name: /^UAT:/ })).toHaveClass("inset-y-0");
     expect(screen.queryByText("Project and role dates")).not.toBeInTheDocument();
   });
 
@@ -193,12 +195,13 @@ describe("role-aware Gantt allocations", () => {
       3
     );
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 9, 2026" });
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 23, 2026" });
     const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
     expect(bars).toHaveLength(2);
     expect(container).toHaveClass("bg-slate-400/40");
-    expect(bars[0]).toHaveStyle({ left: "0%", width: "25%" });
-    expect(bars[1]).toHaveStyle({ left: "37.5%", width: "62.5%" });
+    expect(parseFloat(bars[0]!.style.width)).toBeCloseTo((2 / 22) * 100);
+    expect(parseFloat(bars[1]!.style.left)).toBeCloseTo((3 / 22) * 100);
+    expect(parseFloat(bars[1]!.style.width)).toBeCloseTo((5 / 22) * 100);
     expect(bars[0]).toHaveAccessibleName(/Feb 2, 2026 to Feb 3, 2026.*0.4 person-weeks/);
     expect(bars[1]).toHaveAccessibleName(/Feb 5, 2026 to Feb 9, 2026.*0.6 person-weeks/);
     expect(
@@ -222,13 +225,13 @@ describe("role-aware Gantt allocations", () => {
       4
     );
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 20, 2026" });
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Mar 6, 2026" });
     const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
     expect(bars).toHaveLength(2);
     expect(bars.every((bar) => bar.parentElement === container)).toBe(true);
-    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 5" });
-    expect(parseFloat(bars[0]!.style.width)).toBeCloseTo((5 / 19) * 100);
-    expect(parseFloat(bars[1]!.style.left)).toBeCloseTo((14 / 19) * 100);
+    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 7" });
+    expect(parseFloat(bars[0]!.style.width)).toBeCloseTo((5 / 33) * 100);
+    expect(parseFloat(bars[1]!.style.left)).toBeCloseTo((14 / 33) * 100);
     expect(result.weeks[1]!.allocated).toBe(0);
   });
 
@@ -278,8 +281,8 @@ describe("role-aware Gantt allocations", () => {
     expect(backend[0]!.parentElement).toBe(frontend[0]!.parentElement);
     expect(backend[0]).toHaveStyle({ top: "0", height: "50%" });
     expect(frontend[0]).toHaveStyle({ top: "50%", height: "50%" });
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 27, 2026" });
-    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 6" });
+    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Mar 13, 2026" });
+    expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 8" });
     expect(parseFloat(backend[0]!.style.left)).toBeGreaterThan(parseFloat(frontend[0]!.style.left));
     expect(backend[0]).toHaveAccessibleName(
       "Mixed · Backend: Feb 16, 2026 to Feb 27, 2026 · 1 person requested · 2.0 person-weeks"
@@ -349,7 +352,7 @@ describe("role-aware Gantt allocations", () => {
   it("keeps a frontend-only project's work in the bottom lane", () => {
     renderSchedule([{ ...mixed, backend_devs: 0, backend_weeks: 0 }]);
     expect(screen.queryByRole("img", { name: /Backend:/ })).not.toBeInTheDocument();
-    for (const bar of screen.getAllByRole("img"))
+    for (const bar of screen.getAllByRole("img", { name: /^Mixed · Frontend:/ }))
       expect(bar).toHaveStyle({ top: "50%", height: "50%" });
   });
 

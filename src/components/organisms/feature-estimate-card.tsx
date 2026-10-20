@@ -94,6 +94,11 @@ export default function FeatureEstimateCard({
           sub={t("common.units.weeks")}
         />
         <Stat
+          label={t("uat.label")}
+          value={activeRoles.length ? "2" : "0"}
+          sub={t("common.units.weeks")}
+        />
+        <Stat
           label={t("featureCard.metrics.effort")}
           value={`${dw}`}
           sub={t("common.units.personWeeksShort")}

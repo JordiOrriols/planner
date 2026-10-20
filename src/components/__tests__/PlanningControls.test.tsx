@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Backlog from "@/pages/backlog";
 import Estimation from "@/pages/estimation";
 import FeatureForm from "@/components/organisms/feature-form";
@@ -36,10 +37,16 @@ vi.mock("@/data/WorkspaceProvider", () => ({
   }),
 }));
 function renderBacklog() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <MemoryRouter>
       <Backlog />
-    </MemoryRouter>
+    </MemoryRouter>,
+    {
+      wrapper: ({ children }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    }
   );
 }
 beforeEach(() => {

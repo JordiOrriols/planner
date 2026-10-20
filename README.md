@@ -3,6 +3,31 @@
 Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 
+Every estimated feature includes two calendar weeks of UAT after its last delivery
+phase (including QA). This applies to existing and new features. UAT extends the
+forecast end date but does not reserve team capacity or add person-weeks of effort.
+Unestimated or incomplete features do not receive invented UAT dates.
+
+### Public roadmap
+
+Workspace editors can use **Share roadmap** on the roadmap page to create, copy
+or revoke a public link. Anyone with the link sees a standalone read-only timeline:
+one overall bar per feature, including UAT, with no roles, effort or capacity details.
+Names of roadmap features and their projects are public while sharing is enabled.
+The page reloads live data every minute; revoking the link blocks subsequent reads.
+
+The `roadmap` Supabase Edge Function reads a service-only, token-gated RPC, reuses
+the exact scheduling engine from `src/lib/planning.ts`, and returns only feature
+names, project names, dates and delivery status. Staff, vacations and estimates
+never reach the public client. Its Deno import map selects a server-only i18n
+instance instead of React/browser initialization. No second scheduler is maintained.
+
+Deployment requires the `20261019190000_public_roadmap.sql` migration and
+`supabase functions deploy roadmap --project-ref <project-ref>`. The function uses
+Supabase's server-provided URL and service-role key; never put that key in Vite
+configuration. `verify_jwt = false` is intentional: a valid, revocable share token
+is required instead. Do not grant anonymous access to `planner_roadmap_source`.
+
 ## Start locally
 
 Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI). The shared UI library is installed from GitHub Packages as

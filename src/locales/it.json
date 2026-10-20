@@ -1,4 +1,27 @@
 {
+  "publicRoadmap": {
+    "title": "Roadmap",
+    "share": "Condividi roadmap",
+    "sharingDescription": "Chiunque abbia il link può vedere funzionalità, progetti e date di consegna. Personale, ferie e stime tecniche restano privati. La roadmap si aggiorna automaticamente.",
+    "link": "Link pubblico della roadmap",
+    "create": "Crea link",
+    "copy": "Copia link",
+    "copied": "Link copiato",
+    "open": "Apri roadmap",
+    "revoke": "Revoca link",
+    "revokeDescription": "Questo link smetterà di funzionare per tutti. Potrai crearne uno nuovo in seguito.",
+    "invalid": "Link della roadmap non valido.",
+    "unavailable": "La roadmap non è disponibile. Il link potrebbe essere stato revocato. Riprova o chiedi un nuovo link.",
+    "empty": "Nessuna funzionalità nella roadmap.",
+    "unscheduled": "Date non ancora disponibili",
+    "span": "{{name}}: dal {{start}} al {{end}}",
+    "forecastNotice": "Le date sono previsioni, non impegni. La roadmap si aggiorna automaticamente. Il verde indica le funzionalità consegnate."
+  },
+  "uat": {
+    "label": "UAT",
+    "summary": "UAT · {{weeks}} settimane",
+    "span": "UAT: dal {{startDate}} al {{endDate}}"
+  },
   "planner": {
     "name": "Planner",
     "brand": "Planner",

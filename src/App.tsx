@@ -15,6 +15,7 @@ const Backlog = lazy(() => import("./pages/backlog"));
 const Vacations = lazy(() => import("./pages/vacations"));
 const TeamConfiguration = lazy(() => import("./pages/team-configuration"));
 const VacationLink = lazy(() => import("./pages/vacation-link"));
+const RoadmapLink = lazy(() => import("./pages/roadmap-link"));
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
 });
@@ -41,6 +42,7 @@ export default function App() {
             <Suspense fallback={<AppSkeleton label={t("app.loading.page")} />}>
               <Routes>
                 <Route path="/vacations/:token" element={<VacationLink />} />
+                <Route path="/roadmap/:token" element={<RoadmapLink />} />
                 <Route
                   path="*"
                   element={
