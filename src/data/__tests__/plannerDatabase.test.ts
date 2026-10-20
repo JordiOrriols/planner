@@ -94,34 +94,37 @@ describe("Planner migration and real PostgreSQL permissions", () => {
       db.query("update public.workspaces set plan_start_date=null where id=$1", [workspace])
     ).rejects.toThrow(/null/);
   });
-  it("defaults delivery to false and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
+  it("defaults status to pending and lets the owner, not viewers or outsiders, change it without changing estimates", async () => {
     const feature = (
-      await db.query<{ id: string; delivered: boolean }>(
-        "insert into public.features(project_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,delivered",
+      await db.query<{ id: string; status: string }>(
+        "insert into public.features(project_id,name,backend_devs,backend_weeks,in_backlog) values($1,'Feature',2,2,true) returning id,status",
         [project]
       )
     ).rows[0]!;
-    expect(feature.delivered).toBe(false);
-    await db.query("update public.features set delivered=true where id=$1", [feature.id]);
+    expect(feature.status).toBe("pending");
+    await db.query("update public.features set status='in_progress' where id=$1", [feature.id]);
     expect(
       (
         await db.query(
-          "select delivered,backend_devs,backend_weeks,in_backlog,priority from public.features where id=$1",
+          "select status,backend_devs,backend_weeks,in_backlog,priority from public.features where id=$1",
           [feature.id]
         )
       ).rows[0]
     ).toEqual({
-      delivered: true,
+      status: "in_progress",
       backend_devs: "2",
       backend_weeks: "2",
       in_backlog: true,
       priority: 0,
     });
+    await expect(
+      db.query("update public.features set status='shipped' where id=$1", [feature.id])
+    ).rejects.toThrow(/features_status_check/);
     await shareWithTeammate("viewer");
     await login(teammate);
     expect(
       (
-        await db.query("update public.features set delivered=false where id=$1 returning id", [
+        await db.query("update public.features set status='paused' where id=$1 returning id", [
           feature.id,
         ])
       ).rows
@@ -129,19 +132,37 @@ describe("Planner migration and real PostgreSQL permissions", () => {
     await login(stranger);
     expect(
       (
-        await db.query("update public.features set delivered=false where id=$1 returning id", [
+        await db.query("update public.features set status='paused' where id=$1 returning id", [
           feature.id,
         ])
       ).rows
     ).toHaveLength(0);
     await login(owner);
     expect(
-      (await db.query("select delivered from public.features where id=$1", [feature.id])).rows
-    ).toEqual([{ delivered: true }]);
-    await db.query("update public.features set delivered=false where id=$1", [feature.id]);
-    expect(
-      (await db.query("select delivered from public.features where id=$1", [feature.id])).rows
-    ).toEqual([{ delivered: false }]);
+      (await db.query("select status from public.features where id=$1", [feature.id])).rows
+    ).toEqual([{ status: "in_progress" }]);
+  });
+  it("keeps the legacy delivered flag and status in sync for already deployed clients", async () => {
+    const select = async (id: string) =>
+      (await db.query("select status,delivered from public.features where id=$1", [id])).rows[0];
+    const id = (
+      await db.query<{ id: string }>(
+        "insert into public.features(project_id,name,backend_devs,backend_weeks,delivered) values($1,'Legacy',1,1,true) returning id",
+        [project]
+      )
+    ).rows[0]!.id;
+    expect(await select(id)).toEqual({ status: "done", delivered: true });
+    await db.query("update public.features set delivered=false where id=$1", [id]);
+    expect(await select(id)).toEqual({ status: "pending", delivered: false });
+    await db.query("update public.features set status='paused' where id=$1", [id]);
+    await db.query("update public.features set delivered=false, name='Renamed' where id=$1", [id]);
+    expect(await select(id)).toEqual({ status: "paused", delivered: false });
+    await db.query("update public.features set status='done' where id=$1", [id]);
+    expect(await select(id)).toEqual({ status: "done", delivered: true });
+    await db.query("update public.features set status='in_progress', delivered=true where id=$1", [
+      id,
+    ]);
+    expect(await select(id)).toEqual({ status: "in_progress", delivered: false });
   });
   it("rejects decimal people and weeks for every role at the database boundary", async () => {
     for (const role of ["backend", "frontend", "design", "qa"]) {
