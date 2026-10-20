@@ -1,11 +1,12 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { I18nextProvider } from "react-i18next";
 import { MemoryRouter } from "react-router-dom";
 import i18n from "@/i18n";
 import AppLayout from "@/components/organisms/app-layout";
+import { updateRoadmapDisplay } from "@/lib/roadmapDisplay";
 
 vi.mock("@/data/DataProvider", () => ({
   useData: () => ({ user: { email: "viewer@example.com" }, signOut: vi.fn() }),
@@ -108,5 +109,26 @@ describe("Planner shared project navigation", () => {
     expect(screen.getByRole("link", { name: "Vacations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Team configuration" })).not.toBeInTheDocument();
     access.canEdit = true;
+  });
+
+  it("lifts the page width limit only on the roadmap page in full-width mode", () => {
+    localStorage.clear();
+    const view = (path: string) =>
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <I18nextProvider i18n={i18n}>
+            <AppLayout />
+          </I18nextProvider>
+        </MemoryRouter>
+      );
+    const roadmap = view("/backlog");
+    expect(screen.getByRole("main")).toHaveClass("max-w-7xl");
+    act(() => updateRoadmapDisplay({ fullWidth: true }));
+    expect(screen.getByRole("main")).toHaveClass("max-w-none");
+    expect(screen.getByRole("main")).not.toHaveClass("max-w-7xl");
+    roadmap.unmount();
+    view("/");
+    expect(screen.getByRole("main")).toHaveClass("max-w-7xl");
+    localStorage.clear();
   });
 });

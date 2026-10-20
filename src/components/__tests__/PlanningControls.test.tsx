@@ -7,12 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Backlog from "@/pages/backlog";
 import Estimation from "@/pages/estimation";
 import FeatureForm from "@/components/organisms/feature-form";
-import { EMPTY_FEATURE, type Project, type Feature } from "@/types/planner";
+import { EMPTY_FEATURE, type Feature, type FeatureStatus, type Project } from "@/types/planner";
 
-const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = vi.hoisted(() => ({
+const { toggleBacklog, reorder, setStatus, setPlanStart, refresh, state } = vi.hoisted(() => ({
   toggleBacklog: vi.fn(),
   reorder: vi.fn(),
-  setDelivered: vi.fn(),
+  setStatus: vi.fn(),
   setPlanStart: vi.fn(),
   refresh: vi.fn(),
   state: {
@@ -24,7 +24,7 @@ const { toggleBacklog, reorder, setDelivered, setPlanStart, refresh, state } = v
   },
 }));
 vi.mock("@/data/DataProvider", () => ({
-  useData: () => ({ repository: { toggleBacklog, reorder, setDelivered, setPlanStart } }),
+  useData: () => ({ repository: { toggleBacklog, reorder, setStatus, setPlanStart } }),
 }));
 vi.mock("@/data/WorkspaceProvider", () => ({
   useWorkspace: () => ({
@@ -67,13 +67,13 @@ beforeEach(() => {
       backend_devs: 1,
       backend_weeks: 1,
       in_backlog: false,
-      delivered: false,
+      status: "pending",
       priority: 0,
     },
   ];
   toggleBacklog.mockResolvedValue(undefined);
   reorder.mockResolvedValue(undefined);
-  setDelivered.mockResolvedValue(undefined);
+  setStatus.mockResolvedValue(undefined);
   refresh.mockResolvedValue(undefined);
 });
 describe("Planner estimate and backlog controls", () => {
@@ -137,8 +137,8 @@ describe("Planner estimate and backlog controls", () => {
     expect(screen.getByLabelText("Plan starts", { selector: "input" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Add feature" })).toBeVisible();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
-    await waitFor(() => expect(setDelivered).toHaveBeenCalledWith("project", true));
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Done" }));
+    await waitFor(() => expect(setStatus).toHaveBeenCalledWith("project", "done"));
   });
 
   it("calls estimates features and keeps backlog actions off the estimation page", () => {
@@ -311,40 +311,50 @@ function dragFeature(from: string, to: string) {
 }
 
 describe("inline schedule priority controls", () => {
-  it("persists delivery, refreshes it, and allows undoing without changing backlog inclusion", async () => {
+  it("persists status changes from the row menu and the status dot without changing backlog inclusion", async () => {
     selectBacklog();
-    setDelivered.mockImplementation(async (id: string, delivered: boolean) => {
-      state.features = state.features.map((p) => (p.id === id ? { ...p, delivered } : p));
+    setStatus.mockImplementation(async (id: string, status: FeatureStatus) => {
+      state.features = state.features.map((p) => (p.id === id ? { ...p, status } : p));
     });
     const rendered = renderBacklog();
-    fireEvent.contextMenu(screen.getByRole("button", { name: "Reorder Checkout" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
+    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Done" }));
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(setDelivered).toHaveBeenCalledExactlyOnceWith("project", true);
+    expect(setStatus).toHaveBeenCalledExactlyOnceWith("project", "done");
     rendered.rerender(
       <MemoryRouter>
         <Backlog />
       </MemoryRouter>
     );
-    fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Undo delivery" }));
-    await waitFor(() => expect(setDelivered).toHaveBeenLastCalledWith("project", false));
+    expect(screen.getByRole("button", { name: "Change status of Checkout" })).toHaveAttribute(
+      "title",
+      "Status: Done"
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Change status of Checkout" }));
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Paused" }));
+    await waitFor(() => expect(setStatus).toHaveBeenLastCalledWith("project", "paused"));
+    rendered.rerender(
+      <MemoryRouter>
+        <Backlog />
+      </MemoryRouter>
+    );
+    expect(screen.getByTitle("Checkout")).toHaveClass("opacity-50");
     expect(toggleBacklog).not.toHaveBeenCalled();
     expect(reorder).not.toHaveBeenCalled();
   });
 
-  it("surfaces delivery save failures instead of displaying successful delivery", async () => {
+  it("surfaces status save failures instead of displaying the new status", async () => {
     selectBacklog();
-    setDelivered.mockRejectedValueOnce(new Error("Delivery could not be saved"));
+    setStatus.mockRejectedValueOnce(new Error("Status could not be saved"));
     renderBacklog();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Mark delivered" }));
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Done" }));
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Delivery could not be saved")
+      expect(screen.getByRole("alert")).toHaveTextContent("Status could not be saved")
     );
     expect(refresh).not.toHaveBeenCalled();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
-    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toBeVisible();
+    expect(screen.getByRole("menuitemradio", { name: "Pending" })).toBeChecked();
   });
   it("moves a dragged project upward and saves all selected IDs in their new order", async () => {
     selectBacklog();
@@ -397,7 +407,9 @@ describe("inline schedule priority controls", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getAllByRole("button", { name: /^Reorder / }).map((button) => button.textContent)
+      screen
+        .getAllByLabelText(/^Schedule row: /)
+        .map((row) => row.getAttribute("aria-label")!.replace("Schedule row: ", ""))
     ).toEqual(["Third", "Checkout", "Second"]);
   });
 
@@ -420,7 +432,9 @@ describe("inline schedule priority controls", () => {
     );
     expect(refresh).not.toHaveBeenCalled();
     expect(
-      screen.getAllByRole("button", { name: /^Reorder / }).map((button) => button.textContent)
+      screen
+        .getAllByLabelText(/^Schedule row: /)
+        .map((row) => row.getAttribute("aria-label")!.replace("Schedule row: ", ""))
     ).toEqual(["Checkout", "Second", "Third"]);
   });
 
@@ -438,7 +452,7 @@ describe("inline schedule priority controls", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Reorder Checkout" })).toBeDisabled()
     );
-    expect(screen.getByRole("button", { name: "Reorder Checkout" })).toHaveAttribute(
+    expect(screen.getByLabelText("Schedule row: Checkout").firstElementChild).toHaveAttribute(
       "draggable",
       "false"
     );
@@ -447,7 +461,7 @@ describe("inline schedule priority controls", () => {
       "aria-disabled",
       "true"
     );
-    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toHaveAttribute(
+    expect(screen.getByRole("menuitemradio", { name: "Done" })).toHaveAttribute(
       "aria-disabled",
       "true"
     );
@@ -466,7 +480,8 @@ describe("inline schedule priority controls", () => {
     expect(screen.getByRole("region", { name: "Feature schedule" })).toHaveTextContent("Checkout");
     expect(screen.queryByRole("button", { name: /^Reorder / })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Remove from backlog:/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Mark delivered:/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Change status of/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: "Status: Pending" }).length).toBeGreaterThan(0);
     expect(screen.queryByText(/Drag feature names/)).not.toBeInTheDocument();
     fireEvent.contextMenu(screen.getByLabelText("Schedule row: Checkout"));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();

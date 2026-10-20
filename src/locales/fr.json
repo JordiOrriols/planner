@@ -14,8 +14,8 @@
     "unavailable": "Cette feuille de route est indisponible. Le lien a peut-être été révoqué. Réessayez ou demandez un nouveau lien.",
     "empty": "Aucune fonctionnalité pour le moment.",
     "unscheduled": "Dates non encore disponibles",
-    "span": "{{name}} : du {{start}} au {{end}}",
-    "forecastNotice": "Les dates sont des prévisions, pas des engagements. La mise à jour est automatique. Le vert indique les fonctionnalités livrées."
+    "span": "{{name}} : du {{start}} au {{end}} · {{status}}",
+    "forecastNotice": "Les dates sont des prévisions, pas des engagements. La mise à jour est automatique."
   },
   "uat": {
     "label": "UAT",
@@ -479,7 +479,8 @@
     "loading": {
       "page": "Chargement de la page",
       "planner": "Chargement de Planner"
-    }
+    },
+    "footer": "Fait avec amour par Jordi Orriols"
   },
   "common": {
     "actions": {
@@ -630,17 +631,14 @@
   },
   "gantt": {
     "actions": {
-      "markDelivered": "Marquer comme livré",
-      "remove": "Retirer de la feuille de route",
-      "undoDelivery": "Annuler la livraison"
+      "remove": "Retirer de la feuille de route"
     },
     "bar": {
-      "deliveredSuffix": " · Livré",
       "incomplete": "non terminé",
       "partialSuffix": " (prévision partielle)",
       "peopleRequested_one": "{{count}} personne demandée",
       "peopleRequested_other": "{{count}} personnes demandées",
-      "projectSpan": "{{featureName}} : {{startDate}} au {{endDate}}{{deliveryStatus}}",
+      "projectSpan": "{{featureName}} : {{startDate}} au {{endDate}} · {{status}}",
       "roleSpan": "{{featureName}} · {{role}} : {{startDate}} au {{endDate}} · {{requestedPeople}} · {{effort}} semaines-personne{{forecastStatus}}"
     },
     "capacity": {
@@ -650,10 +648,9 @@
     "columns": {
       "featurePriority": "Fonctionnalité · priorité"
     },
-    "interactionHelp": "Faites glisser les noms des fonctionnalités pour les réorganiser ou utilisez Flèche haut / Flèche bas. Survolez les barres pour afficher les détails. Faites un clic droit sur une ligne (ou appuyez sur Maj+F10) pour accéder aux actions de livraison et de suppression.",
+    "interactionHelp": "Faites glisser les lignes pour les réorganiser, ou placez le focus sur la poignée et utilisez Flèche haut / Flèche bas. Cliquez sur le point de statut pour le modifier. Survolez les barres pour afficher les détails. Faites un clic droit sur une ligne (ou appuyez sur Maj+F10) pour les actions de statut et de suppression.",
     "legend": {
       "bottomSuffix": " (bas)",
-      "delivered": "Livré",
       "fullHeightSuffix": " (pleine hauteur)",
       "paused": "Gris · en attente / en pause",
       "topSuffix": " (haut)"
@@ -870,5 +867,19 @@
       "hasFeatures": "Déplacez ou supprimez d'abord les fonctionnalités de ce projet."
     },
     "inUse": "Supprimez ou déplacez d'abord les fonctionnalités de ce projet."
+  },
+  "featureStatus": {
+    "label": "Statut",
+    "pending": "À faire",
+    "in_progress": "En cours",
+    "done": "Terminée",
+    "paused": "En pause",
+    "current": "Statut : {{status}}",
+    "change": "Modifier le statut de {{featureName}}"
+  },
+  "roadmapDisplay": {
+    "label": "Affichage de la roadmap",
+    "fullWidth": "Pleine largeur",
+    "wrapTitles": "Renvoyer les titres à la ligne"
   }
 }

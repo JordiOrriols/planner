@@ -40,14 +40,17 @@ const mixed: Feature = {
   project_id: "project",
   name: "Mixed",
   in_backlog: true,
-  delivered: false,
+  status: "pending",
   priority: 1,
   backend_devs: 1,
   backend_weeks: 2,
   frontend_devs: 1,
   frontend_weeks: 2,
 };
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  localStorage.clear();
+});
 
 function renderSchedule(features: Feature[], horizon = 6) {
   const result = computeSchedule(features, members, [], parseISO("2026-02-02"), horizon);
@@ -95,15 +98,15 @@ describe("role-aware Gantt allocations", () => {
 
   it("supports opening the row menu and selecting actions from the keyboard", async () => {
     const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
-    const delivered = vi.fn();
+    const changeStatus = vi.fn();
     render(
-      <GanttChart weeks={result.weeks} schedule={result.schedule} onDeliveredChange={delivered} />
+      <GanttChart weeks={result.weeks} schedule={result.schedule} onStatusChange={changeStatus} />
     );
     screen.getByLabelText("Schedule row: Mixed").focus();
     await userEvent.keyboard("{Shift>}{F10}{/Shift}");
-    expect(screen.getByRole("menuitem", { name: "Mark delivered" })).toBeVisible();
-    await userEvent.keyboard("{ArrowDown}{Enter}");
-    expect(delivered).toHaveBeenCalledExactlyOnceWith("mixed", true);
+    expect(screen.getByRole("menuitemradio", { name: "Pending" })).toBeChecked();
+    await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+    expect(changeStatus).toHaveBeenCalledExactlyOnceWith("mixed", "done");
   });
 
   it("opens row actions from the project bar without inline action buttons", async () => {
@@ -119,7 +122,7 @@ describe("role-aware Gantt allocations", () => {
   it("replaces all role halves and gray gaps with one fully green delivered bar", () => {
     const pending = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
     const delivered = computeSchedule(
-      [{ ...mixed, delivered: true }],
+      [{ ...mixed, status: "done" }],
       members,
       [],
       parseISO("2026-02-02"),
@@ -129,7 +132,7 @@ describe("role-aware Gantt allocations", () => {
     expect(delivered.schedule[0]!.start).toEqual(pending.schedule[0]!.start);
     expect(delivered.schedule[0]!.end).toEqual(pending.schedule[0]!.end);
     render(<GanttChart weeks={delivered.weeks} schedule={delivered.schedule} />);
-    const bar = screen.getByRole("group", { name: /Mixed:.*Delivered/ });
+    const bar = screen.getByRole("group", { name: /Mixed:.* · Done$/ });
     expect(bar).toHaveClass("bg-emerald-600");
     expect(bar).not.toHaveClass("bg-slate-400/40");
     expect(bar).toBeEmptyDOMElement();
@@ -143,7 +146,8 @@ describe("role-aware Gantt allocations", () => {
     renderSchedule([mixed], 2);
     const marker = screen.getByRole("img", { name: "Today: Feb 4, 2026" });
     expect(marker).toHaveClass("inset-y-0", "bg-blue-500");
-    expect(marker.parentElement).toHaveClass("inset-y-0", "left-[220px]", "pointer-events-none");
+    expect(marker.parentElement).toHaveClass("inset-y-0", "pointer-events-none");
+    expect(marker.parentElement).toHaveStyle({ left: "220px" });
     expect(parseFloat(marker.style.left)).toBeCloseTo((2.5 / 28) * 100);
   });
 
@@ -168,7 +172,9 @@ describe("role-aware Gantt allocations", () => {
   });
   it("stacks simultaneous two-week roles inside one 24px project bar without weekly breaks", () => {
     renderSchedule([mixed]);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 27, 2026" });
+    const container = screen.getByRole("group", {
+      name: "Mixed: Feb 2, 2026 to Feb 27, 2026 · Pending",
+    });
     const backend = screen.getByRole("img", { name: /^Mixed · Backend:/ });
     const frontend = screen.getByRole("img", { name: /^Mixed · Frontend:/ });
     for (const bar of [backend, frontend]) {
@@ -177,7 +183,9 @@ describe("role-aware Gantt allocations", () => {
       expect(parseFloat(bar.style.width)).toBeCloseTo((12 / 26) * 100);
       expect(bar).toBeEmptyDOMElement();
     }
-    expect(container.parentElement!.parentElement).toHaveStyle({ gridTemplateRows: "32px" });
+    expect(container.parentElement!.parentElement).toHaveStyle({
+      gridTemplateRows: "minmax(32px, auto)",
+    });
     expect(backend).toHaveStyle({ top: "0" });
     expect(frontend).toHaveStyle({ top: "50%" });
     expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 6" });
@@ -195,7 +203,9 @@ describe("role-aware Gantt allocations", () => {
       3
     );
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Feb 23, 2026" });
+    const container = screen.getByRole("group", {
+      name: "Mixed: Feb 2, 2026 to Feb 23, 2026 · Pending",
+    });
     const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
     expect(bars).toHaveLength(2);
     expect(container).toHaveClass("bg-slate-400/40");
@@ -225,7 +235,9 @@ describe("role-aware Gantt allocations", () => {
       4
     );
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Mar 6, 2026" });
+    const container = screen.getByRole("group", {
+      name: "Mixed: Feb 2, 2026 to Mar 6, 2026 · Pending",
+    });
     const bars = screen.getAllByRole("img", { name: /^Mixed · Backend:/ });
     expect(bars).toHaveLength(2);
     expect(bars.every((bar) => bar.parentElement === container)).toBe(true);
@@ -281,7 +293,9 @@ describe("role-aware Gantt allocations", () => {
     expect(backend[0]!.parentElement).toBe(frontend[0]!.parentElement);
     expect(backend[0]).toHaveStyle({ top: "0", height: "50%" });
     expect(frontend[0]).toHaveStyle({ top: "50%", height: "50%" });
-    const container = screen.getByRole("group", { name: "Mixed: Feb 2, 2026 to Mar 13, 2026" });
+    const container = screen.getByRole("group", {
+      name: "Mixed: Feb 2, 2026 to Mar 13, 2026 · Pending",
+    });
     expect(container.parentElement).toHaveStyle({ gridColumn: "2 / 8" });
     expect(parseFloat(backend[0]!.style.left)).toBeGreaterThan(parseFloat(frontend[0]!.style.left));
     expect(backend[0]).toHaveAccessibleName(
@@ -358,8 +372,9 @@ describe("role-aware Gantt allocations", () => {
 
   it("shows actual work and explicit incompletion without inventing a finish date", () => {
     renderSchedule([mixed], 1);
-    expect(screen.getAllByRole("img")).toHaveLength(2);
-    expect(screen.getAllByRole("img")[0]).toHaveAccessibleName(/partial forecast/);
+    const work = screen.getAllByRole("img", { name: /^(Mixed ·|UAT:)/ });
+    expect(work).toHaveLength(2);
+    expect(work[0]).toHaveAccessibleName(/partial forecast/);
     expect(screen.getByText("Not completed within the verified planning horizon")).toHaveStyle({
       gridRow: "2",
     });
@@ -370,6 +385,59 @@ describe("role-aware Gantt allocations", () => {
     const result = computeSchedule([mixed], [], [], parseISO("2026-02-02"), 2);
     render(<GanttChart weeks={result.weeks} schedule={result.schedule} />);
     expect(screen.getByText("No Backend, Frontend capacity")).toBeInTheDocument();
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /^(Mixed ·|UAT:)/ })).not.toBeInTheDocument();
+  });
+
+  it("orders each row as drag handle, priority, status dot and name", () => {
+    const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 4);
+    render(
+      <GanttChart
+        weeks={result.weeks}
+        schedule={result.schedule}
+        onReorder={vi.fn()}
+        onStatusChange={vi.fn()}
+      />
+    );
+    const label = screen.getByLabelText("Schedule row: Mixed").firstElementChild!;
+    expect(label).toHaveAttribute("draggable", "true");
+    const parts = Array.from(label.children);
+    expect(parts[0]).toHaveAccessibleName("Reorder Mixed");
+    expect(parts[1]).toHaveTextContent("1");
+    expect(parts[2]).toHaveAccessibleName("Change status of Mixed");
+    expect(parts[3]).toHaveTextContent("Mixed");
+  });
+
+  it("keeps the status read-only for viewers and dims paused features", () => {
+    renderSchedule([{ ...mixed, status: "paused" }]);
+    expect(screen.getByRole("img", { name: "Status: Paused" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Change status/ })).not.toBeInTheDocument();
+    expect(screen.getByTitle("Mixed")).toHaveClass("opacity-50");
+    expect(screen.getByRole("group", { name: /^Mixed:.* · Paused$/ }).parentElement).toHaveClass(
+      "opacity-50"
+    );
+    expect(screen.getAllByRole("img", { name: /^Mixed · / }).length).toBeGreaterThan(0);
+  });
+
+  it("wraps titles and widens the name column from the shared display toolbar", async () => {
+    renderSchedule([mixed]);
+    expect(screen.getByTitle("Mixed")).toHaveClass("truncate");
+    await userEvent.click(screen.getByRole("button", { name: "Wrap titles" }));
+    expect(screen.getByTitle("Mixed")).toHaveClass("break-words");
+    expect(screen.getByLabelText("Schedule row: Mixed")).toHaveStyle({
+      gridTemplateColumns: "220px repeat(6, minmax(28px, 1fr))",
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Full width" }));
+    expect(screen.getByLabelText("Schedule row: Mixed")).toHaveStyle({
+      gridTemplateColumns: "300px repeat(6, minmax(28px, 1fr))",
+    });
+  });
+
+  it("draws light weekly lines and a stronger line where a new month starts", () => {
+    const { weeks } = renderSchedule([mixed], 6);
+    const lines = document.querySelectorAll<HTMLElement>("[data-guide]");
+    expect(lines).toHaveLength(weeks.length - 1);
+    const month = document.querySelectorAll<HTMLElement>('[data-guide="month"]');
+    expect(month).toHaveLength(1);
+    expect(parseFloat(month[0]!.style.left)).toBeCloseTo((4 / weeks.length) * 100);
   });
 });

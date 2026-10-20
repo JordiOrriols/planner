@@ -1,7 +1,14 @@
 import { format } from "date-fns";
 import { z } from "zod";
 import { computeSchedule, parseDate } from "@/lib/planning";
-import { ROLES, type Feature, type PlannerMember, type Vacation } from "@/types/planner";
+import {
+  FEATURE_STATUSES,
+  ROLES,
+  type Feature,
+  type FeatureStatus,
+  type PlannerMember,
+  type Vacation,
+} from "@/types/planner";
 
 export interface RoadmapSource {
   name: string;
@@ -18,7 +25,7 @@ export interface PublicRoadmap {
   features: {
     name: string;
     project: string;
-    delivered: boolean;
+    status: FeatureStatus;
     start: string | null;
     end: string | null;
     complete: boolean;
@@ -37,7 +44,7 @@ const sourceSchema = z.object({
       name: z.string(),
       description: z.string(),
       in_backlog: z.boolean(),
-      delivered: z.boolean(),
+      status: z.enum(FEATURE_STATUSES),
       priority: z.number(),
       backend_devs: z.number(),
       backend_weeks: z.number(),
@@ -77,7 +84,7 @@ export function buildPublicRoadmap(input: unknown): PublicRoadmap {
     features: result.schedule.map((item) => ({
       name: item.feature.name,
       project: projects.get(item.feature.project_id) ?? "",
-      delivered: item.feature.delivered,
+      status: item.feature.status,
       start: item.start ? format(item.start, "yyyy-MM-dd") : null,
       end: item.end ? format(item.end, "yyyy-MM-dd") : null,
       complete: item.complete,

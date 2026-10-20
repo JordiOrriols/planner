@@ -15,10 +15,17 @@ or revoke a public link. Anyone with the link sees a standalone read-only timeli
 one overall bar per feature, including UAT, with no roles, effort or capacity details.
 Names of roadmap features and their projects are public while sharing is enabled.
 The page reloads live data every minute; revoking the link blocks subsequent reads.
+Visitors see each feature's status, the Today line, light weekly lines with stronger
+month boundaries, and can change the language. The footer stays visible.
+
+Both the roadmap page and the public link share a display toolbar: **Full width**
+removes the page's maximum width (keeping the page margins) and widens the
+feature-name column; **Wrap titles** wraps long feature names instead of
+truncating them. The choices are remembered in the browser.
 
 The `roadmap` Supabase Edge Function reads a service-only, token-gated RPC, reuses
 the exact scheduling engine from `src/lib/planning.ts`, and returns only feature
-names, project names, dates and delivery status. Staff, vacations and estimates
+names, project names, dates and status. Staff, vacations and estimates
 never reach the public client. Its Deno import map selects a server-only i18n
 instance instead of React/browser initialization. No second scheduler is maintained.
 
@@ -143,7 +150,7 @@ calibration) load with the selected workspace's data.
   **Team configuration**. Teams stay in the workspace they are created in, and a
   workspace that still holds teams cannot be deleted.
 - Workspace owners and explicitly shared editors manage feature estimates,
-  roadmap priorities, delivery status and the plan start date.
+  roadmap priorities, feature status and the plan start date.
 - Owners use **Share** beside the workspace selector to add a registered account
   by email with **View** or **Edit** access to Planner, Ladders or Pulse, change
   permissions or remove a share.
@@ -269,15 +276,18 @@ but must be edited to whole numbers before they can be scheduled.
 - Only features explicitly added to the roadmap are scheduled.
 - Add existing estimates on Roadmap using **Add feature**.
   Estimation has no roadmap toggle; the picker links there when a new feature is needed.
-- Reorder by dragging the project names on the left of the schedule. Keyboard
-  users can focus a name and press Arrow Up / Arrow Down.
-- Right-click anywhere on a schedule row, including its name or bar, for
-  **Mark delivered** / **Undo delivery** and **Remove from roadmap**.
+- Each row label shows, in order: the drag handle, the priority number, the
+  status dot and the feature name. Reorder by dragging the label; keyboard users
+  can focus the handle and press Arrow Up / Arrow Down.
+- Right-click anywhere on a schedule row, including its name or bar, to change
+  the **status** or **Remove from roadmap**.
   Keyboard users can focus the row and press Shift+F10 or the context menu key.
   Removal keeps the feature estimate. These menus use the UI package's Radix exports.
-- Workspace owners and editors can mark a project **Delivered** (or undo it).
-  This persists a delivery status and turns its entire existing bar green;
-  it does not release capacity or change forecast dates or roadmap priority.
+- Every feature has a status: **Pending**, **In progress**, **Done** or **Paused**.
+  Editors change it in the feature form on Estimation, or on the roadmap from the
+  status dot or the row menu; viewers see it read-only. **Done** turns the
+  entire bar green; **Paused** dims the row to half opacity. Status does not
+  release capacity or change forecast dates or roadmap priority.
 - A blue **Today** line spans the chart at the current local calendar day, when
   that day is inside the displayed forecast. It updates automatically across midnight.
 - Daily available capacity is allocated by role and roadmap priority.
@@ -372,6 +382,11 @@ project with approval:
     workspace, `features.workspace_id` is dropped, feature access and the roadmap
     RPCs go through the project, and a project with features cannot be deleted
     (deleting the workspace still removes everything).
+22. `20261019190000_public_roadmap.sql`: token-gated public roadmap links.
+23. `20261020090000_feature_status.sql`: `features.status` (pending, in_progress,
+    done, paused), backfilled from `delivered`. A trigger keeps the legacy
+    `delivered` flag equal to `status = 'done'` so already deployed clients keep
+    working; drop `delivered` once every client reads `status`.
 
 The fourth migration deliberately extends Ladders members; it does not alter
 job titles, existing evaluation tokens or evaluations. Both apps must use this

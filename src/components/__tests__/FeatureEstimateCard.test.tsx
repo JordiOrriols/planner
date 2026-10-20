@@ -23,7 +23,7 @@ const feature: Feature = {
   qa_devs: 2,
   qa_weeks: 1,
   in_backlog: false,
-  delivered: false,
+  status: "pending",
   priority: 0,
 };
 

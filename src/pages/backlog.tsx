@@ -10,6 +10,7 @@ import RoadmapSharing from "@/components/organisms/roadmap-sharing";
 import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
+import type { FeatureStatus } from "@/types/planner";
 
 export default function Backlog() {
   const { t } = useTranslation();
@@ -57,10 +58,10 @@ export default function Backlog() {
       await refresh();
     });
   }
-  function deliver(id: string, delivered: boolean) {
+  function changeStatus(id: string, status: FeatureStatus) {
     if (!repository) throw new Error(t("roadmap.errors.signInRequired"));
     void action.run(async () => {
-      await repository.setDelivered(id, delivered);
+      await repository.setStatus(id, status);
       await refresh();
     });
   }
@@ -192,7 +193,7 @@ export default function Backlog() {
               ? {
                   onReorder: move,
                   onRemove: (id: string) => toggle(id, false),
-                  onDeliveredChange: deliver,
+                  onStatusChange: changeStatus,
                 }
               : {})}
             disabled={action.busy}

@@ -14,8 +14,8 @@
     "unavailable": "La hoja de ruta no está disponible. Es posible que el enlace se haya revocado. Inténtalo de nuevo o pide un enlace nuevo.",
     "empty": "Todavía no hay funcionalidades.",
     "unscheduled": "Fechas aún no disponibles",
-    "span": "{{name}}: del {{start}} al {{end}}",
-    "forecastNotice": "Las fechas son previsiones, no compromisos. Se actualiza automáticamente. El verde indica funcionalidades entregadas."
+    "span": "{{name}}: del {{start}} al {{end}} · {{status}}",
+    "forecastNotice": "Las fechas son previsiones, no compromisos. Se actualiza automáticamente."
   },
   "uat": {
     "label": "UAT",
@@ -480,7 +480,8 @@
     "loading": {
       "page": "Cargando la página",
       "planner": "Cargando Planner"
-    }
+    },
+    "footer": "Hecho con amor por Jordi Orriols"
   },
   "common": {
     "actions": {
@@ -631,17 +632,14 @@
   },
   "gantt": {
     "actions": {
-      "markDelivered": "Marcar como entregado",
-      "remove": "Quitar de la hoja de ruta",
-      "undoDelivery": "Deshacer entrega"
+      "remove": "Quitar de la hoja de ruta"
     },
     "bar": {
-      "deliveredSuffix": " · Entregado",
       "incomplete": "sin completar",
       "partialSuffix": " (previsión parcial)",
       "peopleRequested_one": "{{count}} persona solicitada",
       "peopleRequested_other": "{{count}} personas solicitadas",
-      "projectSpan": "{{featureName}}: {{startDate}} a {{endDate}}{{deliveryStatus}}",
+      "projectSpan": "{{featureName}}: {{startDate}} a {{endDate}} · {{status}}",
       "roleSpan": "{{featureName}} · {{role}}: {{startDate}} a {{endDate}} · {{requestedPeople}} · {{effort}} semanas-persona{{forecastStatus}}"
     },
     "capacity": {
@@ -651,10 +649,9 @@
     "columns": {
       "featurePriority": "Funcionalidad · prioridad"
     },
-    "interactionHelp": "Arrastra los nombres de las funcionalidades para reordenarlos o usa Flecha arriba / Flecha abajo. Pasa el cursor por las barras para ver detalles. Haz clic derecho en una fila (o pulsa Mayús+F10) para ver las acciones de entrega y eliminación.",
+    "interactionHelp": "Arrastra las filas para reordenarlas o enfoca el asa y usa Flecha arriba / Flecha abajo. Haz clic en el punto de estado para cambiarlo. Pasa el cursor por las barras para ver detalles. Haz clic derecho en una fila (o pulsa Mayús+F10) para las acciones de estado y eliminación.",
     "legend": {
       "bottomSuffix": " (inferior)",
-      "delivered": "Entregado",
       "fullHeightSuffix": " (altura completa)",
       "paused": "Gris · en espera / pausado",
       "topSuffix": " (superior)"
@@ -871,5 +868,19 @@
       "hasFeatures": "Mueve o elimina antes las funcionalidades de este proyecto."
     },
     "inUse": "Elimina o mueve antes las funcionalidades de este proyecto."
+  },
+  "featureStatus": {
+    "label": "Estado",
+    "pending": "Pendiente",
+    "in_progress": "En curso",
+    "done": "Hecha",
+    "paused": "En pausa",
+    "current": "Estado: {{status}}",
+    "change": "Cambiar el estado de {{featureName}}"
+  },
+  "roadmapDisplay": {
+    "label": "Visualización del roadmap",
+    "fullWidth": "Ancho completo",
+    "wrapTitles": "Ajustar títulos"
   }
 }

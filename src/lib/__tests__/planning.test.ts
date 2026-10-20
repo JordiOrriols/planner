@@ -26,7 +26,7 @@ const feature = (id = "one", weeks = 1): Feature => ({
   project_id: "project",
   name: id,
   in_backlog: true,
-  delivered: false,
+  status: "pending",
   priority: 0,
   backend_devs: 1,
   backend_weeks: weeks,
