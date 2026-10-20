@@ -304,8 +304,16 @@ describe("role-aware Gantt allocations", () => {
     expect(frontend[0]).toHaveAccessibleName(
       "Mixed · Frontend: Feb 2, 2026 to Feb 13, 2026 · 1 person requested · 2.0 person-weeks"
     );
-    expect(screen.getByText("Backend (top)")).toBeInTheDocument();
-    expect(screen.getByText("Frontend (bottom)")).toBeInTheDocument();
+    const legend = (role: string) =>
+      document.querySelector(`[data-role-swatch="${role}"]`)!.parentElement!.textContent;
+    expect(legend("backend")).toBe("Backend");
+    expect(legend("frontend")).toBe("Frontend");
+    expect(legend("design")).toBe("Design");
+    expect(legend("qa")).toBe("QA");
+    expect(screen.getByText("UAT", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText(/^UAT · /)).toBeNull();
+    // Status colours are explained on the public link only.
+    expect(screen.queryByText("In progress", { exact: true })).toBeNull();
   });
 
   it("uses full height for design and QA, with development between them", () => {

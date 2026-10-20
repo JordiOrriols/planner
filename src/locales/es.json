@@ -651,10 +651,7 @@
     },
     "interactionHelp": "Arrastra las filas para reordenarlas o enfoca el asa y usa Flecha arriba / Flecha abajo. Haz clic en el punto de estado para cambiarlo. Pasa el cursor por las barras para ver detalles. Haz clic derecho en una fila (o pulsa Mayús+F10) para las acciones de estado y eliminación.",
     "legend": {
-      "bottomSuffix": " (inferior)",
-      "fullHeightSuffix": " (altura completa)",
-      "paused": "Gris · en espera / pausado",
-      "topSuffix": " (superior)"
+      "paused": "Gris · en espera / pausado"
     },
     "row": {
       "label": "Fila de planificación: {{featureName}}",

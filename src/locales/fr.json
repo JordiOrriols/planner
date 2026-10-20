@@ -650,10 +650,7 @@
     },
     "interactionHelp": "Faites glisser les lignes pour les réorganiser, ou placez le focus sur la poignée et utilisez Flèche haut / Flèche bas. Cliquez sur le point de statut pour le modifier. Survolez les barres pour afficher les détails. Faites un clic droit sur une ligne (ou appuyez sur Maj+F10) pour les actions de statut et de suppression.",
     "legend": {
-      "bottomSuffix": " (bas)",
-      "fullHeightSuffix": " (pleine hauteur)",
-      "paused": "Gris · en attente / en pause",
-      "topSuffix": " (haut)"
+      "paused": "Gris · en attente / en pause"
     },
     "row": {
       "label": "Ligne du planning : {{featureName}}",

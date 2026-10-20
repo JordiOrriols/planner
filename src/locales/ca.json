@@ -651,10 +651,7 @@
     },
     "interactionHelp": "Arrossega les files per reordenar-les o enfoca la nansa i fes servir Fletxa amunt / Fletxa avall. Fes clic al punt d'estat per canviar-lo. Passa el cursor per les barres per veure'n els detalls. Fes clic dret en una fila (o prem Maj+F10) per a les accions d'estat i eliminació.",
     "legend": {
-      "bottomSuffix": " (inferior)",
-      "fullHeightSuffix": " (alçada completa)",
-      "paused": "Gris · en espera / pausat",
-      "topSuffix": " (superior)"
+      "paused": "Gris · en espera / pausat"
     },
     "row": {
       "label": "Fila de planificació: {{featureName}}",
