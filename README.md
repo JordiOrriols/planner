@@ -51,7 +51,8 @@ is required instead. Do not grant anonymous access to `planner_roadmap_source`.
 
 ## Start locally
 
-Use Node.js 24.21.0 (bundled npm 11.19.0, matching CI). The shared UI library is installed from GitHub Packages as
+Use Node.js 26 LTS with npm 11.20.0, matching CI. Run `nvm install` and
+`nvm use` to select the version in `.nvmrc`. The shared UI library is installed from GitHub Packages as
 `@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
 `.npmrc` reads it from `GITHUB_TOKEN`:
 
@@ -475,13 +476,13 @@ Pushes to `master` or `main`, as well as manual dispatch, run the same validatio
 and Pages deployment stages as Ladders. Database tests read the copied shared
 migrations from this repository; a sibling Ladders checkout is not required.
 
-CI pins Node.js 24.21.0 and uses `npm ci`; do not replace this with
+CI selects Node.js 26 from `.nvmrc` and uses `npm ci`; do not replace this with
 `npm install` to work around lockfile errors. Older npm versions can omit
 optional WASM peer dependencies that newer npm requires. When updating
-dependencies, regenerate the lockfile with npm 11.19.0:
+dependencies, regenerate the lockfile with npm 11.20.0:
 
 ```bash
-npx --yes --package=npm@11.19.0 npm install --package-lock-only --ignore-scripts
+npx --yes --package=npm@11.20.0 npm install --package-lock-only --ignore-scripts
 ```
 
 `npm ci` installs `@jordiorriols/ui` from GitHub Packages with the workflow token
