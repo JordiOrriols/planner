@@ -472,6 +472,12 @@ own data afterward; they never reset Ladders data or send invitation emails.
 
 ## CI and deployment
 
+Build and deployment run in separate jobs. Builds have only read permissions;
+`UI_READ_TOKEN` is available only to dependency installation. Only the deployment
+job receives Pages/OIDC permissions, on `main` or `master` and subject to the
+`github-pages` environment's branch policy. Checkout credentials are not persisted.
+Actions are pinned to commit SHAs and receive weekly Dependabot update PRs.
+
 Pushes to `master` or `main`, as well as manual dispatch, run the same validation
 and Pages deployment stages as Ladders. Database tests read the copied shared
 migrations from this repository; a sibling Ladders checkout is not required.
