@@ -3,6 +3,7 @@ import { NavLink, Outlet, useMatch } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
   AppHeader,
+  AppFooter,
   AppMain,
   AppNavigation,
   AppNavigationItem,
@@ -126,6 +127,7 @@ export default function AppLayout() {
         )}
         <Outlet />
       </AppMain>
+      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
     </AppPage>
   );
 }

@@ -49,12 +49,12 @@ describe("Projects manager", () => {
     await waitFor(() => expect(props.onDelete).toHaveBeenCalledExactlyOnceWith("growth"));
   });
 
-  it("blocks deleting a project that still has features", () => {
+  it("blocks deleting a project that still has features", async () => {
     setup({ projectsInUse: new Set(["payments"]) });
     const deletePayments = screen.getByRole("button", { name: "Delete Payments" });
     expect(deletePayments).toBeDisabled();
-    expect(deletePayments).toHaveAttribute(
-      "title",
+    await userEvent.hover(deletePayments);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
       "Delete or move this project's features first."
     );
     expect(screen.getByRole("button", { name: "Delete Growth" })).toBeEnabled();

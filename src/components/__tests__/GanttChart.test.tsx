@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { parseISO } from "date-fns";
 import GanttChart from "@/components/organisms/gantt-chart";
@@ -59,6 +59,39 @@ function renderSchedule(features: Feature[], horizon = 6) {
 }
 
 describe("role-aware Gantt allocations", () => {
+  it("groups three icon-only display controls with shared hover hints and working toggles", async () => {
+    const result = computeSchedule([mixed], members, [], parseISO("2026-02-02"), 6);
+    const toggle = vi.fn();
+    render(
+      <GanttChart
+        weeks={result.weeks}
+        schedule={result.schedule}
+        markerVisibility={{ visible: true, toggle }}
+      />
+    );
+    const toolbar = screen.getByRole("group", { name: "Roadmap display" });
+    expect(within(toolbar).getAllByRole("button")).toHaveLength(3);
+    for (const name of ["Full width", "Wrap titles", "Hide markers"]) {
+      const button = within(toolbar).getByRole("button", { name, exact: true });
+      expect(button).toHaveTextContent("");
+      await userEvent.hover(button);
+      expect(await screen.findByRole("tooltip", { name })).toHaveTextContent(name);
+      await userEvent.unhover(button);
+    }
+    await userEvent.click(within(toolbar).getByRole("button", { name: "Hide markers" }));
+    expect(toggle).toHaveBeenCalledOnce();
+    await userEvent.click(within(toolbar).getByRole("button", { name: "Full width" }));
+    expect(within(toolbar).getByRole("button", { name: "Full width" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await userEvent.click(within(toolbar).getByRole("button", { name: "Wrap titles" }));
+    expect(within(toolbar).getByRole("button", { name: "Wrap titles" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+  });
+
   it("keeps priority order and adds a project heading whenever the project changes", () => {
     const projects = [
       { id: "payments", workspace_id: "workspace", name: "Payments" },
