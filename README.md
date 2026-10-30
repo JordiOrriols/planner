@@ -10,11 +10,11 @@ Unestimated or incomplete features do not receive invented UAT dates.
 
 ### Public roadmap
 
-Use workspace **Share** from any page: **People with access** appears first,
-then **Public link**. Only owners manage people and enable/revoke the public link;
+Use workspace **Share** from any page: **Emails** opens by default for people
+access; **Link** contains the public link controls. Only owners manage people and enable/revoke the public link;
 Planner editors/viewers can inspect current-app access and copy/open an existing
 link. Linked team access alone does not grant sharing access. The shared UI
-`^0.3.20` provides this dialog and larger, content-sized modals (up to 70dvh).
+`^0.3.21` provides these accessible tabs and larger, content-sized modals (up to 70dvh).
 `20261030234000_workspace_sharing_directory.sql` has been applied to the shared
 database with approval; the RPC enforces owner-only public-link writes and
 app-scoped directory/token reads.
