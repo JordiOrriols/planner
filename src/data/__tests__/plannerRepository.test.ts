@@ -26,6 +26,42 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("validates marker dates and names and scopes writes to the workspace", async () => {
+    const { fetch, response, repository } = setup();
+    const marker = {
+      id: "33333333-3333-4333-8333-333333333333",
+      workspace_id: workspace.id,
+      name: "Launch",
+      date: "2026-02-04",
+    };
+    for (const [name, date] of [
+      ["", marker.date],
+      [" ", marker.date],
+      ["x".repeat(81), marker.date],
+      ["Launch", "2026-02-30"],
+      ["Launch", ""],
+    ])
+      await expect(repository.createMarker(workspace.id, name, date)).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockImplementation(async () => response(marker));
+    expect(await repository.createMarker(workspace.id, " Launch ", marker.date)).toEqual(marker);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      workspace_id: workspace.id,
+      name: "Launch",
+      date: marker.date,
+    });
+    await repository.deleteMarker(workspace.id, marker.id);
+    expect(String(fetch.mock.calls[1]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
+    expect(String(fetch.mock.calls[1]?.[0])).toContain(`id=eq.${marker.id}`);
+    expect(fetch.mock.calls[1]?.[1]?.method).toBe("DELETE");
+    fetch.mockImplementation(async () => response({ message: "Write denied" }, 403));
+    await expect(repository.createMarker(workspace.id, marker.name, marker.date)).rejects.toThrow(
+      "Write denied"
+    );
+    await expect(repository.deleteMarker(workspace.id, marker.id)).rejects.toThrow("Write denied");
+    fetch.mockImplementation(async () => response(null));
+    await expect(repository.deleteMarker(workspace.id, marker.id)).rejects.toThrow();
+  });
   it("saves sprint cadence and results atomically and validates them before requesting", async () => {
     const { fetch, response, repository } = setup();
     const history = [{ start_date: "2026-02-02", story_points: 50 }];

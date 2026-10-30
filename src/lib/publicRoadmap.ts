@@ -22,6 +22,7 @@ export interface RoadmapSource {
 export interface PublicRoadmap {
   name: string;
   startDate: string;
+  markers: { name: string; date: string }[];
   features: {
     name: string;
     project: string;
@@ -36,6 +37,7 @@ export interface PublicRoadmap {
 const sourceSchema = z.object({
   name: z.string(),
   startDate: z.string().date(),
+  markers: z.array(z.object({ name: z.string(), date: z.string().date() })).default([]),
   projects: z.array(z.object({ id: z.string(), name: z.string() })),
   features: z.array(
     z.object({
@@ -81,6 +83,7 @@ export function buildPublicRoadmap(input: unknown): PublicRoadmap {
   return {
     name: source.name,
     startDate: source.startDate,
+    markers: source.markers,
     features: result.schedule.map((item) => ({
       name: item.feature.name,
       project: projects.get(item.feature.project_id) ?? "",

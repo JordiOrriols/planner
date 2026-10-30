@@ -57,6 +57,12 @@ const projectSchema = z.object({
   workspace_id: z.string().uuid(),
   name: z.string(),
 });
+const markerSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  name: z.string(),
+  date: z.string().date(),
+});
 const vacationSchema = z.object({
   member_id: z.string().uuid(),
   date: z.string(),
@@ -115,6 +121,29 @@ export function createPlannerRepository(client: SupabaseClient) {
     }
   }
   return {
+    async createMarker(workspace: string, name: string, date: string) {
+      const trimmed = name.trim();
+      if (!trimmed || trimmed.length > 80 || !z.string().date().safeParse(date).success)
+        throw new Error(i18n.t("markers.invalid"));
+      const { data, error } = await client
+        .from("roadmap_markers")
+        .insert({ workspace_id: workspace, name: trimmed, date })
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return markerSchema.parse(data);
+    },
+    async deleteMarker(workspace: string, id: string) {
+      const { data, error } = await client
+        .from("roadmap_markers")
+        .delete()
+        .eq("workspace_id", workspace)
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return z.object({ id: z.string().uuid() }).parse(data);
+    },
     async roadmapShare(workspace: string, enabled?: boolean) {
       return z
         .string()
@@ -167,33 +196,48 @@ export function createPlannerRepository(client: SupabaseClient) {
     updatePlanningRole: (member: string, role: Role | null) =>
       rpc("planner_update_planning_role", { member, member_role: role }),
     async loadWorkspace(workspace: string) {
-      const [settings, features, projects, members, linkedTeams, canEdit] = await Promise.all([
-        client
-          .from("workspaces")
-          .select("*")
-          .eq("id", workspace)
-          .single()
-          .then(({ data, error }) => {
-            if (error) throw new Error(error.message, { cause: error });
-            return workspaceSchema.parse(data);
+      const [settings, features, projects, members, linkedTeams, canEdit, markers] =
+        await Promise.all([
+          client
+            .from("workspaces")
+            .select("*")
+            .eq("id", workspace)
+            .single()
+            .then(({ data, error }) => {
+              if (error) throw new Error(error.message, { cause: error });
+              return workspaceSchema.parse(data);
+            }),
+          // Features reach their workspace through their project.
+          list("features", featureSchema, workspace, {
+            select: "*, projects!inner(workspace_id)",
+            workspaceColumn: "projects.workspace_id",
           }),
-        // Features reach their workspace through their project.
-        list("features", featureSchema, workspace, {
-          select: "*, projects!inner(workspace_id)",
-          workspaceColumn: "projects.workspace_id",
-        }),
-        list("projects", projectSchema, workspace).then((items) =>
-          items.sort((a, b) => a.name.localeCompare(b.name))
-        ),
-        rpcList("planner_workspace_roster", memberSchema, { workspace }),
-        rpcList("planner_linked_teams", linkedTeamSchema, { workspace }),
-        rpc("planner_can_edit_workspace", { workspace }).then((value) => z.boolean().parse(value)),
-      ]);
+          list("projects", projectSchema, workspace).then((items) =>
+            items.sort((a, b) => a.name.localeCompare(b.name))
+          ),
+          rpcList("planner_workspace_roster", memberSchema, { workspace }),
+          rpcList("planner_linked_teams", linkedTeamSchema, { workspace }),
+          rpc("planner_can_edit_workspace", { workspace }).then((value) =>
+            z.boolean().parse(value)
+          ),
+          list("roadmap_markers", markerSchema, workspace).then((items) =>
+            items.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name))
+          ),
+        ]);
       const ids = new Set(members.map((member) => member.id));
       const vacations = (await list("vacations", vacationSchema)).filter((item) =>
         ids.has(item.member_id)
       );
-      return { workspace: settings, features, projects, members, vacations, linkedTeams, canEdit };
+      return {
+        workspace: settings,
+        features,
+        projects,
+        members,
+        vacations,
+        linkedTeams,
+        canEdit,
+        markers,
+      };
     },
     async saveFeature(input: FeatureInput, id?: string) {
       validateFeature(input);
