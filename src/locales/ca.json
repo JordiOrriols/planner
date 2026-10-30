@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Dates importants",
+    "description": "Afegeix marcadors amb nom al full de ruta d'aquest espai. També estaran disponibles al seu enllaç públic.",
+    "manage": "Gestiona els marcadors",
+    "name": "Nom del marcador",
+    "date": "Data del marcador",
+    "add": "Afegeix un marcador",
+    "delete": "Suprimeix el marcador {{markerName}}",
+    "empty": "Encara no hi ha marcadors. Afegeix una data important a dalt.",
+    "show": "Mostra els marcadors",
+    "hide": "Amaga els marcadors",
+    "label": "{{markerName}}: {{date}}",
+    "invalid": "Introdueix un nom (1–80 caràcters) i una data vàlida."
+  },
   "publicRoadmap": {
     "title": "Full de ruta",
     "share": "Comparteix el full de ruta",
-    "sharingDescription": "Qualsevol persona amb l'enllaç pot veure els noms de les funcionalitats, projectes i dates de lliurament. El personal, les vacances i les estimacions tècniques són privats. S'actualitza automàticament.",
+    "sharingDescription": "Qualsevol persona amb l'enllaç pot veure els noms de les funcionalitats, projectes, dates de lliurament i marcadors de dates amb nom. El personal, les vacances i les estimacions tècniques són privats. S'actualitza automàticament.",
     "link": "Enllaç públic del full de ruta",
     "create": "Crea un enllaç",
     "copy": "Copia l'enllaç",

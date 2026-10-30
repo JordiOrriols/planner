@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Important dates",
+    "description": "Add named date markers to this workspace's roadmap. Markers are also available on its public roadmap link.",
+    "manage": "Manage markers",
+    "name": "Marker name",
+    "date": "Marker date",
+    "add": "Add marker",
+    "delete": "Delete marker {{markerName}}",
+    "empty": "No markers yet. Add an important date above.",
+    "show": "Show markers",
+    "hide": "Hide markers",
+    "label": "{{markerName}}: {{date}}",
+    "invalid": "Enter a marker name (1–80 characters) and a valid date."
+  },
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Share roadmap",
-    "sharingDescription": "Anyone with this link can see feature names, projects and overall delivery dates. Staffing, vacations and technical estimates stay private. The roadmap updates automatically.",
+    "sharingDescription": "Anyone with this link can see feature names, projects, overall delivery dates and named date markers. Staffing, vacations and technical estimates stay private. The roadmap updates automatically.",
     "link": "Public roadmap link",
     "create": "Create share link",
     "copy": "Copy link",

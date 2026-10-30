@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Wichtige Termine",
+    "description": "Fügen Sie benannte Datumsmarkierungen zur Roadmap dieses Arbeitsbereichs hinzu. Diese sind auch über den öffentlichen Link verfügbar.",
+    "manage": "Markierungen verwalten",
+    "name": "Name der Markierung",
+    "date": "Datum der Markierung",
+    "add": "Markierung hinzufügen",
+    "delete": "Markierung {{markerName}} löschen",
+    "empty": "Noch keine Markierungen. Fügen Sie oben einen wichtigen Termin hinzu.",
+    "show": "Markierungen anzeigen",
+    "hide": "Markierungen ausblenden",
+    "label": "{{markerName}}: {{date}}",
+    "invalid": "Geben Sie einen Namen (1–80 Zeichen) und ein gültiges Datum ein."
+  },
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Roadmap teilen",
-    "sharingDescription": "Jeder mit diesem Link sieht Funktionsnamen, Projekte und Liefertermine. Personal, Urlaub und technische Schätzungen bleiben privat. Die Roadmap wird automatisch aktualisiert.",
+    "sharingDescription": "Jeder mit diesem Link sieht Funktionsnamen, Projekte, Liefertermine und benannte Datumsmarkierungen. Personal, Urlaub und technische Schätzungen bleiben privat. Die Roadmap wird automatisch aktualisiert.",
     "link": "Öffentlicher Roadmap-Link",
     "create": "Link erstellen",
     "copy": "Link kopieren",

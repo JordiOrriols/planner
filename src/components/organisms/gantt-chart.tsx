@@ -8,7 +8,12 @@ import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 import type { CapacityWeek, ScheduledFeature, ScheduledRole } from "@/lib/planning";
-import { FEATURE_STATUSES, type FeatureStatus, type Project } from "@/types/planner";
+import {
+  FEATURE_STATUSES,
+  type FeatureStatus,
+  type Project,
+  type RoadmapMarker,
+} from "@/types/planner";
 import {
   FeatureTitle,
   RoadmapDisplayToolbar,
@@ -47,6 +52,7 @@ export default function GanttChart({
   weeks,
   schedule,
   projects = [],
+  markers = [],
   onReorder,
   onRemove,
   onStatusChange,
@@ -55,6 +61,7 @@ export default function GanttChart({
   weeks: CapacityWeek[];
   schedule: ScheduledFeature[];
   projects?: Project[];
+  markers?: RoadmapMarker[];
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
   onStatusChange?: (id: string, status: FeatureStatus) => void;
@@ -106,7 +113,7 @@ export default function GanttChart({
       )}
       <div className="overflow-x-auto">
         <div className="relative" style={{ minWidth: Math.max(720, N * 28 + labelWidth) }}>
-          <TimelineGuides weekStarts={weekStarts} labelWidth={labelWidth} />
+          <TimelineGuides weekStarts={weekStarts} labelWidth={labelWidth} markers={markers} />
           <TimelineHeader
             weekStarts={weekStarts}
             labelWidth={labelWidth}

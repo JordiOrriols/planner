@@ -19,6 +19,7 @@ import {
   type PlannerMember,
   type Vacation,
   type LinkedTeam,
+  type RoadmapMarker,
 } from "@/types/planner";
 
 interface WorkspaceContextValue {
@@ -27,6 +28,7 @@ interface WorkspaceContextValue {
   workspaceApi: WorkspaceApi;
   features: Feature[];
   projects: Project[];
+  markers: RoadmapMarker[];
   members: PlannerMember[];
   vacations: Vacation[];
   linkedTeams: LinkedTeam[];

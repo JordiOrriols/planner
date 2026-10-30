@@ -89,6 +89,7 @@ describe("live public roadmap", () => {
     expect(result).toEqual({
       name: "Public team",
       startDate: "2026-02-02",
+      markers: [],
       features: [
         {
           name: "Checkout",

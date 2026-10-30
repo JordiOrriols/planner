@@ -14,6 +14,12 @@ export interface Project {
   workspace_id: string;
   name: string;
 }
+export interface RoadmapMarker {
+  id: string;
+  workspace_id: string;
+  name: string;
+  date: string;
+}
 export type Feature = Omit<FeatureInput, "project_id"> & {
   id: string;
   project_id: string;

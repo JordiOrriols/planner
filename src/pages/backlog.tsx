@@ -1,12 +1,15 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, EmptyState, Modal } from "@jordiorriols/ui";
-import { GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
+import { Flag, GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
 import { PlanSummaryCard } from "@/components/molecules/plan-summary-card";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import GanttChart from "@/components/organisms/gantt-chart";
 import RoadmapSharing from "@/components/organisms/roadmap-sharing";
+import MarkersManager from "@/components/organisms/markers-manager";
+import { MarkerVisibilityButton } from "@/components/organisms/roadmap-timeline";
+import { useMarkerVisibility } from "@/lib/roadmapDisplay";
 import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
@@ -15,11 +18,14 @@ import type { FeatureStatus } from "@/types/planner";
 export default function Backlog() {
   const { t } = useTranslation();
 
-  const { features, projects, members, vacations, workspace, canEdit, refresh } = useWorkspace();
+  const { features, projects, markers, members, vacations, workspace, canEdit, refresh } =
+    useWorkspace();
   const { repository } = useData();
   const action = useAsyncAction();
   const [draftStart, setDraftStart] = useState<string | null>(null);
   const [editingStart, setEditingStart] = useState(false);
+  const [managingMarkers, setManagingMarkers] = useState(false);
+  const markerVisibility = useMarkerVisibility();
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
   const availableFeatures = features.filter((feature) => !feature.in_backlog);
@@ -85,15 +91,25 @@ export default function Backlog() {
           <h1 className="font-heading text-2xl font-semibold">{t("roadmap.title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">{t("roadmap.description")}</p>
         </div>
-        {canEdit && (
-          <div className="flex flex-wrap gap-2">
-            <RoadmapSharing key={workspace.id} workspace={workspace.id} repository={repository} />
-            <Button onClick={() => setAdding(true)}>
-              <Plus className="size-4" />
-              {t("roadmap.actions.addFeature")}
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <MarkerVisibilityButton
+            visible={markerVisibility.visible}
+            onToggle={markerVisibility.toggle}
+          />
+          {canEdit && (
+            <>
+              <Button variant="outline" onClick={() => setManagingMarkers(true)}>
+                <Flag className="size-4" />
+                {t("markers.manage")}
+              </Button>
+              <RoadmapSharing key={workspace.id} workspace={workspace.id} repository={repository} />
+              <Button onClick={() => setAdding(true)}>
+                <Plus className="size-4" />
+                {t("roadmap.actions.addFeature")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       <div className="grid sm:grid-cols-3 gap-3">
         <PlanSummaryCard
@@ -175,6 +191,7 @@ export default function Backlog() {
           </h2>
           <GanttChart
             projects={projects}
+            markers={markerVisibility.visible ? markers : []}
             weeks={result?.weeks ?? []}
             schedule={
               result?.schedule ??
@@ -199,6 +216,20 @@ export default function Backlog() {
             disabled={action.busy}
           />
         </section>
+      )}
+      {canEdit && managingMarkers && (
+        <MarkersManager
+          markers={markers}
+          onClose={() => setManagingMarkers(false)}
+          onCreate={async (name, date) => {
+            await repository.createMarker(workspace.id, name, date);
+            await refresh();
+          }}
+          onDelete={async (id) => {
+            await repository.deleteMarker(workspace.id, id);
+            await refresh();
+          }}
+        />
       )}
       {canEdit && adding && (
         <Modal

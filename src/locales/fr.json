@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Dates importantes",
+    "description": "Ajoutez des repères nommés à la feuille de route de cet espace. Ils seront aussi disponibles sur son lien public.",
+    "manage": "Gérer les repères",
+    "name": "Nom du repère",
+    "date": "Date du repère",
+    "add": "Ajouter un repère",
+    "delete": "Supprimer le repère {{markerName}}",
+    "empty": "Aucun repère pour le moment. Ajoutez une date importante ci-dessus.",
+    "show": "Afficher les repères",
+    "hide": "Masquer les repères",
+    "label": "{{markerName}} : {{date}}",
+    "invalid": "Saisissez un nom (1–80 caractères) et une date valide."
+  },
   "publicRoadmap": {
     "title": "Feuille de route",
     "share": "Partager la feuille de route",
-    "sharingDescription": "Toute personne disposant du lien peut voir les fonctionnalités, projets et dates de livraison. Les effectifs, congés et estimations techniques restent privés. La mise à jour est automatique.",
+    "sharingDescription": "Toute personne disposant du lien peut voir les fonctionnalités, projets, dates de livraison et repères de dates nommés. Les effectifs, congés et estimations techniques restent privés. La mise à jour est automatique.",
     "link": "Lien public de la feuille de route",
     "create": "Créer un lien",
     "copy": "Copier le lien",
