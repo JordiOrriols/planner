@@ -13,6 +13,7 @@ export function WelcomePage() {
   const [open, setOpen] = useState(false);
   return (
     <WelcomeScreen
+      projectId="planner"
       brand={t("planner.brand")}
       icon={<AppIcon />}
       title={t("planner.welcome.title")}
