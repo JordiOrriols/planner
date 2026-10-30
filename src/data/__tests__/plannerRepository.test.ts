@@ -26,6 +26,30 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("pages the current-app sharing directory and surfaces authorization and shape failures", async () => {
+    const { fetch, response, repository } = setup();
+    const share = {
+      user_id: workspace.owner_id,
+      email: "reader@example.com",
+      app: "planner",
+      access_level: "viewer",
+    };
+    fetch
+      .mockResolvedValueOnce(response(Array(500).fill(share)))
+      .mockResolvedValueOnce(response([share]));
+    expect(await repository.sharingAccess(workspace.id)).toHaveLength(501);
+    expect(String(fetch.mock.calls[1]?.[0])).toContain("offset=500");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      workspace: workspace.id,
+      app_name: "planner",
+    });
+    fetch.mockResolvedValueOnce(response({ message: "Workspace sharing access required" }, 403));
+    await expect(repository.sharingAccess(workspace.id)).rejects.toThrow(
+      "Workspace sharing access required"
+    );
+    fetch.mockResolvedValueOnce(response([{ ...share, app: "shiplog" }]));
+    await expect(repository.sharingAccess(workspace.id)).rejects.toThrow();
+  });
   it("validates marker dates and names and scopes writes to the workspace", async () => {
     const { fetch, response, repository } = setup();
     const marker = {
