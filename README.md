@@ -63,6 +63,10 @@ Use Node.js 26 LTS with npm 11.20.0, matching CI. Run `nvm install` and
 `@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
 `.npmrc` reads it from `GITHUB_TOKEN`:
 
+UI `^0.3.19` supplies the shared green Planner branding for header, project-menu
+and login/welcome icons. `projectId` and `ProjectIcon` reuse the UI registry
+without a local palette.
+
 ```bash
 export GITHUB_TOKEN=<token with read:packages>
 npm install
@@ -478,6 +482,12 @@ the environment/keychain. Tests create unique workspaces and delete only their
 own data afterward; they never reset Ladders data or send invitation emails.
 
 ## CI and deployment
+
+Build and deployment run in separate jobs. Builds have only read permissions;
+`UI_READ_TOKEN` is available only to dependency installation. Only the deployment
+job receives Pages/OIDC permissions, on `main` or `master` and subject to the
+`github-pages` environment's branch policy. Checkout credentials are not persisted.
+Actions are pinned to commit SHAs and receive weekly Dependabot update PRs.
 
 Pushes to `master` or `main`, as well as manual dispatch, run the same validation
 and Pages deployment stages as Ladders. Database tests read the copied shared

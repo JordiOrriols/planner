@@ -1,8 +1,6 @@
 import React from "react";
-import { PROJECTS } from "@jordiorriols/ui";
-
-const Icon = PROJECTS.find((project) => project.id === "planner")!.icon;
+import { ProjectIcon } from "@jordiorriols/ui";
 
 export function AppIcon() {
-  return <Icon className="cadence-icon" />;
+  return <ProjectIcon projectId="planner" className="cadence-icon" />;
 }
