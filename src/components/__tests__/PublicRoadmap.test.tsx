@@ -27,10 +27,14 @@ const checkout: Item = {
 const roadmap = (...features: Item[]): PublicRoadmap => ({
   name: "Workspace",
   startDate: "2026-02-02",
+  markers: [],
   features,
 });
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
 afterEach(async () => {
   vi.useRealTimers();
   await i18n.changeLanguage("en");
