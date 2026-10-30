@@ -15,9 +15,10 @@ import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
 import { fmtDate, getMonday, parseDate } from "@/lib/planning";
 import { cn } from "@/lib/utils";
-import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
+import { useMarkerVisibility, useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import {
   FeatureTitle,
+  MarkerVisibilityButton,
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusLegend,
@@ -33,6 +34,7 @@ const BRAND = "JordiOrriols.cat";
 export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   const { t } = useTranslation();
   const labelWidth = useLabelWidth();
+  const markerVisibility = useMarkerVisibility(true);
   const start = getMonday(parseDate(roadmap.startDate));
   const last = roadmap.features.reduce((latest, item) => {
     const end = item.end ?? item.start;
@@ -44,7 +46,11 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
     <section className="panel space-y-4" aria-label={t("publicRoadmap.title")}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <StatusLegend />
-        <span className="ml-auto">
+        <span className="ml-auto flex flex-wrap gap-1">
+          <MarkerVisibilityButton
+            visible={markerVisibility.visible}
+            onToggle={markerVisibility.toggle}
+          />
           <RoadmapDisplayToolbar />
         </span>
       </div>
@@ -53,7 +59,11 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
       ) : (
         <div className="overflow-x-auto">
           <div className="relative" style={{ minWidth: Math.max(640, labelWidth + count * 32) }}>
-            <TimelineGuides weekStarts={weekStarts} labelWidth={labelWidth} />
+            <TimelineGuides
+              weekStarts={weekStarts}
+              labelWidth={labelWidth}
+              markers={markerVisibility.visible ? roadmap.markers : []}
+            />
             <TimelineHeader
               weekStarts={weekStarts}
               labelWidth={labelWidth}

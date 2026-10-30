@@ -1,4 +1,28 @@
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+/** Separate member/public choices, kept only for this tab's browser session. */
+export function useMarkerVisibility(publicView = false) {
+  const key = `planner:markers:${publicView ? "public" : "member"}:v1`;
+  const [visible, setVisible] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(key);
+      return saved === null ? !publicView : saved === "true";
+    } catch (error) {
+      console.warn("Unable to read marker visibility", error);
+      return !publicView;
+    }
+  });
+  function toggle() {
+    const next = !visible;
+    try {
+      sessionStorage.setItem(key, String(next));
+    } catch (error) {
+      console.warn("Unable to save marker visibility for this session", error);
+    }
+    setVisible(next);
+  }
+  return { visible, toggle };
+}
 
 export interface RoadmapDisplay {
   fullWidth: boolean;

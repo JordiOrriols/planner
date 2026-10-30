@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Fechas importantes",
+    "description": "Añade marcadores con nombre a la hoja de ruta de este espacio. También estarán disponibles en su enlace público.",
+    "manage": "Gestionar marcadores",
+    "name": "Nombre del marcador",
+    "date": "Fecha del marcador",
+    "add": "Añadir marcador",
+    "delete": "Eliminar marcador {{markerName}}",
+    "empty": "Aún no hay marcadores. Añade una fecha importante arriba.",
+    "show": "Mostrar marcadores",
+    "hide": "Ocultar marcadores",
+    "label": "{{markerName}}: {{date}}",
+    "invalid": "Introduce un nombre (1–80 caracteres) y una fecha válida."
+  },
   "publicRoadmap": {
     "title": "Hoja de ruta",
     "share": "Compartir hoja de ruta",
-    "sharingDescription": "Cualquiera con este enlace puede ver los nombres de las funcionalidades, proyectos y fechas de entrega. El personal, las vacaciones y las estimaciones técnicas son privados. Se actualiza automáticamente.",
+    "sharingDescription": "Cualquiera con este enlace puede ver los nombres de las funcionalidades, proyectos, fechas de entrega y marcadores de fechas con nombre. El personal, las vacaciones y las estimaciones técnicas son privados. Se actualiza automáticamente.",
     "link": "Enlace público de la hoja de ruta",
     "create": "Crear enlace",
     "copy": "Copiar enlace",

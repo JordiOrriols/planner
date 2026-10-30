@@ -2,12 +2,34 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
-import { Check, Maximize2, Minimize2, WrapText } from "@jordiorriols/ui/icons";
+import { Check, Flag, Maximize2, Minimize2, WrapText } from "@jordiorriols/ui/icons";
 import { differenceInCalendarDays, format } from "date-fns";
-import { fmtDate, fmtMonth } from "@/lib/planning";
+import { fmtDate, fmtMonth, parseDate } from "@/lib/planning";
 import { cn } from "@/lib/utils";
 import { updateRoadmapDisplay, useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import { FEATURE_STATUSES, type FeatureStatus } from "@/types/planner";
+
+export function MarkerVisibilityButton({
+  visible,
+  onToggle,
+}: {
+  visible: boolean;
+  onToggle: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant={visible ? "secondary" : "ghost"}
+      aria-pressed={visible}
+      onClick={onToggle}
+    >
+      <Flag className="size-4" />
+      {t(visible ? "markers.hide" : "markers.show")}
+    </Button>
+  );
+}
 
 export const STATUS_COLORS: Record<FeatureStatus, string> = {
   pending: "bg-slate-400",
@@ -221,9 +243,11 @@ export function TimelineHeader({
 export function TimelineGuides({
   weekStarts,
   labelWidth,
+  markers = [],
 }: {
   weekStarts: Date[];
   labelWidth: number;
+  markers?: { name: string; date: string }[];
 }) {
   const { t } = useTranslation();
   const today = useToday();
@@ -251,6 +275,31 @@ export function TimelineGuides({
               )}
               style={{ left: `${(index / count) * 100}%` }}
             />
+          );
+        })}
+      </div>
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 z-[4]"
+        style={{ left: labelWidth }}
+      >
+        {markers.map((marker, index) => {
+          const date = parseDate(marker.date);
+          const offset = differenceInCalendarDays(date, weekStarts[0]!);
+          if (offset < 0 || offset >= count * 7) return null;
+          const label = t("markers.label", { markerName: marker.name, date: fmtDate(date) });
+          return (
+            <div
+              key={`${marker.date}-${marker.name}-${index}`}
+              role="img"
+              aria-label={label}
+              title={label}
+              className="absolute inset-y-0 border-l-2 border-dashed border-amber-600"
+              style={{ left: `${((offset + 0.5) / (count * 7)) * 100}%` }}
+            >
+              <span className="absolute top-12 -translate-x-1/2 rounded bg-amber-700 px-1.5 py-0.5 text-[10px] font-medium text-white max-w-32 truncate">
+                {marker.name}
+              </span>
+            </div>
           );
         })}
       </div>

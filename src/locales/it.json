@@ -1,8 +1,22 @@
 {
+  "markers": {
+    "title": "Date importanti",
+    "description": "Aggiungi indicatori con nome alla roadmap di questo spazio. Saranno disponibili anche sul suo link pubblico.",
+    "manage": "Gestisci indicatori",
+    "name": "Nome dell'indicatore",
+    "date": "Data dell'indicatore",
+    "add": "Aggiungi indicatore",
+    "delete": "Elimina indicatore {{markerName}}",
+    "empty": "Nessun indicatore. Aggiungi una data importante qui sopra.",
+    "show": "Mostra indicatori",
+    "hide": "Nascondi indicatori",
+    "label": "{{markerName}}: {{date}}",
+    "invalid": "Inserisci un nome (1–80 caratteri) e una data valida."
+  },
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Condividi roadmap",
-    "sharingDescription": "Chiunque abbia il link può vedere funzionalità, progetti e date di consegna. Personale, ferie e stime tecniche restano privati. La roadmap si aggiorna automaticamente.",
+    "sharingDescription": "Chiunque abbia il link può vedere funzionalità, progetti, date di consegna e indicatori di date con nome. Personale, ferie e stime tecniche restano privati. La roadmap si aggiorna automaticamente.",
     "link": "Link pubblico della roadmap",
     "create": "Crea link",
     "copy": "Copia link",

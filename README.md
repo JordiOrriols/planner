@@ -23,6 +23,20 @@ removes the page's maximum width (keeping the page margins) and widens the
 feature-name column; **Wrap titles** wraps long feature names instead of
 truncating them. The choices are remembered in the browser.
 
+### Important date markers
+
+Use **Manage markers** on the roadmap to create or delete named dates in a modal
+list. Markers are saved per workspace, sorted by date, and editable by workspace
+editors only. Members see amber dashed date lines by default; public roadmap
+visitors start with them hidden. **Show markers / Hide markers** changes only
+the current browser tab's session (separate member and public preferences), not
+the saved markers or anyone else's view. Dates outside the displayed timeline
+remain in the list but do not extend the scheduling horizon.
+
+Marker names and dates are included on enabled public roadmap links.
+Apply `20261030170000_roadmap_markers.sql` before deploying the client, and redeploy
+the `roadmap` Edge Function to include markers in the public projection.
+
 The `roadmap` Supabase Edge Function reads a service-only, token-gated RPC, reuses
 the exact scheduling engine from `src/lib/planning.ts`, and returns only feature
 names, project names, dates and status. Staff, vacations and estimates
