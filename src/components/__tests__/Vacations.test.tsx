@@ -152,7 +152,8 @@ describe("Team vacations shared editor", () => {
     await waitFor(() =>
       expect(setVacations).toHaveBeenLastCalledWith("ada", "2026-11-02", "2026-11-04", true)
     );
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Member" }), "grace");
+    await userEvent.click(screen.getByRole("combobox", { name: "Member" }));
+    await userEvent.click(screen.getByRole("option", { name: "Grace", exact: true }));
     expect(screen.getByRole("button", { name: "2026-11-03" })).toHaveAttribute(
       "aria-pressed",
       "false"
@@ -174,7 +175,7 @@ describe("Team vacations shared editor", () => {
     state.canEdit = false;
     state.linkedToGrace = true;
     render(<Vacations />);
-    expect(screen.getByRole("combobox", { name: "Member" })).toHaveValue("grace");
+    expect(screen.getByRole("combobox", { name: "Member" })).toHaveTextContent("Grace");
     await userEvent.click(screen.getByRole("button", { name: "2026-11-09" }));
     await userEvent.click(screen.getByRole("button", { name: "2026-11-10" }));
     await userEvent.click(screen.getByRole("button", { name: "Vacations", exact: true }));
@@ -186,7 +187,8 @@ describe("Team vacations shared editor", () => {
         false
       )
     );
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Member" }), "ada");
+    await userEvent.click(screen.getByRole("combobox", { name: "Member" }));
+    await userEvent.click(screen.getByRole("option", { name: "Ada", exact: true }));
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
   });

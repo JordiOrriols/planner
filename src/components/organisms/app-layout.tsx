@@ -10,6 +10,7 @@ import {
   LanguageSelector,
   WorkspaceBar,
   getWorkspaceLabels,
+  getDisplayName,
   type WorkspaceSharingConfig,
 } from "@jordiorriols/ui";
 import { useTranslation } from "react-i18next";
@@ -77,7 +78,10 @@ export default function AppLayout() {
         accountAction={{
           type: "signOut",
           label: t("auth.signOut"),
-          title: user?.email ?? "",
+          title: getDisplayName({
+            accountName: user?.user_metadata?.["full_name"] ?? user?.user_metadata?.["name"],
+            email: user?.email ?? "",
+          }),
           disabled: action.busy,
           onClick: () => void action.run(signOut),
         }}

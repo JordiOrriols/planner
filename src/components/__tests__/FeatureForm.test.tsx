@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import FeatureForm from "@/components/organisms/feature-form";
 import { EMPTY_FEATURE } from "@/types/planner";
@@ -77,14 +77,14 @@ describe("Feature form footer actions", () => {
     );
     const select = screen.getByLabelText("Project");
     expect(select).toBeRequired();
-    expect(select).toHaveValue("growth");
-    expect(
-      within(select)
-        .getAllByRole("option")
-        .map((option) => option.textContent)
-    ).toEqual(["Choose a project", "Payments", "Growth", "+ New project"]);
-    expect(screen.getByRole("option", { name: "Choose a project" })).toBeDisabled();
-    await userEvent.selectOptions(select, "Payments");
+    expect(select).toHaveTextContent("Growth");
+    await userEvent.click(select);
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Payments",
+      "Growth",
+      "+ New project",
+    ]);
+    await userEvent.click(screen.getByRole("option", { name: "Payments", exact: true }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() =>
       expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ project_id: "payments" }))
@@ -104,8 +104,8 @@ describe("Feature form footer actions", () => {
       />
     );
     await userEvent.type(screen.getByLabelText("Name"), "Checkout");
-    expect(screen.getByLabelText("Project")).toHaveValue("");
-    expect(screen.getByLabelText("Project")).toBeInvalid();
+    expect(screen.getByLabelText("Project")).toHaveTextContent("Choose a project");
+    expect(screen.getByLabelText("Project").closest("form")).toBeInvalid();
     await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
     expect(onSave).not.toHaveBeenCalled();
   });
@@ -130,12 +130,13 @@ describe("Feature form footer actions", () => {
       />
     );
     await userEvent.type(screen.getByLabelText("Name"), "Checkout");
-    await userEvent.selectOptions(screen.getByLabelText("Project"), "+ New project");
+    await userEvent.click(screen.getByLabelText("Project"));
+    await userEvent.click(screen.getByRole("option", { name: "+ New project", exact: true }));
     await userEvent.type(screen.getByLabelText("New project name"), "Platform");
     await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Save failed");
     expect(onCreateProject).toHaveBeenCalledExactlyOnceWith("Platform");
-    expect(screen.getByLabelText("Project")).toHaveValue("platform");
+    expect(screen.getByLabelText("Project")).toHaveTextContent("Platform");
     expect(screen.queryByLabelText("New project name")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Create feature" }));
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
@@ -155,7 +156,7 @@ describe("Feature form footer actions", () => {
         onClose={vi.fn()}
       />
     );
-    expect(screen.getByLabelText("Project")).toHaveValue("__new_project__");
+    expect(screen.getByLabelText("Project")).toHaveTextContent("+ New project");
     expect(screen.getByLabelText("New project name")).toBeRequired();
   });
 

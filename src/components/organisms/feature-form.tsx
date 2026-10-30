@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
-import { Modal, Button, Input, Label } from "@jordiorriols/ui";
+import { Modal, Button, Input, Label, SelectField } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import {
@@ -80,28 +80,23 @@ export default function FeatureForm({
         }}
       >
         <Label htmlFor="project-main-project">{t("featureForm.fields.project")}</Label>
-        <select
+        <SelectField
           id="project-main-project"
-          className="field"
           required
           value={creatingProject ? NEW_PROJECT : (form.project_id ?? "")}
-          onChange={(event) => {
-            const value = event.target.value;
+          onValueChange={(value) => {
+            if (value !== NEW_PROJECT && !projectOptions.some((project) => project.id === value))
+              return;
             setCreatingProject(value === NEW_PROJECT);
             if (value !== NEW_PROJECT)
               setForm((previous) => ({ ...previous, project_id: value || null }));
           }}
-        >
-          <option value="" disabled>
-            {t("featureForm.project.choose")}
-          </option>
-          {projectOptions.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-          <option value={NEW_PROJECT}>{t("featureForm.project.new")}</option>
-        </select>
+          options={[
+            { value: "", label: t("featureForm.project.choose"), disabled: true },
+            ...projectOptions.map((project) => ({ value: project.id, label: project.name })),
+            { value: NEW_PROJECT, label: t("featureForm.project.new") },
+          ]}
+        />
         {creatingProject && (
           <Input
             aria-label={t("projects.fields.newName")}
@@ -132,23 +127,20 @@ export default function FeatureForm({
           rows={2}
         />
         <Label htmlFor="feature-status">{t("featureStatus.label")}</Label>
-        <select
+        <SelectField
           id="feature-status"
-          className="field"
           value={form.status}
-          onChange={(event) =>
+          onValueChange={(value) =>
             setForm((previous) => ({
               ...previous,
-              status: event.target.value as FeatureStatus,
+              status: value as FeatureStatus,
             }))
           }
-        >
-          {FEATURE_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {t(`featureStatus.${status}`)}
-            </option>
-          ))}
-        </select>
+          options={FEATURE_STATUSES.map((status) => ({
+            value: status,
+            label: t(`featureStatus.${status}`),
+          }))}
+        />
         <div className="rounded-xl border overflow-hidden">
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 text-xs font-medium">
             <span>{t("featureForm.columns.role")}</span>
