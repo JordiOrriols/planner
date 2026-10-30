@@ -174,10 +174,8 @@ describe("Squad velocity area and team series", () => {
 
   it("switches the second dropdown to linked teams and filters them independently of areas", async () => {
     renderVelocity();
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Velocity grouping" }),
-      "teams"
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: "Velocity grouping" }));
+    await userEvent.click(screen.getByRole("option", { name: "Teams", exact: true }));
     expect(firstWeek()).toEqual([4, 5.4]);
     expect(screen.getByTestId("series-Product")).toHaveAttribute("data-stack", "capacity");
     await userEvent.click(screen.getByRole("button", { name: "Select velocity teams" }));
@@ -186,15 +184,11 @@ describe("Squad velocity area and team series", () => {
     expect(firstWeek()).toEqual([4]);
     expect(screen.getByTestId("series-Product")).not.toHaveAttribute("data-stack");
     await userEvent.keyboard("{Escape}");
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Velocity grouping" }),
-      "areas"
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: "Velocity grouping" }));
+    await userEvent.click(screen.getByRole("option", { name: "Areas", exact: true }));
     expect(firstWeek()).toEqual([3.4, 2, 2, 2]);
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Velocity grouping" }),
-      "teams"
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: "Velocity grouping" }));
+    await userEvent.click(screen.getByRole("option", { name: "Teams", exact: true }));
     expect(firstWeek()).toEqual([4]);
   });
 
@@ -226,10 +220,8 @@ describe("Squad velocity area and team series", () => {
         history={[]}
       />
     );
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Velocity grouping" }),
-      "teams"
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: "Velocity grouping" }));
+    await userEvent.click(screen.getByRole("option", { name: "Teams", exact: true }));
     expect(screen.getByRole("button", { name: "Select velocity teams" })).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("Add a team in Configuration");
     rendered.rerender(
@@ -260,10 +252,8 @@ describe("Squad velocity area and team series", () => {
     expect(firstWeek()).toEqual([40, 20, 20, 20]);
     expect(screen.getByRole("table", { name: "Estimated story points per sprint" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Calibrate velocity" })).not.toBeInTheDocument();
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: "Velocity grouping" }),
-      "teams"
-    );
+    await userEvent.click(screen.getByRole("combobox", { name: "Velocity grouping" }));
+    await userEvent.click(screen.getByRole("option", { name: "Teams", exact: true }));
     expect(firstWeek()).toEqual([40, 60]);
     rendered.rerender(
       <SquadVelocity

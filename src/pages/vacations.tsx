@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
+import { SelectField } from "@jordiorriols/ui";
 import VacationCalendar from "@/components/organisms/vacation-calendar";
 import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { useWorkspace } from "@/data/WorkspaceProvider";
@@ -49,18 +50,12 @@ export default function Vacations() {
           <>
             <label className="block">
               {t("vacations.member")}
-              <select
+              <SelectField
                 aria-label={t("vacations.member")}
-                className="field"
                 value={selectedMember.id}
-                onChange={(event) => setSelected(event.target.value)}
-              >
-                {members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setSelected}
+                options={members.map((member) => ({ value: member.id, label: member.name }))}
+              />
             </label>
             <VacationEditor
               key={selectedMember.id}

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Button, buttonVariants } from "@jordiorriols/ui";
+import { Button, buttonVariants, SelectField } from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { Check, ChevronDown, Settings } from "@jordiorriols/ui/icons";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -115,21 +115,18 @@ export default function SquadVelocity({
         <div className="flex flex-wrap items-end gap-2">
           <label className="grid gap-1 text-xs text-muted-foreground">
             {t("velocity.filters.groupBy")}
-            <span className="relative">
-              <select
-                className={`${SELECTOR} appearance-none pr-8`}
-                aria-label={t("velocity.filters.groupingLabel")}
-                value={groupBy}
-                onChange={(event) => {
-                  if (event.target.value === "areas" || event.target.value === "teams")
-                    setGroupBy(event.target.value);
-                }}
-              >
-                <option value="areas">{t("velocity.filters.areas")}</option>
-                <option value="teams">{t("velocity.filters.teams")}</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
-            </span>
+            <SelectField
+              className="w-36"
+              aria-label={t("velocity.filters.groupingLabel")}
+              value={groupBy}
+              onValueChange={(value) => {
+                if (value === "areas" || value === "teams") setGroupBy(value);
+              }}
+              options={[
+                { value: "areas", label: t("velocity.filters.areas") },
+                { value: "teams", label: t("velocity.filters.teams") },
+              ]}
+            />
           </label>
           <div className="grid gap-1 text-xs text-muted-foreground">
             <span>{t(`velocity.filters.show.${groupBy}`)}</span>

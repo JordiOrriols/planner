@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Button } from "@jordiorriols/ui";
+import { Button, SelectField } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
@@ -82,26 +82,23 @@ export default function TeamConfiguration() {
             <span className="text-sm text-muted-foreground">
               {linkedTeams.find((team) => team.id === member.team_id)?.name}
             </span>
-            <select
-              className="field w-auto"
+            <SelectField
+              className="w-auto"
               aria-label={t("teamConfiguration.members.roleLabel", { memberName: member.name })}
               value={member.role ?? ""}
               disabled={!member.can_edit || action.busy}
-              onChange={(event) => {
-                const role = ROLES.find((role) => role === event.target.value) ?? null;
+              onValueChange={(value) => {
+                const role = ROLES.find((role) => role === value) ?? null;
                 void action.run(async () => {
                   await repository.updatePlanningRole(member.id, role);
                   await refresh();
                 });
               }}
-            >
-              <option value="">{t("teamConfiguration.members.unassigned")}</option>
-              {ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {ROLE_LABELS[role]}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: t("teamConfiguration.members.unassigned") },
+                ...ROLES.map((role) => ({ value: role, label: ROLE_LABELS[role] })),
+              ]}
+            />
             {member.vacation_token && (
               <Button
                 variant="outline"
