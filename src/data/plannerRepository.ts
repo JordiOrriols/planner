@@ -1,5 +1,6 @@
 import i18n from "@/i18n";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { WorkspaceShare } from "@jordiorriols/ui";
 import { z } from "zod";
 import {
   FEATURE_STATUSES,
@@ -121,6 +122,18 @@ export function createPlannerRepository(client: SupabaseClient) {
     }
   }
   return {
+    async sharingAccess(workspace: string): Promise<WorkspaceShare[]> {
+      return rpcList(
+        "list_workspace_app_shares",
+        z.object({
+          user_id: z.string().uuid(),
+          email: z.string(),
+          app: z.literal("planner"),
+          access_level: z.enum(["viewer", "editor"]),
+        }),
+        { workspace, app_name: "planner" }
+      );
+    },
     async createMarker(workspace: string, name: string, date: string) {
       const trimmed = name.trim();
       if (!trimmed || trimmed.length > 80 || !z.string().date().safeParse(date).success)
