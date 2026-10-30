@@ -56,18 +56,26 @@ afterAll(async () => {
 });
 
 describe("live public roadmap", () => {
-  it("lets editors retrieve a stable token while viewers and outsiders cannot create or revoke one", async () => {
+  it("lets viewers read a stable token while only the owner can create or revoke one", async () => {
     await login(owner);
     expect(await value("select public.planner_roadmap_share($1,true) as value", [workspace])).toBe(
       token
     );
     for (const account of [viewer, stranger]) {
       await login(account);
-      for (const enabled of [true, false, null])
+      for (const enabled of [true, false])
         await expect(
           db.query("select public.planner_roadmap_share($1,$2)", [workspace, enabled])
-        ).rejects.toThrow(/edit access/);
+        ).rejects.toThrow(/owner access/);
     }
+    await login(viewer);
+    expect(await value("select public.planner_roadmap_share($1) as value", [workspace])).toBe(
+      token
+    );
+    await login(stranger);
+    await expect(db.query("select public.planner_roadmap_share($1)", [workspace])).rejects.toThrow(
+      /sharing access/
+    );
     await login(null, "anon");
     await expect(db.query("select * from public.roadmap_shares")).rejects.toThrow(
       /permission denied/

@@ -10,8 +10,15 @@ Unestimated or incomplete features do not receive invented UAT dates.
 
 ### Public roadmap
 
-Workspace editors can use **Share roadmap** on the roadmap page to create, copy
-or revoke a public link. Anyone with the link sees a standalone read-only timeline:
+Use workspace **Share** from any page: **People with access** appears first,
+then **Public link**. Only owners manage people and enable/revoke the public link;
+Planner editors/viewers can inspect current-app access and copy/open an existing
+link. Linked team access alone does not grant sharing access. The shared UI
+`^0.3.20` provides this dialog and larger, content-sized modals (up to 70dvh).
+`20261030234000_workspace_sharing_directory.sql` has been applied to the shared
+database with approval; the RPC enforces owner-only public-link writes and
+app-scoped directory/token reads.
+Anyone with the public link sees a standalone read-only timeline:
 one overall bar per feature, including UAT, with no roles, effort or capacity details.
 Names of roadmap features and their projects are public while sharing is enabled.
 The page reloads live data every minute; revoking the link blocks subsequent reads.

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { NavLink, Outlet, useMatch } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
@@ -10,6 +10,7 @@ import {
   LanguageSelector,
   WorkspaceBar,
   getWorkspaceLabels,
+  type WorkspaceSharingConfig,
 } from "@jordiorriols/ui";
 import { useTranslation } from "react-i18next";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
@@ -33,11 +34,26 @@ const NAV = [
 
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
-  const { signOut, user } = useData();
+  const { signOut, user, repository } = useData();
   const { workspace, workspaces, workspaceApi, selectWorkspace, refresh, canEdit } = useWorkspace();
   const action = useAsyncAction();
   const roadmapPage = useMatch("/backlog");
   const { fullWidth } = useRoadmapDisplay();
+  const sharing = useMemo<WorkspaceSharingConfig | undefined>(
+    () =>
+      repository
+        ? {
+            readAccess: () => repository.sharingAccess(workspace.id),
+            publicLink: {
+              load: () => repository.roadmapShare(workspace.id),
+              setEnabled: (enabled) => repository.roadmapShare(workspace.id, enabled),
+              getUrl: (token) => `${window.location.href.split("#")[0]}#/roadmap/${token}`,
+              description: t("publicRoadmap.sharingDescription"),
+            },
+          }
+        : undefined,
+    [repository, workspace.id, user?.id, t]
+  );
   return (
     <AppPage>
       <AppHeader
@@ -81,6 +97,7 @@ export default function AppLayout() {
                 }}
                 onSharesChanged={refresh}
                 labels={getWorkspaceLabels(i18n.language)}
+                {...(sharing ? { sharing } : {})}
               />
             }
           >

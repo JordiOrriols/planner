@@ -6,7 +6,6 @@ import { PlanSummaryCard } from "@/components/molecules/plan-summary-card";
 import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import GanttChart from "@/components/organisms/gantt-chart";
-import RoadmapSharing from "@/components/organisms/roadmap-sharing";
 import MarkersManager from "@/components/organisms/markers-manager";
 import { MarkerVisibilityButton } from "@/components/organisms/roadmap-timeline";
 import { useMarkerVisibility } from "@/lib/roadmapDisplay";
@@ -102,7 +101,6 @@ export default function Backlog() {
                 <Flag className="size-4" />
                 {t("markers.manage")}
               </Button>
-              <RoadmapSharing key={workspace.id} workspace={workspace.id} repository={repository} />
               <Button onClick={() => setAdding(true)}>
                 <Plus className="size-4" />
                 {t("roadmap.actions.addFeature")}
