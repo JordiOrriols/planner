@@ -53,8 +53,12 @@ describe("nontechnical roadmap", () => {
     expect(
       within(screen.getByRole("group", { name: "Roadmap display" }))
         .getAllByRole("button")
-        .map((button) => button.textContent)
-    ).toEqual(["Full width", "Wrap titles"]);
+        .map((button) => button.getAttribute("aria-label"))
+    ).toEqual(["Full width", "Wrap titles", "Show markers"]);
+    for (const button of within(
+      screen.getByRole("group", { name: "Roadmap display" })
+    ).getAllByRole("button"))
+      expect(button).toHaveTextContent("");
   });
 
   it("makes unavailable dates explicit instead of inventing a bar", () => {

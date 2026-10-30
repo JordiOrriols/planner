@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { WelcomeScreen } from "@jordiorriols/ui";
+import { AppFooter, WelcomeScreen } from "@jordiorriols/ui";
 import { useTranslation } from "react-i18next";
 import { CalendarDays, Calculator, GanttChartSquare } from "@jordiorriols/ui/icons";
 import { LoginDialog } from "@/components/molecules/LoginDialog";
@@ -7,42 +7,45 @@ import { useData } from "@/data/DataProvider";
 import { AppIcon } from "@/components/atoms/AppIcon";
 
 export function WelcomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { authEnabled, authError, linkError } = useData();
   const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
   const [open, setOpen] = useState(false);
   return (
-    <WelcomeScreen
-      projectId="planner"
-      brand={t("planner.brand")}
-      icon={<AppIcon />}
-      title={t("planner.welcome.title")}
-      description={t("planner.welcome.description")}
-      features={[
-        { icon: <Calculator />, label: t("planner.welcome.estimates") },
-        { icon: <GanttChartSquare />, label: t("planner.welcome.backlog") },
-        { icon: <CalendarDays />, label: t("planner.welcome.calendar") },
-      ]}
-      signInLabel={t("auth.signIn")}
-      signUpLabel={t("auth.signUp")}
-      disabled={!authEnabled}
-      onSignIn={() => {
-        setMode("signIn");
-        setOpen(true);
-      }}
-      onSignUp={() => {
-        setMode("signUp");
-        setOpen(true);
-      }}
-      notice={
-        <>
-          {authError && <p role="alert">{authError}</p>}
-          {linkError && <p role="alert">{t("auth.linkFailed", { message: linkError })}</p>}
-          {!authEnabled && <p role="alert">{t("planner.welcome.authUnavailable")}</p>}
-        </>
-      }
-    >
-      <LoginDialog isOpen={open} initialMode={mode} onClose={() => setOpen(false)} />
-    </WelcomeScreen>
+    <>
+      <WelcomeScreen
+        projectId="planner"
+        brand={t("planner.brand")}
+        icon={<AppIcon />}
+        title={t("planner.welcome.title")}
+        description={t("planner.welcome.description")}
+        features={[
+          { icon: <Calculator />, label: t("planner.welcome.estimates") },
+          { icon: <GanttChartSquare />, label: t("planner.welcome.backlog") },
+          { icon: <CalendarDays />, label: t("planner.welcome.calendar") },
+        ]}
+        signInLabel={t("auth.signIn")}
+        signUpLabel={t("auth.signUp")}
+        disabled={!authEnabled}
+        onSignIn={() => {
+          setMode("signIn");
+          setOpen(true);
+        }}
+        onSignUp={() => {
+          setMode("signUp");
+          setOpen(true);
+        }}
+        notice={
+          <>
+            {authError && <p role="alert">{authError}</p>}
+            {linkError && <p role="alert">{t("auth.linkFailed", { message: linkError })}</p>}
+            {!authEnabled && <p role="alert">{t("planner.welcome.authUnavailable")}</p>}
+          </>
+        }
+      >
+        <LoginDialog isOpen={open} initialMode={mode} onClose={() => setOpen(false)} />
+      </WelcomeScreen>
+      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
+    </>
   );
 }

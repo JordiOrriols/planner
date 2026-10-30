@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { ContextMenu } from "@jordiorriols/ui/radix";
+import { IconTooltip } from "@jordiorriols/ui";
 import { GripVertical } from "@jordiorriols/ui/icons";
 import { addDays, differenceInCalendarDays, format, isWeekend } from "date-fns";
 import { ROLES, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
@@ -53,6 +54,7 @@ export default function GanttChart({
   schedule,
   projects = [],
   markers = [],
+  markerVisibility,
   onReorder,
   onRemove,
   onStatusChange,
@@ -62,6 +64,7 @@ export default function GanttChart({
   schedule: ScheduledFeature[];
   projects?: Project[];
   markers?: RoadmapMarker[];
+  markerVisibility?: { visible: boolean; toggle: () => void };
   onReorder?: (fromId: string, toId: string) => void;
   onRemove?: (id: string) => void;
   onStatusChange?: (id: string, status: FeatureStatus) => void;
@@ -105,7 +108,7 @@ export default function GanttChart({
           {t("gantt.legend.paused")}
         </span>
         <span className="ml-auto">
-          <RoadmapDisplayToolbar />
+          <RoadmapDisplayToolbar {...(markerVisibility ? { markerVisibility } : {})} />
         </span>
       </div>
       {onReorder && (
@@ -235,21 +238,25 @@ export default function GanttChart({
                           }}
                         >
                           {onReorder && (
-                            <button
-                              type="button"
-                              className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
-                              aria-label={t("gantt.row.reorder", { featureName: s.feature.name })}
-                              title={t("gantt.row.reorderHelp", { featureName: s.feature.name })}
-                              disabled={disabled}
-                              onKeyDown={(event) => {
-                                if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-                                event.preventDefault();
-                                const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
-                                if (!disabled && target) onReorder(s.feature.id, target.feature.id);
-                              }}
+                            <IconTooltip
+                              label={t("gantt.row.reorderHelp", { featureName: s.feature.name })}
                             >
-                              <GripVertical className="size-3.5" />
-                            </button>
+                              <button
+                                type="button"
+                                className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
+                                aria-label={t("gantt.row.reorder", { featureName: s.feature.name })}
+                                disabled={disabled}
+                                onKeyDown={(event) => {
+                                  if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                                  event.preventDefault();
+                                  const target = schedule[idx + (event.key === "ArrowUp" ? -1 : 1)];
+                                  if (!disabled && target)
+                                    onReorder(s.feature.id, target.feature.id);
+                                }}
+                              >
+                                <GripVertical className="size-3.5" />
+                              </button>
+                            </IconTooltip>
                           )}
                           <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
                             {idx + 1}

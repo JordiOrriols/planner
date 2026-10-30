@@ -326,10 +326,8 @@ describe("inline schedule priority controls", () => {
         <Backlog />
       </MemoryRouter>
     );
-    expect(screen.getByRole("button", { name: "Change status of Checkout" })).toHaveAttribute(
-      "title",
-      "Status: Done"
-    );
+    await userEvent.hover(screen.getByRole("button", { name: "Change status of Checkout" }));
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Status: Done");
     await userEvent.click(screen.getByRole("button", { name: "Change status of Checkout" }));
     await userEvent.click(screen.getByRole("menuitemradio", { name: "Paused" }));
     await waitFor(() => expect(setStatus).toHaveBeenLastCalledWith("project", "paused"));

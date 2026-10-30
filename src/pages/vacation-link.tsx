@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { AppMain, AppPage, AppSkeleton } from "@jordiorriols/ui";
+import { AppFooter, AppMain, AppPage, AppSkeleton } from "@jordiorriols/ui";
 import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
@@ -11,7 +11,7 @@ import { supabase } from "@/data/supabaseClient";
 const repository = supabase ? createPlannerRepository(supabase) : null;
 
 export default function VacationLink() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const { token = "" } = useParams();
   const [month, setMonth] = useState(new Date());
@@ -53,6 +53,7 @@ export default function VacationLink() {
           </section>
         )}
       </AppMain>
+      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
     </AppPage>
   );
 }

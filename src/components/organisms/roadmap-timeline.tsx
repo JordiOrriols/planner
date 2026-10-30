@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@jordiorriols/ui";
+import { Button, IconTooltip } from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { Check, Flag, Maximize2, Minimize2, WrapText } from "@jordiorriols/ui/icons";
 import { differenceInCalendarDays, format } from "date-fns";
@@ -20,13 +20,13 @@ export function MarkerVisibilityButton({
   return (
     <Button
       type="button"
-      size="sm"
+      size="icon-sm"
+      aria-label={t(visible ? "markers.hide" : "markers.show")}
       variant={visible ? "secondary" : "ghost"}
       aria-pressed={visible}
       onClick={onToggle}
     >
       <Flag className="size-4" />
-      {t(visible ? "markers.hide" : "markers.show")}
     </Button>
   );
 }
@@ -45,7 +45,11 @@ export function useLabelWidth() {
   return useRoadmapDisplay().fullWidth ? 300 : 220;
 }
 
-export function RoadmapDisplayToolbar() {
+export function RoadmapDisplayToolbar({
+  markerVisibility,
+}: {
+  markerVisibility?: { visible: boolean; toggle: () => void };
+}) {
   const { t } = useTranslation();
   const display = useRoadmapDisplay();
   return (
@@ -53,23 +57,29 @@ export function RoadmapDisplayToolbar() {
       <Button
         type="button"
         variant={display.fullWidth ? "secondary" : "ghost"}
-        size="sm"
+        size="icon-sm"
+        aria-label={t("roadmapDisplay.fullWidth")}
         aria-pressed={display.fullWidth}
         onClick={() => updateRoadmapDisplay({ fullWidth: !display.fullWidth })}
       >
         {display.fullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-        {t("roadmapDisplay.fullWidth")}
       </Button>
       <Button
         type="button"
         variant={display.wrapTitles ? "secondary" : "ghost"}
-        size="sm"
+        size="icon-sm"
+        aria-label={t("roadmapDisplay.wrapTitles")}
         aria-pressed={display.wrapTitles}
         onClick={() => updateRoadmapDisplay({ wrapTitles: !display.wrapTitles })}
       >
         <WrapText className="size-4" />
-        {t("roadmapDisplay.wrapTitles")}
       </Button>
+      {markerVisibility && (
+        <MarkerVisibilityButton
+          visible={markerVisibility.visible}
+          onToggle={markerVisibility.toggle}
+        />
+      )}
     </div>
   );
 }
@@ -126,14 +136,15 @@ export function StatusDot({
     );
   return (
     <DropdownMenu.Root modal={false}>
-      <DropdownMenu.Trigger
-        className="grid size-5 shrink-0 place-items-center rounded-full hover:bg-muted focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-50"
-        aria-label={t("featureStatus.change", { featureName })}
-        title={label}
-        disabled={disabled}
-      >
-        {dot}
-      </DropdownMenu.Trigger>
+      <IconTooltip label={label}>
+        <DropdownMenu.Trigger
+          className="grid size-5 shrink-0 place-items-center rounded-full hover:bg-muted focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-50"
+          aria-label={t("featureStatus.change", { featureName })}
+          disabled={disabled}
+        >
+          {dot}
+        </DropdownMenu.Trigger>
+      </IconTooltip>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           align="start"

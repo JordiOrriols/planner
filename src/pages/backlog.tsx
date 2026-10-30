@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import GanttChart from "@/components/organisms/gantt-chart";
 import MarkersManager from "@/components/organisms/markers-manager";
-import { MarkerVisibilityButton } from "@/components/organisms/roadmap-timeline";
 import { useMarkerVisibility } from "@/lib/roadmapDisplay";
 import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
@@ -91,10 +90,6 @@ export default function Backlog() {
           <p className="text-muted-foreground text-sm mt-1">{t("roadmap.description")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <MarkerVisibilityButton
-            visible={markerVisibility.visible}
-            onToggle={markerVisibility.toggle}
-          />
           {canEdit && (
             <>
               <Button variant="outline" onClick={() => setManagingMarkers(true)}>
@@ -188,6 +183,7 @@ export default function Backlog() {
             })}
           </h2>
           <GanttChart
+            markerVisibility={markerVisibility}
             projects={projects}
             markers={markerVisibility.visible ? markers : []}
             weeks={result?.weeks ?? []}

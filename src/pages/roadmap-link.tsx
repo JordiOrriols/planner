@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { useMarkerVisibility, useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import {
   FeatureTitle,
-  MarkerVisibilityButton,
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusLegend,
@@ -47,11 +46,7 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <StatusLegend />
         <span className="ml-auto flex flex-wrap gap-1">
-          <MarkerVisibilityButton
-            visible={markerVisibility.visible}
-            onToggle={markerVisibility.toggle}
-          />
-          <RoadmapDisplayToolbar />
+          <RoadmapDisplayToolbar markerVisibility={markerVisibility} />
         </span>
       </div>
       {!roadmap.features.length ? (
@@ -174,7 +169,7 @@ export default function RoadmapLink() {
           query.data && <PublicRoadmapView roadmap={query.data} />
         )}
       </AppMain>
-      <AppFooter text={t("app.footer")} />
+      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
     </AppPage>
   );
 }
