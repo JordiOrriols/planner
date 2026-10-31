@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Calendario delle ferie del team",
+    "day": "Giorno",
+    "start": "Mese iniziale",
+    "previous": "Mese iniziale precedente",
+    "next": "Mese iniziale successivo",
+    "legend": "Giorni di ferie",
+    "noTeam": "Nessun team",
+    "empty": "Nessun membro in questo spazio di lavoro.",
+    "span": "{{name}}: ferie dal {{start}} al {{end}}"
+  },
   "markers": {
     "title": "Date importanti",
     "description": "Aggiungi indicatori con nome alla roadmap di questo spazio. Saranno disponibili anche sul suo link pubblico.",

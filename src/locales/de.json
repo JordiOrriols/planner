@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Urlaubsübersicht des Teams",
+    "day": "Tag",
+    "start": "Startmonat",
+    "previous": "Vorheriger Startmonat",
+    "next": "Nächster Startmonat",
+    "legend": "Urlaubstage",
+    "noTeam": "Kein Team",
+    "empty": "Keine Mitglieder in diesem Arbeitsbereich.",
+    "span": "{{name}}: Urlaub vom {{start}} bis {{end}}"
+  },
   "markers": {
     "title": "Wichtige Termine",
     "description": "Fügen Sie benannte Datumsmarkierungen zur Roadmap dieses Arbeitsbereichs hinzu. Diese sind auch über den öffentlichen Link verfügbar.",

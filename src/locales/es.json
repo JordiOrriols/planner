@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Cronología de vacaciones del equipo",
+    "day": "Día",
+    "start": "Mes de inicio",
+    "previous": "Mes de inicio anterior",
+    "next": "Mes de inicio siguiente",
+    "legend": "Días de vacaciones",
+    "noTeam": "Sin equipo",
+    "empty": "No hay miembros en este espacio de trabajo.",
+    "span": "{{name}}: vacaciones del {{start}} al {{end}}"
+  },
   "markers": {
     "title": "Fechas importantes",
     "description": "Añade marcadores con nombre a la hoja de ruta de este espacio. También estarán disponibles en su enlace público.",

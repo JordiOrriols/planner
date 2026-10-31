@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Team vacation timeline",
+    "day": "Day",
+    "start": "Starting month",
+    "previous": "Previous starting month",
+    "next": "Next starting month",
+    "legend": "Vacation days",
+    "noTeam": "No team",
+    "empty": "No members in this workspace.",
+    "span": "{{name}}: vacation from {{start}} to {{end}}"
+  },
   "markers": {
     "title": "Important dates",
     "description": "Add named date markers to this workspace's roadmap. Markers are also available on its public roadmap link.",

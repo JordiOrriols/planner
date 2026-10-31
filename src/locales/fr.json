@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Calendrier des congés de l'équipe",
+    "day": "Jour",
+    "start": "Mois de début",
+    "previous": "Mois de début précédent",
+    "next": "Mois de début suivant",
+    "legend": "Jours de congé",
+    "noTeam": "Sans équipe",
+    "empty": "Aucun membre dans cet espace de travail.",
+    "span": "{{name}} : congés du {{start}} au {{end}}"
+  },
   "markers": {
     "title": "Dates importantes",
     "description": "Ajoutez des repères nommés à la feuille de route de cet espace. Ils seront aussi disponibles sur son lien public.",

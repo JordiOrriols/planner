@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, IconTooltip } from "@jordiorriols/ui";
+import {
+  Button,
+  IconTooltip,
+  TimelineCard,
+  type TimelineCardProps,
+  type TimelineMarker,
+} from "@jordiorriols/ui";
 import { DropdownMenu } from "@jordiorriols/ui/radix";
 import { Check, Flag, Maximize2, Minimize2, WrapText } from "@jordiorriols/ui/icons";
 import { differenceInCalendarDays, format } from "date-fns";
@@ -184,7 +190,7 @@ export function StatusBadge({ status }: { status: FeatureStatus }) {
   );
 }
 
-function useToday() {
+export function useToday() {
   const [today, setToday] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setToday(new Date()), 60_000);
@@ -193,145 +199,49 @@ function useToday() {
   return today;
 }
 
-export function timelineColumns(labelWidth: number, weekCount: number) {
-  return `${labelWidth}px ${weekCount ? `repeat(${weekCount}, minmax(28px, 1fr))` : "1fr"}`;
-}
+export { timelineColumns } from "@jordiorriols/ui";
 
-function monthGroups(weekStarts: Date[]) {
-  const groups: { label: string; start: number; span: number }[] = [];
-  weekStarts.forEach((weekStart, index) => {
-    const label = fmtMonth(weekStart, true);
-    const last = groups.at(-1);
-    if (!last || last.label !== label) groups.push({ label, start: index, span: 1 });
-    else last.span++;
-  });
-  return groups;
-}
-
-/** Month and week header rows shared by the roadmap and its public link. */
-export function TimelineHeader({
+export function RoadmapTimelineCard({
   weekStarts,
-  labelWidth,
-  title,
-  weekLabel,
-}: {
-  weekStarts: Date[];
-  labelWidth: number;
-  title: string;
-  weekLabel: string;
-}) {
-  const columns = timelineColumns(labelWidth, weekStarts.length);
-  return (
-    <>
-      <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
-        <div className="sticky left-0 z-10 bg-card px-2 py-1.5 text-xs font-semibold">{title}</div>
-        {monthGroups(weekStarts).map((group) => (
-          <div
-            key={group.label + group.start}
-            className="border-l border-border px-2 py-1.5 text-center text-[11px] font-medium text-muted-foreground first:border-l-0"
-            style={{ gridColumn: `${group.start + 2} / ${group.start + group.span + 2}` }}
-          >
-            {group.label}
-          </div>
-        ))}
-      </div>
-      <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
-        <div className="sticky left-0 z-10 bg-card px-2 text-xs">{weekLabel}</div>
-        {weekStarts.map((weekStart, index) => (
-          <div
-            key={index}
-            className="border-l border-border/40 px-1 py-1 text-center text-[10px] text-muted-foreground/60 first:border-l-0"
-          >
-            {format(weekStart, "d")}
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-/** Light weekly lines, stronger month boundaries and the live today marker. */
-export function TimelineGuides({
-  weekStarts,
-  labelWidth,
   markers = [],
+  ...props
 }: {
   weekStarts: Date[];
-  labelWidth: number;
   markers?: { name: string; date: string }[];
-}) {
+} & Omit<TimelineCardProps, "columns" | "markers">) {
   const { t } = useTranslation();
   const today = useToday();
-  const count = weekStarts.length;
-  if (!count) return null;
-  const todayOffset = differenceInCalendarDays(today, weekStarts[0]!);
-  const showToday = todayOffset >= 0 && todayOffset < count * 7;
+  const first = weekStarts[0];
+  const guides: TimelineMarker[] = first
+    ? markers.map((marker, index) => {
+        const date = parseDate(marker.date);
+        return {
+          id: `${marker.date}-${marker.name}-${index}`,
+          position: (differenceInCalendarDays(date, first) + 0.5) / 7,
+          label: t("markers.label", { markerName: marker.name, date: fmtDate(date) }),
+          caption: marker.name,
+          className: "border-dashed border-amber-600",
+          captionClassName: "top-12 bg-amber-700 px-1.5 py-0.5 text-[10px]",
+        };
+      })
+    : [];
+  if (first)
+    guides.push({
+      id: "today",
+      position: (differenceInCalendarDays(today, first) + 0.5) / 7,
+      label: t("gantt.today.label", { date: fmtDate(today) }),
+      caption: t("gantt.today.text"),
+      className: "border-0 w-0.5 bg-blue-500",
+    });
   return (
-    <>
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-0"
-        style={{ left: labelWidth }}
-      >
-        {weekStarts.map((weekStart, index) => {
-          if (index === 0) return null;
-          const monthStart = fmtMonth(weekStart, true) !== fmtMonth(weekStarts[index - 1]!, true);
-          return (
-            <div
-              key={index}
-              data-guide={monthStart ? "month" : "week"}
-              aria-hidden="true"
-              className={cn(
-                "absolute inset-y-0 border-l",
-                monthStart ? "border-slate-400/60" : "border-border/40"
-              )}
-              style={{ left: `${(index / count) * 100}%` }}
-            />
-          );
-        })}
-      </div>
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-[4]"
-        style={{ left: labelWidth }}
-      >
-        {markers.map((marker, index) => {
-          const date = parseDate(marker.date);
-          const offset = differenceInCalendarDays(date, weekStarts[0]!);
-          if (offset < 0 || offset >= count * 7) return null;
-          const label = t("markers.label", { markerName: marker.name, date: fmtDate(date) });
-          return (
-            <div
-              key={`${marker.date}-${marker.name}-${index}`}
-              role="img"
-              aria-label={label}
-              title={label}
-              className="absolute inset-y-0 border-l-2 border-dashed border-amber-600"
-              style={{ left: `${((offset + 0.5) / (count * 7)) * 100}%` }}
-            >
-              <span className="absolute top-12 -translate-x-1/2 rounded bg-amber-700 px-1.5 py-0.5 text-[10px] font-medium text-white max-w-32 truncate">
-                {marker.name}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      {showToday && (
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-[5]"
-          style={{ left: labelWidth }}
-        >
-          <div
-            role="img"
-            aria-label={t("gantt.today.label", { date: fmtDate(today) })}
-            title={t("gantt.today.label", { date: fmtDate(today) })}
-            className="absolute inset-y-0 w-0.5 bg-blue-500"
-            style={{ left: `${((todayOffset + 0.5) / (count * 7)) * 100}%` }}
-          >
-            <span className="absolute top-0 -translate-x-1/2 rounded bg-blue-500 px-1 text-[9px] font-medium text-white">
-              {t("gantt.today.text")}
-            </span>
-          </div>
-        </div>
-      )}
-    </>
+    <TimelineCard
+      {...props}
+      columns={weekStarts.map((date) => ({
+        id: format(date, "yyyy-MM-dd"),
+        label: format(date, "d"),
+        group: fmtMonth(date, true),
+      }))}
+      markers={guides}
+    />
   );
 }

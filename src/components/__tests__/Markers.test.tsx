@@ -4,7 +4,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@/i18n";
 import MarkersManager from "@/components/organisms/markers-manager";
-import { MarkerVisibilityButton, TimelineGuides } from "@/components/organisms/roadmap-timeline";
+import {
+  MarkerVisibilityButton,
+  RoadmapTimelineCard,
+} from "@/components/organisms/roadmap-timeline";
 import { useMarkerVisibility } from "@/lib/roadmapDisplay";
 
 const marker = { id: "marker", workspace_id: "workspace", name: "Launch", date: "2026-02-04" };
@@ -16,7 +19,14 @@ function Visibility({ publicView = false }: { publicView?: boolean }) {
   return (
     <>
       <MarkerVisibilityButton visible={visible} onToggle={toggle} />
-      <TimelineGuides weekStarts={weeks} labelWidth={220} markers={visible ? [marker] : []} />
+      <RoadmapTimelineCard
+        aria-label="Roadmap"
+        labelTitle="Feature"
+        columnTitle="Week"
+        weekStarts={weeks}
+        labelWidth={220}
+        markers={visible ? [marker] : []}
+      />
     </>
   );
 }
@@ -24,7 +34,10 @@ function Visibility({ publicView = false }: { publicView?: boolean }) {
 describe("roadmap markers", () => {
   it("positions exact calendar days, including weekends, and excludes out-of-range markers", () => {
     render(
-      <TimelineGuides
+      <RoadmapTimelineCard
+        aria-label="Roadmap"
+        labelTitle="Feature"
+        columnTitle="Week"
         weekStarts={weeks}
         labelWidth={220}
         markers={[

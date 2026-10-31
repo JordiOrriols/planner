@@ -90,6 +90,7 @@ describe("Team vacations shared editor", () => {
     expect(screen.getAllByRole("region")).toEqual([
       screen.getByRole("region", { name: "Squad velocity" }),
       screen.getByRole("region", { name: "Vacation calendar" }),
+      screen.getByRole("region", { name: "Team vacation timeline" }),
     ]);
     expect(screen.queryByRole("heading", { name: "Team members" })).not.toBeInTheDocument();
     rendered.unmount();
