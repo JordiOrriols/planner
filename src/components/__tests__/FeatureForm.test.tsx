@@ -30,6 +30,9 @@ describe("Feature form footer actions", () => {
     expect(save).toHaveClass("bg-primary");
     expect(save.closest("form")).toBeNull();
     expect(save).toHaveAttribute("form", screen.getByLabelText("Name").closest("form")!.id);
+    const form = screen.getByLabelText("Name").closest("form")!;
+    expect(form).not.toHaveClass("overflow-y-auto");
+    expect(form.parentElement).toHaveClass("overflow-y-auto", "min-h-0");
     expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
     await userEvent.click(save);
     await waitFor(() =>

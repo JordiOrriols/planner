@@ -78,7 +78,7 @@ export default function MarkersManager({
           </Button>
         </form>
         {markers.length ? (
-          <ul className="max-h-[40vh] overflow-y-auto divide-y divide-border rounded-lg border border-border">
+          <ul className="divide-y divide-border rounded-lg border border-border">
             {markers.map((marker) => (
               <li key={marker.id} className="flex items-center gap-3 p-3">
                 <span

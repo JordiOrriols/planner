@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, differenceInCalendarDays, format } from "date-fns";
 import { Button, Modal } from "@jordiorriols/ui";
@@ -24,6 +24,7 @@ export default function VelocityCalibration({
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const formId = useId();
   const [start, setStart] = useState(anchor);
   const [rows, setRows] = useState(
     history.map((result) => ({
@@ -71,8 +72,19 @@ export default function VelocityCalibration({
       onOpenChange={(open) => {
         if (!open && !action.busy) onClose();
       }}
+      footer={
+        <>
+          <Button type="button" variant="ghost" disabled={action.busy} onClick={onClose}>
+            {t("common.actions.cancel")}
+          </Button>
+          <Button type="submit" form={formId} disabled={action.busy || !!validationError}>
+            {t("velocity.calibration.save")}
+          </Button>
+        </>
+      }
     >
       <form
+        id={formId}
         className="space-y-5"
         onSubmit={(event) => {
           event.preventDefault();
@@ -99,7 +111,7 @@ export default function VelocityCalibration({
             onChange={(event) => setStart(event.target.value)}
           />
         </label>
-        <div className="max-h-[45vh] space-y-3 overflow-y-auto">
+        <div className="space-y-3">
           {rows.map((row, index) => (
             <div key={row.id} className="rounded-lg border border-border p-3 space-y-2">
               <div className="flex flex-wrap items-end gap-2">
@@ -179,14 +191,6 @@ export default function VelocityCalibration({
             {validationError ?? action.error}
           </p>
         )}
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" disabled={action.busy} onClick={onClose}>
-            {t("common.actions.cancel")}
-          </Button>
-          <Button type="submit" disabled={action.busy || !!validationError}>
-            {t("velocity.calibration.save")}
-          </Button>
-        </div>
       </form>
     </Modal>
   );

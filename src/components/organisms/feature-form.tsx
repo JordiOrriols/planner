@@ -60,7 +60,7 @@ export default function FeatureForm({
     >
       <form
         id={formId}
-        className="space-y-4 max-h-[65vh] overflow-y-auto pr-1"
+        className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (action.busy) return;
