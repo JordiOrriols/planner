@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useMarkerVisibility, useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import {
   FeatureTitle,
+  ProjectGroupHeading,
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusLegend,
@@ -40,6 +41,7 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   }, start);
   const count = Math.max(4, Math.ceil((differenceInCalendarDays(last, start) + 1) / 7));
   const weekStarts = Array.from({ length: count }, (_, index) => addWeeks(start, index));
+  const groupByProject = roadmap.features.some((feature) => !!feature.project);
   return (
     <section className="panel space-y-4" aria-label={t("publicRoadmap.title")}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
@@ -76,46 +78,51 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                   })
                 : "";
             return (
-              <div
-                key={index}
-                className="grid border-b border-border/60"
-                style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
-              >
-                <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
-                  <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
-                    {index + 1}
-                  </span>
-                  <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
-                    <FeatureTitle name={item.name} className="block text-sm font-medium" />
-                    <FeatureTitle
-                      name={item.project}
-                      className="block text-xs text-muted-foreground"
-                    />
+              <React.Fragment key={index}>
+                {groupByProject &&
+                  (index === 0 || item.project !== roadmap.features[index - 1]?.project) && (
+                    <ProjectGroupHeading name={item.project} labelWidth={labelWidth} />
+                  )}
+                <div
+                  className="grid border-b border-border/60"
+                  style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
+                >
+                  <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
+                    <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
+                      <FeatureTitle name={item.name} className="block text-sm font-medium" />
+                      <FeatureTitle
+                        name={item.project}
+                        className="block text-xs text-muted-foreground"
+                      />
+                    </div>
+                  </div>
+                  <div className="relative flex min-h-12 items-center">
+                    {from && to ? (
+                      <div
+                        role="img"
+                        aria-label={label}
+                        title={label}
+                        className={cn(
+                          "absolute h-6 rounded",
+                          STATUS_COLORS[item.status],
+                          paused && "opacity-50"
+                        )}
+                        style={{
+                          left: `${(differenceInCalendarDays(from, start) / (count * 7)) * 100}%`,
+                          width: `${((differenceInCalendarDays(to, from) + 1) / (count * 7)) * 100}%`,
+                        }}
+                      />
+                    ) : (
+                      <p className="relative px-3 text-xs text-muted-foreground">
+                        {t("publicRoadmap.unscheduled")}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="relative flex min-h-12 items-center">
-                  {from && to ? (
-                    <div
-                      role="img"
-                      aria-label={label}
-                      title={label}
-                      className={cn(
-                        "absolute h-6 rounded",
-                        STATUS_COLORS[item.status],
-                        paused && "opacity-50"
-                      )}
-                      style={{
-                        left: `${(differenceInCalendarDays(from, start) / (count * 7)) * 100}%`,
-                        width: `${((differenceInCalendarDays(to, from) + 1) / (count * 7)) * 100}%`,
-                      }}
-                    />
-                  ) : (
-                    <p className="relative px-3 text-xs text-muted-foreground">
-                      {t("publicRoadmap.unscheduled")}
-                    </p>
-                  )}
-                </div>
-              </div>
+              </React.Fragment>
             );
           })}
         </RoadmapTimelineCard>

@@ -17,6 +17,7 @@ import {
 } from "@/types/planner";
 import {
   FeatureTitle,
+  ProjectGroupHeading,
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusDot,
@@ -142,29 +143,12 @@ export default function GanttChart({
           const done = s.feature.status === "done";
           const paused = s.feature.status === "paused";
           const groupKey = projectKey(s);
-          const groupName = groupKey ? projectNames.get(groupKey)! : t("projects.none");
+          const groupName = groupKey ? projectNames.get(groupKey)! : "";
           const startsGroup =
             groupByProject && (idx === 0 || projectKey(schedule[idx - 1]!) !== groupKey);
           return (
             <React.Fragment key={s.feature.id}>
-              {startsGroup && (
-                <div
-                  role="heading"
-                  aria-level={3}
-                  aria-label={t("gantt.row.projectGroup", { projectName: groupName })}
-                  className="grid border-b border-border/60 bg-muted/40"
-                  style={{ gridTemplateColumns: columns }}
-                >
-                  <div
-                    className={cn(
-                      "sticky left-0 z-10 truncate bg-muted px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide",
-                      groupKey ? "text-foreground" : "text-muted-foreground"
-                    )}
-                  >
-                    {groupName}
-                  </div>
-                </div>
-              )}
+              {startsGroup && <ProjectGroupHeading name={groupName} labelWidth={labelWidth} />}
               <ContextMenu.Root>
                 <ContextMenu.Trigger asChild disabled={!onRemove && !onStatusChange}>
                   <div

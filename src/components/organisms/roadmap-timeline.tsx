@@ -106,6 +106,29 @@ export function FeatureTitle({ name, className }: { name: string; className?: st
   );
 }
 
+export function ProjectGroupHeading({ name, labelWidth }: { name: string; labelWidth: number }) {
+  const { t } = useTranslation();
+  const label = name || t("projects.none");
+  return (
+    <div
+      role="heading"
+      aria-level={3}
+      aria-label={t("gantt.row.projectGroup", { projectName: label })}
+      className="grid border-b border-border/60 bg-muted/40"
+      style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
+    >
+      <div
+        className={cn(
+          "sticky left-0 z-10 truncate bg-muted px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide",
+          name ? "text-foreground" : "text-muted-foreground"
+        )}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export function StatusLegend() {
   const { t } = useTranslation();
   return (
