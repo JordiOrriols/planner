@@ -85,6 +85,7 @@ export default function VacationTimeline({
       legend={
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-blue-500" />
+          <span className="size-2 rounded-sm bg-blue-700" />
           {t("vacationTimeline.legend")}
         </span>
       }
@@ -96,7 +97,7 @@ export default function VacationTimeline({
           caption: t("gantt.today.text"),
         },
       ]}
-      rows={rows.map(({ member, runs }) => ({
+      rows={rows.map(({ member, runs }, index) => ({
         id: member.id,
         accessibleLabel: member.name,
         label: <FeatureTitle name={member.name} className="block" />,
@@ -113,7 +114,7 @@ export default function VacationTimeline({
           }),
           start: run.offset,
           end: run.offset + run.length,
-          className: "bg-blue-500",
+          className: index % 2 === 0 ? "bg-blue-500" : "bg-blue-700",
         })),
       }))}
       empty={t("vacationTimeline.empty")}

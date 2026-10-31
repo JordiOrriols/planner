@@ -15,7 +15,8 @@ members (including members without a planning role), grouped by team. Select a
 starting month or use the previous/next month icons to view the next 52 weeks.
 Only saved vacation days produce bars; weekends and holidays are not invented
 as absences, and explicit working-day overrides are excluded. Contiguous dates
-share a blue bar, with localized exact dates available on hover or keyboard focus.
+share a blue bar, alternating light and dark shades by member row (including
+rows without vacations), with localized exact dates available on hover or keyboard focus.
 
 The UI library's props-driven `TimelineCard` owns the card, scrolling, grouped
 headers, guides and markers. The private/public roadmaps reuse the same component;
@@ -36,6 +37,7 @@ Anyone with the public link sees a standalone read-only timeline:
 one overall bar per feature, including UAT, with no roles, effort or capacity details.
 Project headings reuse the internal roadmap's pinned group headers. Consecutive
 features in the same project share a heading; priority order remains unchanged.
+Project names appear only in these headings, not repeated beneath each feature.
 Names of roadmap features and their projects are public while sharing is enabled.
 The page reloads live data every minute; revoking the link blocks subsequent reads.
 Visitors see each feature's status, the Today line, light weekly lines with stronger
