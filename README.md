@@ -2,6 +2,8 @@
 
 Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
+Feature creation and estimation editing use the shared modal's single content
+scroll area, with Save and Discard kept outside it in the visible footer.
 
 Every estimated feature includes two calendar weeks of UAT after its last delivery
 phase (including QA). This applies to existing and new features. UAT extends the
