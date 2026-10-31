@@ -73,9 +73,28 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Team vacations shared editor", () => {
+  it("defaults to timeline and switches icons and views while retaining the calendar month", async () => {
+    render(<Vacations />);
+    expect(screen.getByRole("region", { name: "Team vacation timeline" })).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Vacation calendar" })).not.toBeInTheDocument();
+    const button = screen.getByRole("button", { name: "Show calendar" });
+    expect(button).toHaveTextContent("");
+    expect(button.querySelector(".lucide-calendar-days")).toBeInTheDocument();
+    await userEvent.click(button);
+    expect(screen.getByRole("region", { name: "Vacation calendar" })).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "Team vacation timeline" })
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Next month" }));
+    expect(button.querySelector(".lucide-chart-gantt")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Show timeline" }));
+    await userEvent.click(screen.getByRole("button", { name: "Show calendar" }));
+    expect(screen.getByRole("button", { name: "2026-12-01" })).toBeVisible();
+  });
   it("saves calibration to the selected workspace and refreshes without moving with the calendar", async () => {
     render(<Vacations />);
     const description = screen.getByRole("region", { name: "Squad velocity" }).textContent;
+    await userEvent.click(screen.getByRole("button", { name: "Show calendar" }));
     await userEvent.click(screen.getByRole("button", { name: "Next month" }));
     expect(screen.getByRole("region", { name: "Squad velocity" }).textContent).toBe(description);
     await userEvent.click(screen.getByRole("button", { name: "Calibrate velocity" }));
@@ -89,7 +108,6 @@ describe("Team vacations shared editor", () => {
     const rendered = render(<Vacations />);
     expect(screen.getAllByRole("region")).toEqual([
       screen.getByRole("region", { name: "Squad velocity" }),
-      screen.getByRole("region", { name: "Vacation calendar" }),
       screen.getByRole("region", { name: "Team vacation timeline" }),
     ]);
     expect(screen.queryByRole("heading", { name: "Team members" })).not.toBeInTheDocument();
@@ -135,6 +153,7 @@ describe("Team vacations shared editor", () => {
 
   it("uses highlighted calendar ranges and one-click actions for the selected member", async () => {
     render(<Vacations />);
+    await userEvent.click(screen.getByRole("button", { name: "Show calendar" }));
     expect(screen.queryByLabelText("From")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("To")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save availability" })).not.toBeInTheDocument();
@@ -162,9 +181,10 @@ describe("Team vacations shared editor", () => {
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
   });
 
-  it("cannot select or apply vacations for a read-only member", () => {
+  it("cannot select or apply vacations for a read-only member", async () => {
     state.canEdit = false;
     render(<Vacations />);
+    await userEvent.click(screen.getByRole("button", { name: "Show calendar" }));
     expect(screen.getByRole("button", { name: "2026-11-02" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Vacations", exact: true })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Working Day" })).toBeDisabled();
@@ -176,6 +196,7 @@ describe("Team vacations shared editor", () => {
     state.canEdit = false;
     state.linkedToGrace = true;
     render(<Vacations />);
+    await userEvent.click(screen.getByRole("button", { name: "Show calendar" }));
     expect(screen.getByRole("combobox", { name: "Member" })).toHaveTextContent("Grace");
     await userEvent.click(screen.getByRole("button", { name: "2026-11-09" }));
     await userEvent.click(screen.getByRole("button", { name: "2026-11-10" }));

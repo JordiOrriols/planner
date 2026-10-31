@@ -13,6 +13,8 @@ Unestimated or incomplete features do not receive invented UAT dates.
 Below the existing vacation calendar, a horizontal timeline shows all workspace
 members (including members without a planning role), grouped by team. Select a
 starting month or use the previous/next month icons to view the next 52 weeks.
+Timeline is the default view. The header icon switches between calendar and
+timeline with a localized shared tooltip, preserving both views' selections.
 Only saved vacation days produce bars; weekends and holidays are not invented
 as absences, and explicit working-day overrides are excluded. Contiguous dates
 share a blue bar, alternating light and dark shades by member row (including

@@ -690,6 +690,8 @@
   },
   "vacations": {
     "calendarTitle": "Urlaubskalender",
+    "showCalendar": "Kalender anzeigen",
+    "showTimeline": "Zeitleiste anzeigen",
     "configurationTitle": "Konfiguration",
     "description": "Arbeitskalender für Barcelona. Planungsrollen gehören zu Ladders-Mitgliedern und werden in allen Arbeitsbereichen geteilt; sie ändern keine Berufsbezeichnungen.",
     "errors": {

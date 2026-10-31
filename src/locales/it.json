@@ -690,6 +690,8 @@
   },
   "vacations": {
     "calendarTitle": "Calendario ferie",
+    "showCalendar": "Mostra calendario",
+    "showTimeline": "Mostra cronologia",
     "configurationTitle": "Configurazione",
     "description": "Calendario lavorativo di Barcellona. I ruoli di pianificazione appartengono ai membri Ladders e sono condivisi in tutti i workspace; non modificano le qualifiche professionali.",
     "errors": {
