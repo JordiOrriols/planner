@@ -6,6 +6,7 @@ import { useAsyncAction, useWorkspaceList } from "@jordiorriols/ui/hooks";
 import {
   AppSkeleton,
   Button,
+  ErrorState,
   Input,
   Label,
   type WorkspaceApi,
@@ -74,13 +75,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   if (directory.error || data.error)
     return (
       <div className="p-8 space-y-4">
-        <p role="alert">{directory.error ?? data.error?.message}</p>
+        <ErrorState
+          message={directory.error ?? data.error!.message}
+          onRetry={() => void refresh()}
+          retryLabel={t("common.actions.retry")}
+        />
         <p>{t("workspace.errors.migrationRequired")}</p>
-        <Button onClick={() => void refresh()}>{t("common.actions.retry")}</Button>
         <Button variant="ghost" onClick={() => void action.run(signOut)}>
           {t("common.actions.signOut")}
         </Button>
-        {action.error && <p role="alert">{action.error}</p>}
+        {action.error && <ErrorState message={action.error} />}
       </div>
     );
   if (!summary || !data.data)
@@ -91,11 +95,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
           {t("common.actions.signOut")}
         </Button>
-        {action.error && (
-          <p role="alert" className="text-destructive">
-            {action.error}
-          </p>
-        )}
+        {action.error && <ErrorState message={action.error} />}
         <form
           className="space-y-4"
           onSubmit={(event) => {

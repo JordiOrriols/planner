@@ -8,6 +8,9 @@ Marker management, add-feature selection and velocity calibration also use this
 single modal scroll area; calibration actions remain in the modal footer.
 Feature, marker and calibration fields reuse UI's `FormField`, `Input` and
 `Textarea` from the registry package. Validation and planning rules stay in Planner.
+The local error-boundary adapter delegates catching/logging to UI while retaining
+Planner's localized component title and diagnostic message. Workspace failures
+use UI's `ErrorState` with the existing retry and sign-out behavior.
 
 Every estimated feature includes two calendar weeks of UAT after its last delivery
 phase (including QA). This applies to existing and new features. UAT extends the
