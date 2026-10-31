@@ -118,8 +118,11 @@ there is no fake local persistence mode.
 
 Authentication views and form/session hooks come from `@jordiorriols/ui`.
 Planner does not duplicate login, signup, GitHub OAuth or password recovery.
-The page frame is shared too. `AppPage` paints the light `bg-page` canvas,
-`AppMain` sets the content width, and `AppNavigation` draws the header tabs.
+The authenticated page frame uses published UI `^0.3.29` `AppShell`, composing
+the existing page, header, main and footer once. Its flex main keeps the footer
+at the bottom on short pages; the roadmap retains its full-width override.
+`AppNavigation` draws app-owned header tabs; workspace sharing and access rules
+remain in Planner.
 Header, tabs and `.panel` cards stay white (`bg-background`/`bg-card`), so
 every project has the same layout.
 Ladders teams and members provide the shared roster. Evaluation data and logic

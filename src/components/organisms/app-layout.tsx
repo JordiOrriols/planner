@@ -2,13 +2,9 @@ import React, { useMemo } from "react";
 import { NavLink, Outlet, useMatch } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
-  AppHeader,
-  AppFooter,
-  AppMain,
+  AppShell,
   AppNavigation,
   AppNavigationItem,
-  AppPage,
-  LanguageSelector,
   WorkspaceBar,
   getWorkspaceLabels,
   getDisplayName,
@@ -18,7 +14,6 @@ import { useTranslation } from "react-i18next";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
-import { AppIcon } from "@/components/atoms/AppIcon";
 import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
 
 const NAV = [
@@ -57,26 +52,24 @@ export default function AppLayout() {
     [repository, workspace.id, user?.id, t]
   );
   return (
-    <AppPage>
-      <AppHeader
-        projectId="planner"
-        projectSwitcherLabel={t("planner.switchProject")}
-        title={t("planner.name")}
-        subtitle={t("planner.subtitle")}
-        icon={<AppIcon />}
-        actions={
-          <LanguageSelector
-            value={i18n.language}
-            label={t("header.language")}
-            className="inline-flex"
-            onValueChange={(language) =>
-              void action.run(async () => {
-                await i18n.changeLanguage(language);
-              })
-            }
-          />
-        }
-        accountAction={{
+    <AppShell
+      projectId="planner"
+      footer={{ text: t("app.footer") }}
+      {...(roadmapPage && fullWidth ? { mainClassName: "max-w-none" } : {})}
+      header={{
+        projectSwitcherLabel: t("planner.switchProject"),
+        title: t("planner.name"),
+        subtitle: t("planner.subtitle"),
+        language: {
+          value: i18n.language,
+          label: t("header.language"),
+          className: "inline-flex",
+          onValueChange: (language) =>
+            void action.run(async () => {
+              await i18n.changeLanguage(language);
+            }),
+        },
+        accountAction: {
           type: "signOut",
           label: t("auth.signOut"),
           title: getDisplayName({
@@ -85,8 +78,8 @@ export default function AppLayout() {
           }),
           disabled: action.busy,
           onClick: () => void action.run(signOut),
-        }}
-        navigation={
+        },
+        navigation: (
           <AppNavigation
             label={t("planner.pages")}
             actions={
@@ -117,17 +110,15 @@ export default function AppLayout() {
               )
             )}
           </AppNavigation>
-        }
-      />
-      <AppMain className={roadmapPage && fullWidth ? "max-w-none" : undefined}>
-        {action.error && (
-          <p role="alert" className="px-6 text-destructive">
-            {action.error}
-          </p>
-        )}
-        <Outlet />
-      </AppMain>
-      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
-    </AppPage>
+        ),
+      }}
+    >
+      {action.error && (
+        <p role="alert" className="px-6 text-destructive">
+          {action.error}
+        </p>
+      )}
+      <Outlet />
+    </AppShell>
   );
 }
