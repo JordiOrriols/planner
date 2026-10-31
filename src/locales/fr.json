@@ -690,6 +690,8 @@
   },
   "vacations": {
     "calendarTitle": "Calendrier des vacances",
+    "showCalendar": "Afficher le calendrier",
+    "showTimeline": "Afficher la chronologie",
     "configurationTitle": "Configuration",
     "description": "Calendrier ouvré de Barcelone. Les rôles de planification sont associés aux membres Ladders et partagés dans tous les espaces de travail ; ils ne modifient pas les intitulés de poste.",
     "errors": {

@@ -691,6 +691,8 @@
   },
   "vacations": {
     "calendarTitle": "Calendario de vacaciones",
+    "showCalendar": "Mostrar calendario",
+    "showTimeline": "Mostrar cronología",
     "configurationTitle": "Configuración",
     "description": "Calendario laboral de Barcelona. Los roles de planificación pertenecen a los miembros de Ladders y se comparten en todos los espacios de trabajo; no modifican los cargos.",
     "errors": {

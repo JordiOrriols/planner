@@ -690,6 +690,8 @@
   },
   "vacations": {
     "calendarTitle": "Vacation calendar",
+    "showCalendar": "Show calendar",
+    "showTimeline": "Show timeline",
     "configurationTitle": "Configuration",
     "description": "Barcelona working calendar. Planning roles belong to Ladders members and are shared in every workspace; they do not change job titles.",
     "errors": {

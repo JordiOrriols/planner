@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
-import { SelectField } from "@jordiorriols/ui";
+import { Button, SelectField } from "@jordiorriols/ui";
+import { CalendarDays, ChartGantt } from "@jordiorriols/ui/icons";
 import VacationCalendar from "@/components/organisms/vacation-calendar";
 import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { useWorkspace } from "@/data/WorkspaceProvider";
@@ -13,6 +14,7 @@ export default function Vacations() {
   const { members, linkedTeams, vacations, refresh, workspace, canEdit } = useWorkspace();
   const { repository } = useData();
   const [selected, setSelected] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
   // Viewers linked to a member start on the one they can edit: their own.
   const selectedMember =
     members.find((member) => member.id === selected) ??
@@ -24,7 +26,21 @@ export default function Vacations() {
   const unassigned = members.length - assignable.length;
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{t("vacations.title")}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold">{t("vacations.title")}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t(showCalendar ? "vacations.showTimeline" : "vacations.showCalendar")}
+          onClick={() => setShowCalendar((value) => !value)}
+        >
+          {showCalendar ? (
+            <ChartGantt className="size-5" aria-hidden="true" />
+          ) : (
+            <CalendarDays className="size-5" aria-hidden="true" />
+          )}
+        </Button>
+      </div>
       <p className="text-muted-foreground">{t("vacations.description")}</p>
       {!!unassigned && (
         <p role="status">{t("vacations.unassignedNotice", { count: unassigned })}</p>
@@ -45,7 +61,11 @@ export default function Vacations() {
             }
           : {})}
       />
-      <section className="panel p-5 space-y-4" aria-label={t("vacations.calendarTitle")}>
+      <section
+        hidden={!showCalendar}
+        className="panel p-5 space-y-4"
+        aria-label={t("vacations.calendarTitle")}
+      >
         <h2 className="font-semibold">{t("vacations.calendarTitle")}</h2>
         {selectedMember ? (
           <>
@@ -84,7 +104,9 @@ export default function Vacations() {
           />
         )}
       </section>
-      <VacationTimeline members={members} teams={linkedTeams} vacations={vacations} />
+      <div hidden={showCalendar}>
+        <VacationTimeline members={members} teams={linkedTeams} vacations={vacations} />
+      </div>
     </div>
   );
 }
