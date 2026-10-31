@@ -6,6 +6,8 @@ Feature creation and estimation editing use the shared modal's single content
 scroll area, with Save and Discard kept outside it in the visible footer.
 Marker management, add-feature selection and velocity calibration also use this
 single modal scroll area; calibration actions remain in the modal footer.
+Feature, marker and calibration fields reuse UI's `FormField`, `Input` and
+`Textarea` from the registry package. Validation and planning rules stay in Planner.
 
 Every estimated feature includes two calendar weeks of UAT after its last delivery
 phase (including QA). This applies to existing and new features. UAT extends the

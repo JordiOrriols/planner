@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
-import { Modal, Button, Input, Label, SelectField } from "@jordiorriols/ui";
+import { Modal, Button, FormField, Input, SelectField, Textarea } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import {
@@ -79,24 +79,30 @@ export default function FeatureForm({
           });
         }}
       >
-        <Label htmlFor="project-main-project">{t("featureForm.fields.project")}</Label>
-        <SelectField
-          id="project-main-project"
-          required
-          value={creatingProject ? NEW_PROJECT : (form.project_id ?? "")}
-          onValueChange={(value) => {
-            if (value !== NEW_PROJECT && !projectOptions.some((project) => project.id === value))
-              return;
-            setCreatingProject(value === NEW_PROJECT);
-            if (value !== NEW_PROJECT)
-              setForm((previous) => ({ ...previous, project_id: value || null }));
-          }}
-          options={[
-            { value: "", label: t("featureForm.project.choose"), disabled: true },
-            ...projectOptions.map((project) => ({ value: project.id, label: project.name })),
-            { value: NEW_PROJECT, label: t("featureForm.project.new") },
-          ]}
-        />
+        <FormField id="project-main-project" label={t("featureForm.fields.project")}>
+          {(field) => (
+            <SelectField
+              {...field}
+              required
+              value={creatingProject ? NEW_PROJECT : (form.project_id ?? "")}
+              onValueChange={(value) => {
+                if (
+                  value !== NEW_PROJECT &&
+                  !projectOptions.some((project) => project.id === value)
+                )
+                  return;
+                setCreatingProject(value === NEW_PROJECT);
+                if (value !== NEW_PROJECT)
+                  setForm((previous) => ({ ...previous, project_id: value || null }));
+              }}
+              options={[
+                { value: "", label: t("featureForm.project.choose"), disabled: true },
+                ...projectOptions.map((project) => ({ value: project.id, label: project.name })),
+                { value: NEW_PROJECT, label: t("featureForm.project.new") },
+              ]}
+            />
+          )}
+        </FormField>
         {creatingProject && (
           <Input
             aria-label={t("projects.fields.newName")}
@@ -107,40 +113,51 @@ export default function FeatureForm({
             maxLength={80}
           />
         )}
-        <Label htmlFor="project-name">{t("featureForm.fields.name")}</Label>
-        <Input
-          id="project-name"
-          value={form.name}
-          onChange={(event) => setForm((previous) => ({ ...previous, name: event.target.value }))}
-          required
-          maxLength={120}
-          autoFocus
-        />
-        <Label htmlFor="project-description">{t("featureForm.fields.description")}</Label>
-        <textarea
-          id="project-description"
-          className="field"
-          value={form.description}
-          onChange={(event) =>
-            setForm((previous) => ({ ...previous, description: event.target.value }))
-          }
-          rows={2}
-        />
-        <Label htmlFor="feature-status">{t("featureStatus.label")}</Label>
-        <SelectField
-          id="feature-status"
-          value={form.status}
-          onValueChange={(value) =>
-            setForm((previous) => ({
-              ...previous,
-              status: value as FeatureStatus,
-            }))
-          }
-          options={FEATURE_STATUSES.map((status) => ({
-            value: status,
-            label: t(`featureStatus.${status}`),
-          }))}
-        />
+        <FormField id="project-name" label={t("featureForm.fields.name")}>
+          {(field) => (
+            <Input
+              {...field}
+              value={form.name}
+              onChange={(event) =>
+                setForm((previous) => ({ ...previous, name: event.target.value }))
+              }
+              required
+              maxLength={120}
+              autoFocus
+            />
+          )}
+        </FormField>
+        <FormField id="project-description" label={t("featureForm.fields.description")}>
+          {(field) => (
+            <Textarea
+              {...field}
+              className="min-h-16"
+              value={form.description}
+              onChange={(event) =>
+                setForm((previous) => ({ ...previous, description: event.target.value }))
+              }
+              rows={2}
+            />
+          )}
+        </FormField>
+        <FormField id="feature-status" label={t("featureStatus.label")}>
+          {(field) => (
+            <SelectField
+              {...field}
+              value={form.status}
+              onValueChange={(value) =>
+                setForm((previous) => ({
+                  ...previous,
+                  status: value as FeatureStatus,
+                }))
+              }
+              options={FEATURE_STATUSES.map((status) => ({
+                value: status,
+                label: t(`featureStatus.${status}`),
+              }))}
+            />
+          )}
+        </FormField>
         <div className="rounded-xl border overflow-hidden">
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 text-xs font-medium">
             <span>{t("featureForm.columns.role")}</span>

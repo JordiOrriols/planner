@@ -1,7 +1,7 @@
 import React, { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addDays, differenceInCalendarDays, format } from "date-fns";
-import { Button, Modal } from "@jordiorriols/ui";
+import { Button, FormField, Input, Modal } from "@jordiorriols/ui";
 import { Plus, Trash2 } from "@jordiorriols/ui/icons";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { calibratedRate, sprintCapacity } from "@/lib/sprints";
@@ -98,61 +98,70 @@ export default function VelocityCalibration({
           });
         }}
       >
-        <label className="grid gap-1 text-sm">
-          {t("velocity.calibration.anchor")}
-          <input
-            className="field"
-            type="date"
-            required
-            min="2026-01-01"
-            max="2027-12-18"
-            value={start}
-            disabled={action.busy}
-            onChange={(event) => setStart(event.target.value)}
-          />
-        </label>
+        <FormField label={t("velocity.calibration.anchor")} className="space-y-1">
+          {(field) => (
+            <Input
+              {...field}
+              type="date"
+              required
+              min="2026-01-01"
+              max="2027-12-18"
+              value={start}
+              disabled={action.busy}
+              onChange={(event) => setStart(event.target.value)}
+            />
+          )}
+        </FormField>
         <div className="space-y-3">
           {rows.map((row, index) => (
             <div key={row.id} className="rounded-lg border border-border p-3 space-y-2">
               <div className="flex flex-wrap items-end gap-2">
-                <label className="grid min-w-0 flex-1 gap-1 text-xs">
-                  {t("velocity.calibration.date")}
-                  <input
-                    className="field"
-                    type="date"
-                    required
-                    min="2026-01-01"
-                    max="2027-12-18"
-                    value={row.date}
-                    disabled={action.busy}
-                    onChange={(event) =>
-                      setRows((current) =>
-                        current.map((item) =>
-                          item.id === row.id ? { ...item, date: event.target.value } : item
+                <FormField
+                  label={t("velocity.calibration.date")}
+                  className="min-w-0 flex-1 space-y-1"
+                >
+                  {(field) => (
+                    <Input
+                      {...field}
+                      type="date"
+                      required
+                      min="2026-01-01"
+                      max="2027-12-18"
+                      value={row.date}
+                      disabled={action.busy}
+                      onChange={(event) =>
+                        setRows((current) =>
+                          current.map((item) =>
+                            item.id === row.id ? { ...item, date: event.target.value } : item
+                          )
                         )
-                      )
-                    }
-                  />
-                </label>
-                <label className="grid min-w-0 flex-1 gap-1 text-xs">
-                  {t("velocity.calibration.points")}
-                  <input
-                    className="field"
-                    type="number"
-                    min="0"
-                    step="any"
-                    required
-                    value={row.points}
-                    disabled={action.busy}
-                    onChange={(event) =>
-                      setRows((current) =>
-                        current.map((item) =>
-                          item.id === row.id ? { ...item, points: event.target.value } : item
+                      }
+                    />
+                  )}
+                </FormField>
+                <FormField
+                  label={t("velocity.calibration.points")}
+                  className="min-w-0 flex-1 space-y-1"
+                >
+                  {(field) => (
+                    <Input
+                      {...field}
+                      type="number"
+                      min="0"
+                      step="any"
+                      required
+                      value={row.points}
+                      disabled={action.busy}
+                      onChange={(event) =>
+                        setRows((current) =>
+                          current.map((item) =>
+                            item.id === row.id ? { ...item, points: event.target.value } : item
+                          )
                         )
-                      )
-                    }
-                  />
-                </label>
+                      }
+                    />
+                  )}
+                </FormField>
                 <Button
                   type="button"
                   variant="ghost"

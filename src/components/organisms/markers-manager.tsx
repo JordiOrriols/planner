@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Input, Label, Modal } from "@jordiorriols/ui";
+import { Button, FormField, Input, Modal } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { Plus, Trash2 } from "@jordiorriols/ui/icons";
 import { fmtDate, parseDate } from "@/lib/planning";
@@ -44,30 +44,32 @@ export default function MarkersManager({
             });
           }}
         >
-          <div className="space-y-1">
-            <Label htmlFor="marker-name">{t("markers.name")}</Label>
-            <Input
-              id="marker-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={80}
-              required
-              disabled={action.busy}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="marker-date">{t("markers.date")}</Label>
-            <Input
-              id="marker-date"
-              type="date"
-              min="0001-01-01"
-              max="9999-12-31"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              required
-              disabled={action.busy}
-            />
-          </div>
+          <FormField id="marker-name" label={t("markers.name")} className="space-y-1">
+            {(field) => (
+              <Input
+                {...field}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={80}
+                required
+                disabled={action.busy}
+              />
+            )}
+          </FormField>
+          <FormField id="marker-date" label={t("markers.date")} className="space-y-1">
+            {(field) => (
+              <Input
+                {...field}
+                type="date"
+                min="0001-01-01"
+                max="9999-12-31"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                required
+                disabled={action.busy}
+              />
+            )}
+          </FormField>
           <Button
             type="submit"
             className="sm:col-span-2"
