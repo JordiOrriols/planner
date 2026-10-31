@@ -79,6 +79,7 @@ describe("nontechnical roadmap", () => {
       "Checkout: Feb 2, 2026 to Feb 20, 2026 · Pending"
     );
     expect(screen.getByRole("heading", { name: "Project: Payments" })).toBeVisible();
+    expect(screen.getAllByText("Payments", { exact: true })).toHaveLength(1);
     for (const role of ["Backend", "Frontend", "QA", "Design", "UAT"])
       expect(screen.queryByText(role)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /status/i })).not.toBeInTheDocument();

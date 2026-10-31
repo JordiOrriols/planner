@@ -93,10 +93,6 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                     </span>
                     <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
                       <FeatureTitle name={item.name} className="block text-sm font-medium" />
-                      <FeatureTitle
-                        name={item.project}
-                        className="block text-xs text-muted-foreground"
-                      />
                     </div>
                   </div>
                   <div className="relative flex min-h-12 items-center">
