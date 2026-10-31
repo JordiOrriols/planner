@@ -237,7 +237,7 @@ export default function Backlog() {
             </p>
           )}
           {availableFeatures.length ? (
-            <ul className="max-h-[50vh] overflow-y-auto space-y-2">
+            <ul className="space-y-2">
               {availableFeatures.map((feature) => (
                 <li
                   key={feature.id}
