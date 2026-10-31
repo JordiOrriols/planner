@@ -41,12 +41,44 @@ afterEach(async () => {
 });
 
 describe("nontechnical roadmap", () => {
+  it("groups consecutive projects without changing feature priority, including repeated and missing projects", () => {
+    render(
+      <PublicRoadmapView
+        roadmap={roadmap(
+          checkout,
+          { ...checkout, name: "Billing" },
+          { ...checkout, name: "Search", project: "Discovery" },
+          { ...checkout, name: "Exports" },
+          { ...checkout, name: "Other", project: "" }
+        )}
+      />
+    );
+    expect(
+      screen
+        .getAllByRole("heading", { level: 3 })
+        .map((heading) => heading.getAttribute("aria-label"))
+    ).toEqual([
+      "Project: Payments",
+      "Project: Discovery",
+      "Project: Payments",
+      "Project: No project",
+    ]);
+    expect(
+      screen
+        .getAllByRole("img", { name: /to Feb 20/ })
+        .map((bar) => bar.getAttribute("aria-label")?.split(":")[0])
+    ).toEqual(["Checkout", "Billing", "Search", "Exports", "Other"]);
+  });
+  it("omits project headings when all project names are missing", () => {
+    render(<PublicRoadmapView roadmap={roadmap({ ...checkout, project: "" })} />);
+    expect(screen.queryByRole("heading", { level: 3 })).not.toBeInTheDocument();
+  });
   it("shows one continuous overall bar without roles, capacity or editing controls", () => {
     render(<PublicRoadmapView roadmap={roadmap(checkout)} />);
     expect(screen.getByRole("img", { name: /^Checkout:/ })).toHaveAccessibleName(
       "Checkout: Feb 2, 2026 to Feb 20, 2026 · Pending"
     );
-    expect(screen.getByText("Payments")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Project: Payments" })).toBeVisible();
     for (const role of ["Backend", "Frontend", "QA", "Design", "UAT"])
       expect(screen.queryByText(role)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /status/i })).not.toBeInTheDocument();
