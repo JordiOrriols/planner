@@ -21,8 +21,7 @@ import {
   RoadmapDisplayToolbar,
   STATUS_COLORS,
   StatusLegend,
-  TimelineGuides,
-  TimelineHeader,
+  RoadmapTimelineCard,
   useLabelWidth,
 } from "@/components/organisms/roadmap-timeline";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
@@ -52,77 +51,74 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
       {!roadmap.features.length ? (
         <p>{t("publicRoadmap.empty")}</p>
       ) : (
-        <div className="overflow-x-auto">
-          <div className="relative" style={{ minWidth: Math.max(640, labelWidth + count * 32) }}>
-            <TimelineGuides
-              weekStarts={weekStarts}
-              labelWidth={labelWidth}
-              markers={markerVisibility.visible ? roadmap.markers : []}
-            />
-            <TimelineHeader
-              weekStarts={weekStarts}
-              labelWidth={labelWidth}
-              title={t("common.feature")}
-              weekLabel={t("common.weekOf")}
-            />
-            {roadmap.features.map((item, index) => {
-              const from = item.start ? parseDate(item.start) : null;
-              const to = item.end ? parseDate(item.end) : null;
-              const paused = item.status === "paused";
-              const label =
-                from && to
-                  ? t("publicRoadmap.span", {
-                      name: item.name,
-                      start: fmtDate(from),
-                      end: fmtDate(to),
-                      status: t(`featureStatus.${item.status}`),
-                    })
-                  : "";
-              return (
-                <div
-                  key={index}
-                  className="grid border-b border-border/60"
-                  style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
-                >
-                  <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
-                    <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
-                      {index + 1}
-                    </span>
-                    <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
-                      <FeatureTitle name={item.name} className="block text-sm font-medium" />
-                      <FeatureTitle
-                        name={item.project}
-                        className="block text-xs text-muted-foreground"
-                      />
-                    </div>
-                  </div>
-                  <div className="relative flex min-h-12 items-center">
-                    {from && to ? (
-                      <div
-                        role="img"
-                        aria-label={label}
-                        title={label}
-                        className={cn(
-                          "absolute h-6 rounded",
-                          STATUS_COLORS[item.status],
-                          paused && "opacity-50"
-                        )}
-                        style={{
-                          left: `${(differenceInCalendarDays(from, start) / (count * 7)) * 100}%`,
-                          width: `${((differenceInCalendarDays(to, from) + 1) / (count * 7)) * 100}%`,
-                        }}
-                      />
-                    ) : (
-                      <p className="relative px-3 text-xs text-muted-foreground">
-                        {t("publicRoadmap.unscheduled")}
-                      </p>
-                    )}
+        <RoadmapTimelineCard
+          aria-label={t("roadmap.schedule.label")}
+          weekStarts={weekStarts}
+          labelWidth={labelWidth}
+          minWidth={640}
+          columnWidth={32}
+          labelTitle={t("common.feature")}
+          columnTitle={t("common.weekOf")}
+          markers={markerVisibility.visible ? roadmap.markers : []}
+          className="border-0 p-0"
+        >
+          {roadmap.features.map((item, index) => {
+            const from = item.start ? parseDate(item.start) : null;
+            const to = item.end ? parseDate(item.end) : null;
+            const paused = item.status === "paused";
+            const label =
+              from && to
+                ? t("publicRoadmap.span", {
+                    name: item.name,
+                    start: fmtDate(from),
+                    end: fmtDate(to),
+                    status: t(`featureStatus.${item.status}`),
+                  })
+                : "";
+            return (
+              <div
+                key={index}
+                className="grid border-b border-border/60"
+                style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
+              >
+                <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
+                  <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
+                    <FeatureTitle name={item.name} className="block text-sm font-medium" />
+                    <FeatureTitle
+                      name={item.project}
+                      className="block text-xs text-muted-foreground"
+                    />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <div className="relative flex min-h-12 items-center">
+                  {from && to ? (
+                    <div
+                      role="img"
+                      aria-label={label}
+                      title={label}
+                      className={cn(
+                        "absolute h-6 rounded",
+                        STATUS_COLORS[item.status],
+                        paused && "opacity-50"
+                      )}
+                      style={{
+                        left: `${(differenceInCalendarDays(from, start) / (count * 7)) * 100}%`,
+                        width: `${((differenceInCalendarDays(to, from) + 1) / (count * 7)) * 100}%`,
+                      }}
+                    />
+                  ) : (
+                    <p className="relative px-3 text-xs text-muted-foreground">
+                      {t("publicRoadmap.unscheduled")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </RoadmapTimelineCard>
       )}
       <p className="text-xs text-muted-foreground">{t("publicRoadmap.forecastNotice")}</p>
     </section>

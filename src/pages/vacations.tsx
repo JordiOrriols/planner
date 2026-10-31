@@ -6,6 +6,7 @@ import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 import SquadVelocity from "@/components/organisms/squad-velocity";
+import VacationTimeline from "@/components/organisms/vacation-timeline";
 
 export default function Vacations() {
   const { t } = useTranslation();
@@ -83,6 +84,7 @@ export default function Vacations() {
           />
         )}
       </section>
+      <VacationTimeline members={members} teams={linkedTeams} vacations={vacations} />
     </div>
   );
 }

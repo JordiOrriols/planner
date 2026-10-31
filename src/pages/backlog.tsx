@@ -175,41 +175,37 @@ export default function Backlog() {
           }
         />
       ) : (
-        <section className="panel" aria-label={t("roadmap.schedule.label")}>
-          <h2 className="font-semibold mb-4">
-            {t("roadmap.schedule.summary", {
-              completedFeatures: completed.length,
-              totalFeatures: backlog.length,
-            })}
-          </h2>
-          <GanttChart
-            markerVisibility={markerVisibility}
-            projects={projects}
-            markers={markerVisibility.visible ? markers : []}
-            weeks={result?.weeks ?? []}
-            schedule={
-              result?.schedule ??
-              backlog.map((feature) => ({
-                feature,
-                startIdx: null,
-                endIdx: null,
-                start: null,
-                end: null,
-                reason: error,
-                complete: false,
-                roles: [],
-              }))
-            }
-            {...(canEdit
-              ? {
-                  onReorder: move,
-                  onRemove: (id: string) => toggle(id, false),
-                  onStatusChange: changeStatus,
-                }
-              : {})}
-            disabled={action.busy}
-          />
-        </section>
+        <GanttChart
+          title={t("roadmap.schedule.summary", {
+            completedFeatures: completed.length,
+            totalFeatures: backlog.length,
+          })}
+          markerVisibility={markerVisibility}
+          projects={projects}
+          markers={markerVisibility.visible ? markers : []}
+          weeks={result?.weeks ?? []}
+          schedule={
+            result?.schedule ??
+            backlog.map((feature) => ({
+              feature,
+              startIdx: null,
+              endIdx: null,
+              start: null,
+              end: null,
+              reason: error,
+              complete: false,
+              roles: [],
+            }))
+          }
+          {...(canEdit
+            ? {
+                onReorder: move,
+                onRemove: (id: string) => toggle(id, false),
+                onStatusChange: changeStatus,
+              }
+            : {})}
+          disabled={action.busy}
+        />
       )}
       {canEdit && managingMarkers && (
         <MarkersManager

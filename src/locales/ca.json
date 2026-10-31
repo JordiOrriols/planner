@@ -1,4 +1,15 @@
 {
+  "vacationTimeline": {
+    "title": "Cronologia de vacances de l'equip",
+    "day": "Dia",
+    "start": "Mes d'inici",
+    "previous": "Mes d'inici anterior",
+    "next": "Mes d'inici següent",
+    "legend": "Dies de vacances",
+    "noTeam": "Sense equip",
+    "empty": "No hi ha membres en aquest espai de treball.",
+    "span": "{{name}}: vacances del {{start}} al {{end}}"
+  },
   "markers": {
     "title": "Dates importants",
     "description": "Afegeix marcadors amb nom al full de ruta d'aquest espai. També estaran disponibles al seu enllaç públic.",

@@ -8,6 +8,20 @@ phase (including QA). This applies to existing and new features. UAT extends the
 forecast end date but does not reserve team capacity or add person-weeks of effort.
 Unestimated or incomplete features do not receive invented UAT dates.
 
+### Team vacation timeline
+
+Below the existing vacation calendar, a horizontal timeline shows all workspace
+members (including members without a planning role), grouped by team. Select a
+starting month or use the previous/next month icons to view the next 52 weeks.
+Only saved vacation days produce bars; weekends and holidays are not invented
+as absences, and explicit working-day overrides are excluded. Contiguous dates
+share a bar, with localized exact dates available on hover or keyboard focus.
+
+The UI library's props-driven `TimelineCard` owns the card, scrolling, grouped
+headers, guides and markers. The private/public roadmaps reuse the same component;
+Planner retains only scheduling, vacation grouping and domain-specific row actions.
+TimelineCard is supplied by UI `^0.3.25` from GitHub Packages.
+
 ### Public roadmap
 
 Use workspace **Share** from any page: **Emails** opens by default for people
@@ -63,7 +77,7 @@ Use Node.js 26 LTS with npm 11.20.0, matching CI. Run `nvm install` and
 `@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
 `.npmrc` reads it from `GITHUB_TOKEN`:
 
-UI `^0.3.24` supplies the shared green Planner branding for header, project-menu
+UI `^0.3.25` supplies the shared timeline card and green Planner branding for header, project-menu
 and login/welcome icons. `projectId` and `ProjectIcon` reuse the UI registry
 without a local palette.
 
