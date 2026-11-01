@@ -3,6 +3,7 @@ import { NavLink, Outlet, useMatch } from "react-router-dom";
 import { Calculator, GanttChartSquare, CalendarDays, Settings } from "@jordiorriols/ui/icons";
 import {
   AppShell,
+  AppAccountControls,
   AppNavigation,
   AppNavigationItem,
   WorkspaceBar,
@@ -15,6 +16,7 @@ import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
+import { useAuthDialogProps } from "@/components/molecules/LoginDialog";
 
 const NAV = [
   { to: "/", key: "planner.tabs.estimation", icon: Calculator, end: true },
@@ -31,7 +33,8 @@ const NAV = [
 
 export default function AppLayout() {
   const { t, i18n } = useTranslation();
-  const { signOut, user, repository } = useData();
+  const { authEnabled, authError, user, repository } = useData();
+  const auth = useAuthDialogProps();
   const { workspace, workspaces, workspaceApi, selectWorkspace, refresh, canEdit } = useWorkspace();
   const action = useAsyncAction();
   const roadmapPage = useMatch("/backlog");
@@ -69,16 +72,20 @@ export default function AppLayout() {
               await i18n.changeLanguage(language);
             }),
         },
-        accountAction: {
-          type: "signOut",
-          label: t("auth.signOut"),
-          title: getDisplayName({
-            accountName: user?.user_metadata?.["full_name"] ?? user?.user_metadata?.["name"],
-            email: user?.email ?? "",
-          }),
-          disabled: action.busy,
-          onClick: () => void action.run(signOut),
-        },
+        actions: (
+          <AppAccountControls
+            {...auth}
+            projectId="planner"
+            enabled={authEnabled}
+            signedIn={!!user}
+            authError={authError}
+            signOutLabel={t("auth.signOut")}
+            accountTitle={getDisplayName({
+              accountName: user?.user_metadata?.["full_name"] ?? user?.user_metadata?.["name"],
+              email: user?.email ?? "",
+            })}
+          />
+        ),
         navigation: (
           <AppNavigation
             label={t("planner.pages")}

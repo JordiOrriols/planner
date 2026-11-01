@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { AppFooter, AppMain, AppPage, AppSkeleton } from "@jordiorriols/ui";
+import { PublicAppShell, AppSkeleton } from "@jordiorriols/ui";
 import { VacationEditor } from "@/components/organisms/vacation-editor";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
@@ -28,32 +28,40 @@ export default function VacationLink() {
     },
   });
   return (
-    <AppPage>
-      <AppMain className="max-w-4xl space-y-5">
-        <h1 className="text-3xl font-bold">{t("vacationLink.title")}</h1>
-        <p className="text-muted-foreground">{t("vacationLink.description")}</p>
-        {query.isPending && <AppSkeleton label={t("vacationLink.loading")} fullPage={false} />}
-        {query.error && <p role="alert">{query.error.message}</p>}
-        {query.data && repository && (
-          <section className="panel p-5 space-y-4">
-            <h2 className="text-xl font-semibold">{query.data.member.name}</h2>
-            <VacationEditor
-              key={token}
-              member={query.data.member}
-              members={query.data.members}
-              vacations={query.data.vacations}
-              month={month}
-              onMonthChange={setMonth}
-              canEdit
-              save={async (start, end, working) => {
-                await repository.saveVacationLink(token, start, end, working);
-                await client.invalidateQueries({ queryKey });
-              }}
-            />
-          </section>
-        )}
-      </AppMain>
-      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
-    </AppPage>
+    <PublicAppShell
+      projectId="planner"
+      mainClassName="max-w-4xl space-y-5"
+      footer={{ text: t("app.footer") }}
+      header={{
+        title: t("vacationLink.title"),
+        subtitle: t("vacationLink.description"),
+        language: {
+          value: i18n.language,
+          label: t("header.language"),
+          onValueChange: (language) => void i18n.changeLanguage(language),
+        },
+      }}
+    >
+      {query.isPending && <AppSkeleton label={t("vacationLink.loading")} fullPage={false} />}
+      {query.error && <p role="alert">{query.error.message}</p>}
+      {query.data && repository && (
+        <section className="panel p-5 space-y-4">
+          <h2 className="text-xl font-semibold">{query.data.member.name}</h2>
+          <VacationEditor
+            key={token}
+            member={query.data.member}
+            members={query.data.members}
+            vacations={query.data.vacations}
+            month={month}
+            onMonthChange={setMonth}
+            canEdit
+            save={async (start, end, working) => {
+              await repository.saveVacationLink(token, start, end, working);
+              await client.invalidateQueries({ queryKey });
+            }}
+          />
+        </section>
+      )}
+    </PublicAppShell>
   );
 }
