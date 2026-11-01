@@ -2,14 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  AppFooter,
-  AppMain,
-  AppPage,
-  AppSkeleton,
-  Button,
-  LanguageSelector,
-} from "@jordiorriols/ui";
+import { PublicAppShell, AppSkeleton, Button } from "@jordiorriols/ui";
 import { differenceInCalendarDays, addWeeks } from "date-fns";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
@@ -28,7 +21,6 @@ import {
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
 
 const repository = supabase ? createPlannerRepository(supabase) : null;
-const BRAND = "JordiOrriols.cat";
 
 export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   const { t } = useTranslation();
@@ -142,33 +134,28 @@ export default function RoadmapLink() {
     },
   });
   return (
-    <AppPage className="flex flex-col">
-      <AppMain className={cn("w-full flex-1 space-y-5", fullWidth && "max-w-none")}>
-        <header>
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">{BRAND}</p>
-            <LanguageSelector
-              value={i18n.language}
-              label={t("header.language")}
-              className="inline-flex"
-              onValueChange={(language) => void i18n.changeLanguage(language)}
-            />
-          </div>
-          <h1 className="mt-3 text-3xl font-semibold">
-            {query.data?.name ?? t("publicRoadmap.title")}
-          </h1>
-        </header>
-        {query.isPending && <AppSkeleton label={t("app.loading.page")} fullPage={false} />}
-        {query.error ? (
-          <div role="alert" className="space-y-3">
-            <p>{query.error.message}</p>
-            <Button onClick={() => void query.refetch()}>{t("app.actions.tryAgain")}</Button>
-          </div>
-        ) : (
-          query.data && <PublicRoadmapView roadmap={query.data} />
-        )}
-      </AppMain>
-      <AppFooter projectId="planner" language={i18n.language} text={t("app.footer")} />
-    </AppPage>
+    <PublicAppShell
+      projectId="planner"
+      mainClassName={cn("space-y-5", fullWidth && "max-w-none")}
+      footer={{ text: t("app.footer") }}
+      header={{
+        title: query.data?.name ?? t("publicRoadmap.title"),
+        language: {
+          value: i18n.language,
+          label: t("header.language"),
+          onValueChange: (language) => void i18n.changeLanguage(language),
+        },
+      }}
+    >
+      {query.isPending && <AppSkeleton label={t("app.loading.page")} fullPage={false} />}
+      {query.error ? (
+        <div role="alert" className="space-y-3">
+          <p>{query.error.message}</p>
+          <Button onClick={() => void query.refetch()}>{t("app.actions.tryAgain")}</Button>
+        </div>
+      ) : (
+        query.data && <PublicRoadmapView roadmap={query.data} />
+      )}
+    </PublicAppShell>
   );
 }
