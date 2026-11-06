@@ -1,7 +1,7 @@
 // @vitest-environment node
 import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createMigratedDatabase } from "./support/migratedDatabase";
+import { createMigratedDatabase } from "@jordiorriols/backend/testing";
 
 // These scenarios link teams into plans; teams have stayed in their workspace since this migration.
 const TEAMS_STAY = "20261017010000_teams_stay_in_their_workspace.sql";

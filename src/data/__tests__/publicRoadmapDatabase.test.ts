@@ -1,7 +1,7 @@
 // @vitest-environment node
 import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createMigratedDatabase } from "./support/migratedDatabase";
+import { createMigratedDatabase } from "@jordiorriols/backend/testing";
 import { buildPublicRoadmap } from "@/lib/publicRoadmap";
 
 const owner = "11111111-1111-4111-8111-111111111111";

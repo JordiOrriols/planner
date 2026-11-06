@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
-import { createMigratedDatabase } from "./support/migratedDatabase";
+import { createMigratedDatabase } from "@jordiorriols/backend/testing";
 import { buildPublicRoadmap } from "@/lib/publicRoadmap";
 
 it("scopes markers to workspace access, editor writes and the token-gated public projection", async () => {
