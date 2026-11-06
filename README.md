@@ -92,7 +92,7 @@ Use Node.js 26 LTS with npm 11.20.0, matching CI. Run `nvm install` and
 `@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
 `.npmrc` reads it from `GITHUB_TOKEN`:
 
-UI `^0.3.25` supplies the shared timeline card and green Planner branding for header, project-menu
+UI `^0.3.32` includes Agents in the shared project switcher and supplies the shared timeline card and green Planner branding for header, project-menu
 and login/welcome icons. `projectId` and `ProjectIcon` reuse the UI registry
 without a local palette.
 

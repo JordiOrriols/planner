@@ -62,6 +62,10 @@ describe("Planner shared project navigation", () => {
       "aria-current",
       "page"
     );
+    expect(screen.getByRole("menuitem", { name: "Agents" })).toHaveAttribute(
+      "href",
+      "https://agents.jordiorriols.cat/"
+    );
     await userEvent.keyboard("{Escape}");
     expect(trigger).toHaveFocus();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
