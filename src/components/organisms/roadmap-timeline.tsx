@@ -95,7 +95,7 @@ export function FeatureTitle({ name, className }: { name: string; className?: st
   return (
     <span
       className={cn(
-        "min-w-0 flex-1",
+        "block min-w-0 flex-1",
         wrapTitles ? "whitespace-normal break-words" : "truncate",
         className
       )}

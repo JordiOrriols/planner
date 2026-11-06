@@ -26,6 +26,63 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("renames only the marker in the requested workspace and leaves its date unchanged", async () => {
+    const { fetch, response, repository } = setup();
+    const marker = {
+      id: workspace.owner_id,
+      workspace_id: workspace.id,
+      name: "Release",
+      date: "2026-02-04",
+    };
+    for (const name of ["", " ", "x".repeat(81)])
+      await expect(repository.renameMarker(workspace.id, marker.id, name)).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockResolvedValueOnce(response(marker));
+    expect(await repository.renameMarker(workspace.id, marker.id, " Release ")).toEqual(marker);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`id=eq.${marker.id}`);
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe("PATCH");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ name: "Release" });
+    fetch.mockResolvedValueOnce(response({ message: "Write denied" }, 403));
+    await expect(repository.renameMarker(workspace.id, marker.id, "Release")).rejects.toThrow(
+      "Write denied"
+    );
+  });
+  it("passes proposal revisions and reports stale previews without success-shaped results", async () => {
+    const { fetch, response, repository } = setup();
+    const revision = "a".repeat(32);
+    fetch.mockResolvedValueOnce(response({ error: "Roadmap changed" }, 409));
+    await expect(
+      repository.loadRoadmapLink(workspace.id, {
+        featureIds: [workspace.owner_id],
+        expectedRevision: revision,
+      })
+    ).rejects.toThrow(/roadmap has changed/i);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      token: workspace.id,
+      featureIds: [workspace.owner_id],
+      expectedRevision: revision,
+    });
+    fetch.mockResolvedValueOnce(response(workspace.owner_id));
+    expect(
+      await repository.savePriorityProposal(
+        workspace.id,
+        "Alternative",
+        [workspace.owner_id],
+        revision
+      )
+    ).toBe(workspace.owner_id);
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({
+      token: workspace.id,
+      proposal_name: "Alternative",
+      feature_ids: [workspace.owner_id],
+      expected_revision: revision,
+    });
+    fetch.mockResolvedValueOnce(response({ message: "Sign in with a verified email" }, 403));
+    await expect(
+      repository.savePriorityProposal(workspace.id, "Alternative", [workspace.owner_id], revision)
+    ).rejects.toThrow(/verified email/);
+  });
   it("pages the current-app sharing directory and surfaces authorization and shape failures", async () => {
     const { fetch, response, repository } = setup();
     const share = {

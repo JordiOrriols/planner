@@ -8,6 +8,7 @@ import { ROLES, ROLE_LABELS, fmtDate, roleDevs } from "@/lib/planning";
 import { isHoliday } from "@/lib/barcelonaHolidays";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
+import { FeatureDependencies } from "@/components/molecules/feature-dependencies";
 import type { CapacityWeek, ScheduledFeature, ScheduledRole } from "@/lib/planning";
 import {
   FEATURE_STATUSES,
@@ -79,6 +80,7 @@ export default function GanttChart({
   const labelWidth = useLabelWidth();
   const N = weeks.length;
   const projectNames = new Map(projects.map((item) => [item.id, item.name]));
+  const features = schedule.map((item) => item.feature);
   const groupByProject = schedule.some(
     (item) => item.feature.project_id && projectNames.has(item.feature.project_id)
   );
@@ -185,7 +187,7 @@ export default function GanttChart({
                   >
                     <div
                       className={cn(
-                        "sticky left-0 bg-card z-10 flex items-center gap-1.5 px-2 text-xs",
+                        "sticky left-0 bg-card z-10 flex min-w-0 overflow-hidden items-center gap-1.5 px-2 text-xs",
                         onReorder && !disabled && "cursor-grab active:cursor-grabbing"
                       )}
                       style={{ gridRow: "1 / -1" }}
@@ -250,10 +252,16 @@ export default function GanttChart({
                           ? { onChange: (status) => onStatusChange(s.feature.id, status) }
                           : {})}
                       />
-                      <FeatureTitle
-                        name={s.feature.name}
-                        className={cn("py-1 font-medium", paused && "opacity-50")}
-                      />
+                      <div className="min-w-0 flex-1">
+                        <FeatureTitle
+                          name={s.feature.name}
+                          className={cn("py-1 font-medium", paused && "opacity-50")}
+                        />
+                        <FeatureDependencies
+                          ids={s.feature.dependency_ids ?? []}
+                          features={features}
+                        />
+                      </div>
                     </div>
                     {s.start && lastWork && s.startIdx != null && s.endIdx != null && (
                       <div

@@ -8,6 +8,7 @@ export type FeatureInput = Estimates & {
   description: string;
   project_id: string | null;
   status: FeatureStatus;
+  dependency_ids?: string[];
 };
 export interface Project {
   id: string;
@@ -57,6 +58,7 @@ export interface Vacation {
   is_working: boolean;
 }
 export const EMPTY_FEATURE: FeatureInput = {
+  dependency_ids: [],
   name: "",
   description: "",
   project_id: null,
