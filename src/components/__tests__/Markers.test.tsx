@@ -94,6 +94,7 @@ describe("roadmap markers", () => {
         onClose={vi.fn()}
         onCreate={onCreate}
         onDelete={onDelete}
+        onRename={vi.fn()}
       />
     );
     expect(screen.getByRole("button", { name: "Add marker" })).toBeDisabled();
@@ -113,6 +114,7 @@ describe("roadmap markers", () => {
         onClose={vi.fn()}
         onCreate={vi.fn().mockRejectedValue(new Error("Cannot save"))}
         onDelete={vi.fn().mockRejectedValue(new Error("Cannot delete"))}
+        onRename={vi.fn()}
       />
     );
     await userEvent.click(screen.getByRole("button", { name: "Delete marker Launch" }));
@@ -122,5 +124,37 @@ describe("roadmap markers", () => {
     await userEvent.click(screen.getByRole("button", { name: "Add marker" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Cannot save"));
     expect(screen.getByLabelText("Marker name")).toHaveValue("Release");
+  });
+  it("renames an existing marker, supports cancellation and preserves errors for retry", async () => {
+    const onRename = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Cannot rename"))
+      .mockResolvedValue(undefined);
+    render(
+      <MarkersManager
+        markers={[marker]}
+        onClose={vi.fn()}
+        onCreate={vi.fn()}
+        onDelete={vi.fn()}
+        onRename={onRename}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Edit marker Launch" }));
+    const input = screen.getAllByLabelText("Marker name")[1]!;
+    expect(input).toHaveValue("Launch");
+    await userEvent.clear(input);
+    await userEvent.type(input, "Release");
+    await userEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Cannot rename");
+    expect(input).toHaveValue("Release");
+    await userEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(onRename).toHaveBeenLastCalledWith("marker", "Release"));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Save Changes" })).not.toBeInTheDocument()
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Edit marker Launch" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onRename).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Launch")).toBeVisible();
   });
 });

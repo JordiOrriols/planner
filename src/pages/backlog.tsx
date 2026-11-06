@@ -206,6 +206,10 @@ export default function Backlog() {
       )}
       {canEdit && managingMarkers && (
         <MarkersManager
+          onRename={async (id, name) => {
+            await repository.renameMarker(workspace.id, id, name);
+            await refresh();
+          }}
           markers={markers}
           onClose={() => setManagingMarkers(false)}
           onCreate={async (name, date) => {

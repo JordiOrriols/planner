@@ -61,8 +61,10 @@ truncating them. The choices are remembered in the browser.
 
 ### Important date markers
 
-Use **Manage markers** on the roadmap to create or delete named dates in a modal
-list. Markers are saved per workspace, sorted by date, and editable by workspace
+Use **Manage markers** on the roadmap to create, rename or delete named dates in a modal
+list. The edit button renames a marker in place, preserving its ID and date.
+Save/Cancel stay in the list; failed edits remain available for retry.
+Markers are saved per workspace, sorted by date, and editable by workspace
 editors only. Members see amber dashed date lines by default; public roadmap
 visitors start with them hidden. **Show markers / Hide markers** changes only
 the current browser tab's session (separate member and public preferences), not
@@ -96,8 +98,9 @@ are checked at transaction commit, not against an intermediate ordering.
 Scheduling waits for every prerequisite to finish delivery **and UAT**, even when
 other roles have unused capacity.
 
-On a public link, drag a feature or use its up/down buttons to experiment without
-writing official priorities. Only pending/paused features **after the last done or
+On a public link, drag a feature using the same grip as the private roadmap to
+experiment without writing official priorities. The grip retains Arrow Up/Down
+keyboard access without visible arrow buttons. Only pending/paused features **after the last done or
 in-progress feature** can move; the whole earlier prefix is fixed. Dependencies
 are checked before preview requests and again on the server. Preview computation
 reuses the same scheduler; private capacity and vacation inputs stay server-side.

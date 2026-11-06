@@ -46,6 +46,7 @@
     "date": "Date du repère",
     "add": "Ajouter un repère",
     "delete": "Supprimer le repère {{markerName}}",
+    "edit": "Modifier le repère {{markerName}}",
     "empty": "Aucun repère pour le moment. Ajoutez une date importante ci-dessus.",
     "show": "Afficher les repères",
     "hide": "Masquer les repères",

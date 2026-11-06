@@ -46,6 +46,7 @@
     "date": "Datum der Markierung",
     "add": "Markierung hinzufügen",
     "delete": "Markierung {{markerName}} löschen",
+    "edit": "Markierung {{markerName}} bearbeiten",
     "empty": "Noch keine Markierungen. Fügen Sie oben einen wichtigen Termin hinzu.",
     "show": "Markierungen anzeigen",
     "hide": "Markierungen ausblenden",

@@ -46,6 +46,7 @@
     "date": "Marker date",
     "add": "Add marker",
     "delete": "Delete marker {{markerName}}",
+    "edit": "Edit marker {{markerName}}",
     "empty": "No markers yet. Add an important date above.",
     "show": "Show markers",
     "hide": "Hide markers",

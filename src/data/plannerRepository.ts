@@ -147,6 +147,19 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
       return markerSchema.parse(data);
     },
+    async renameMarker(workspace: string, id: string, name: string) {
+      const trimmed = name.trim();
+      if (!trimmed || trimmed.length > 80) throw new Error(i18n.t("markers.invalid"));
+      const { data, error } = await client
+        .from("roadmap_markers")
+        .update({ name: trimmed })
+        .eq("workspace_id", workspace)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return markerSchema.parse(data);
+    },
     async deleteMarker(workspace: string, id: string) {
       const { data, error } = await client
         .from("roadmap_markers")

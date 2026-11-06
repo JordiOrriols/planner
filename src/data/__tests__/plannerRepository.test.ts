@@ -26,6 +26,28 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("renames only the marker in the requested workspace and leaves its date unchanged", async () => {
+    const { fetch, response, repository } = setup();
+    const marker = {
+      id: workspace.owner_id,
+      workspace_id: workspace.id,
+      name: "Release",
+      date: "2026-02-04",
+    };
+    for (const name of ["", " ", "x".repeat(81)])
+      await expect(repository.renameMarker(workspace.id, marker.id, name)).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    fetch.mockResolvedValueOnce(response(marker));
+    expect(await repository.renameMarker(workspace.id, marker.id, " Release ")).toEqual(marker);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`workspace_id=eq.${workspace.id}`);
+    expect(String(fetch.mock.calls[0]?.[0])).toContain(`id=eq.${marker.id}`);
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe("PATCH");
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({ name: "Release" });
+    fetch.mockResolvedValueOnce(response({ message: "Write denied" }, 403));
+    await expect(repository.renameMarker(workspace.id, marker.id, "Release")).rejects.toThrow(
+      "Write denied"
+    );
+  });
   it("passes proposal revisions and reports stale previews without success-shaped results", async () => {
     const { fetch, response, repository } = setup();
     const revision = "a".repeat(32);

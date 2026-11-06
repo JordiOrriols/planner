@@ -46,6 +46,7 @@
     "date": "Data del marcador",
     "add": "Afegeix un marcador",
     "delete": "Suprimeix el marcador {{markerName}}",
+    "edit": "Edita el marcador {{markerName}}",
     "empty": "Encara no hi ha marcadors. Afegeix una data important a dalt.",
     "show": "Mostra els marcadors",
     "hide": "Amaga els marcadors",

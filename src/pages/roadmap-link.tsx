@@ -8,10 +8,11 @@ import {
   AuthDialog,
   Button,
   ErrorState,
+  IconTooltip,
   NameDialog,
   SelectField,
 } from "@jordiorriols/ui";
-import { ArrowUp, ArrowDown, GripVertical } from "@jordiorriols/ui/icons";
+import { GripVertical } from "@jordiorriols/ui/icons";
 import { useAsyncAction, useNameForm } from "@jordiorriols/ui/hooks";
 import { useData } from "@/data/DataProvider";
 import { useAuthDialogProps } from "@/components/molecules/LoginDialog";
@@ -108,7 +109,7 @@ export function PublicRoadmapView({
                   style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
                 >
                   <div
-                    className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2"
+                    className="sticky left-0 z-10 flex min-w-0 overflow-hidden items-center gap-1.5 bg-card px-2 py-2"
                     draggable={!!onMove && !!item.id && index > lockedUntil && !disabled}
                     onDragStart={() => setDragged(item.id ?? null)}
                     onDragEnd={() => setDragged(null)}
@@ -131,35 +132,24 @@ export function PublicRoadmapView({
                     }}
                   >
                     {onMove && item.id && index > lockedUntil && (
-                      <span className="flex shrink-0 items-center">
-                        <GripVertical className="size-3 cursor-grab" aria-hidden="true" />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-6"
-                          aria-label={t("priorityProposals.moveUp", { feature: item.name })}
-                          disabled={disabled || index === lockedUntil + 1}
-                          onClick={() => {
-                            const target = roadmap.features[index - 1]?.id;
-                            if (target && item.id) onMove(item.id, target);
+                      <IconTooltip label={t("gantt.row.reorderHelp", { featureName: item.name })}>
+                        <button
+                          type="button"
+                          className="grid size-5 shrink-0 place-items-center rounded text-muted-foreground cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-default disabled:opacity-50"
+                          aria-label={t("gantt.row.reorder", { featureName: item.name })}
+                          disabled={disabled}
+                          onKeyDown={(event) => {
+                            if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                            event.preventDefault();
+                            const targetIndex = index + (event.key === "ArrowUp" ? -1 : 1);
+                            const target = roadmap.features[targetIndex]?.id;
+                            if (!disabled && targetIndex > lockedUntil && target && item.id)
+                              onMove(item.id, target);
                           }}
                         >
-                          <ArrowUp className="size-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-6"
-                          aria-label={t("priorityProposals.moveDown", { feature: item.name })}
-                          disabled={disabled || index === roadmap.features.length - 1}
-                          onClick={() => {
-                            const target = roadmap.features[index + 1]?.id;
-                            if (target && item.id) onMove(item.id, target);
-                          }}
-                        >
-                          <ArrowDown className="size-3" />
-                        </Button>
-                      </span>
+                          <GripVertical className="size-3.5" />
+                        </button>
+                      </IconTooltip>
                     )}
                     <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
                       {index + 1}

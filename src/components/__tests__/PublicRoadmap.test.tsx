@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -223,9 +223,9 @@ describe("public roadmap page", () => {
     const second = { ...checkout, id: "22222222-2222-4222-8222-222222222222", name: "Search" };
     const official = roadmap(checkout, second);
     renderPage(official);
-    await screen.findByRole("button", { name: "Move Search up" });
+    await screen.findByRole("button", { name: "Reorder Search" });
     loadRoadmapLink.mockResolvedValueOnce(roadmap(second, checkout));
-    await userEvent.click(screen.getByRole("button", { name: "Move Search up" }));
+    fireEvent.keyDown(screen.getByRole("button", { name: "Reorder Search" }), { key: "ArrowUp" });
     expect(
       await screen.findByText("Temporary experiment. The official priorities have not changed.")
     ).toBeVisible();
@@ -251,7 +251,9 @@ describe("public roadmap page", () => {
       dependency_ids: [checkout.id!],
     };
     renderPage(roadmap(checkout, dependent));
-    await userEvent.click(await screen.findByRole("button", { name: "Move Search up" }));
+    fireEvent.keyDown(await screen.findByRole("button", { name: "Reorder Search" }), {
+      key: "ArrowUp",
+    });
     expect(
       await screen.findByText('"Search" must come after its dependency "Checkout".')
     ).toBeVisible();
@@ -283,7 +285,7 @@ describe("public roadmap page", () => {
       "a".repeat(32)
     );
     expect(loadRoadmapLink).toHaveBeenLastCalledWith("token", { proposal });
-    expect(screen.queryByRole("button", { name: "Move Checkout up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reorder Checkout" })).not.toBeInTheDocument();
   });
 
   it("keeps the entire locked prefix fixed, including pending work ahead of active work", () => {
@@ -299,10 +301,13 @@ describe("public roadmap page", () => {
         )}
       />
     );
-    expect(screen.queryByRole("button", { name: "Move Checkout down" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Move Active down" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Move Later up" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Move Later down" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Reorder Checkout" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reorder Active" })).not.toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("button", { name: "Reorder Later" }), { key: "ArrowUp" });
+    expect(move).not.toHaveBeenCalled();
+    fireEvent.keyDown(screen.getByRole("button", { name: "Reorder Later" }), { key: "ArrowDown" });
+    expect(move).toHaveBeenCalledWith("later", "last");
+    expect(screen.queryByRole("button", { name: /^Move / })).not.toBeInTheDocument();
   });
 
   it("preserves the draft during live changes and disables stale saves until reset", async () => {
@@ -310,9 +315,9 @@ describe("public roadmap page", () => {
     const second = { ...checkout, id: "22222222-2222-4222-8222-222222222222", name: "Search" };
     const official = roadmap(checkout, second);
     renderPage(official, client);
-    await screen.findByRole("button", { name: "Move Search up" });
+    await screen.findByRole("button", { name: "Reorder Search" });
     loadRoadmapLink.mockResolvedValueOnce(roadmap(second, checkout));
-    await userEvent.click(screen.getByRole("button", { name: "Move Search up" }));
+    fireEvent.keyDown(screen.getByRole("button", { name: "Reorder Search" }), { key: "ArrowUp" });
     await screen.findByText("Temporary experiment. The official priorities have not changed.");
     loadRoadmapLink.mockRejectedValueOnce(new Error("Connection unavailable"));
     await act(async () => {
@@ -351,7 +356,7 @@ describe("public roadmap page", () => {
       await screen.findByRole("heading", { name: "Official plan", exact: true })
     ).toBeVisible();
     expect(screen.getAllByRole("img", { name: /^Checkout:/ })).toHaveLength(2);
-    expect(screen.queryByRole("button", { name: "Move Checkout up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reorder Checkout" })).not.toBeInTheDocument();
     expect(savePriorityProposal).not.toHaveBeenCalled();
     await userEvent.click(
       screen.getByRole("button", { name: "Try these priorities on the current plan" })

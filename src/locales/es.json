@@ -46,6 +46,7 @@
     "date": "Fecha del marcador",
     "add": "Añadir marcador",
     "delete": "Eliminar marcador {{markerName}}",
+    "edit": "Editar marcador {{markerName}}",
     "empty": "Aún no hay marcadores. Añade una fecha importante arriba.",
     "show": "Mostrar marcadores",
     "hide": "Ocultar marcadores",

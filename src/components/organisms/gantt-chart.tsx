@@ -187,7 +187,7 @@ export default function GanttChart({
                   >
                     <div
                       className={cn(
-                        "sticky left-0 bg-card z-10 flex items-center gap-1.5 px-2 text-xs",
+                        "sticky left-0 bg-card z-10 flex min-w-0 overflow-hidden items-center gap-1.5 px-2 text-xs",
                         onReorder && !disabled && "cursor-grab active:cursor-grabbing"
                       )}
                       style={{ gridRow: "1 / -1" }}

@@ -46,6 +46,7 @@
     "date": "Data dell'indicatore",
     "add": "Aggiungi indicatore",
     "delete": "Elimina indicatore {{markerName}}",
+    "edit": "Modifica indicatore {{markerName}}",
     "empty": "Nessun indicatore. Aggiungi una data importante qui sopra.",
     "show": "Mostra indicatori",
     "hide": "Nascondi indicatori",
