@@ -1,8 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { PublicAppShell, AppSkeleton, Button } from "@jordiorriols/ui";
+import {
+  PublicAppShell,
+  AppSkeleton,
+  AuthDialog,
+  Button,
+  ErrorState,
+  NameDialog,
+  SelectField,
+} from "@jordiorriols/ui";
+import { ArrowUp, ArrowDown, GripVertical } from "@jordiorriols/ui/icons";
+import { useAsyncAction, useNameForm } from "@jordiorriols/ui/hooks";
+import { useData } from "@/data/DataProvider";
+import { useAuthDialogProps } from "@/components/molecules/LoginDialog";
+import { FeatureDependencies } from "@/components/molecules/feature-dependencies";
+import { reorderPriority, validatePriorityOrder } from "@/lib/featureDependencies";
 import { differenceInCalendarDays, addWeeks } from "date-fns";
 import { createPlannerRepository } from "@/data/plannerRepository";
 import { supabase } from "@/data/supabaseClient";
@@ -22,7 +36,15 @@ import type { PublicRoadmap } from "@/lib/publicRoadmap";
 
 const repository = supabase ? createPlannerRepository(supabase) : null;
 
-export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
+export function PublicRoadmapView({
+  roadmap,
+  onMove,
+  disabled = false,
+}: {
+  roadmap: PublicRoadmap;
+  onMove?: (from: string, to: string) => void;
+  disabled?: boolean;
+}) {
   const { t } = useTranslation();
   const labelWidth = useLabelWidth();
   const markerVisibility = useMarkerVisibility(true);
@@ -34,6 +56,12 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   const count = Math.max(4, Math.ceil((differenceInCalendarDays(last, start) + 1) / 7));
   const weekStarts = Array.from({ length: count }, (_, index) => addWeeks(start, index));
   const groupByProject = roadmap.features.some((feature) => !!feature.project);
+  const [dragged, setDragged] = useState<string | null>(null);
+  const lockedUntil = roadmap.features.reduce(
+    (last, feature, index) =>
+      feature.status === "done" || feature.status === "in_progress" ? index : last,
+    -1
+  );
   return (
     <section className="panel space-y-4" aria-label={t("publicRoadmap.title")}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
@@ -70,7 +98,7 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                   })
                 : "";
             return (
-              <React.Fragment key={index}>
+              <React.Fragment key={item.id ?? index}>
                 {groupByProject &&
                   (index === 0 || item.project !== roadmap.features[index - 1]?.project) && (
                     <ProjectGroupHeading name={item.project} labelWidth={labelWidth} />
@@ -79,12 +107,69 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
                   className="grid border-b border-border/60"
                   style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr)` }}
                 >
-                  <div className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2">
+                  <div
+                    className="sticky left-0 z-10 flex items-center gap-1.5 bg-card px-2 py-2"
+                    draggable={!!onMove && !!item.id && index > lockedUntil && !disabled}
+                    onDragStart={() => setDragged(item.id ?? null)}
+                    onDragEnd={() => setDragged(null)}
+                    onDragOver={(event) => {
+                      if (onMove && dragged && index > lockedUntil && !disabled)
+                        event.preventDefault();
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (
+                        onMove &&
+                        dragged &&
+                        item.id &&
+                        dragged !== item.id &&
+                        index > lockedUntil &&
+                        !disabled
+                      )
+                        onMove(dragged, item.id);
+                      setDragged(null);
+                    }}
+                  >
+                    {onMove && item.id && index > lockedUntil && (
+                      <span className="flex shrink-0 items-center">
+                        <GripVertical className="size-3 cursor-grab" aria-hidden="true" />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          aria-label={t("priorityProposals.moveUp", { feature: item.name })}
+                          disabled={disabled || index === lockedUntil + 1}
+                          onClick={() => {
+                            const target = roadmap.features[index - 1]?.id;
+                            if (target && item.id) onMove(item.id, target);
+                          }}
+                        >
+                          <ArrowUp className="size-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          aria-label={t("priorityProposals.moveDown", { feature: item.name })}
+                          disabled={disabled || index === roadmap.features.length - 1}
+                          onClick={() => {
+                            const target = roadmap.features[index + 1]?.id;
+                            if (target && item.id) onMove(item.id, target);
+                          }}
+                        >
+                          <ArrowDown className="size-3" />
+                        </Button>
+                      </span>
+                    )}
                     <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
                       {index + 1}
                     </span>
                     <div className={cn("min-w-0 flex-1", paused && "opacity-50")}>
                       <FeatureTitle name={item.name} className="block text-sm font-medium" />
+                      <FeatureDependencies
+                        ids={item.dependency_ids ?? []}
+                        features={roadmap.features}
+                      />
                     </div>
                   </div>
                   <div className="relative flex min-h-12 items-center">
@@ -120,6 +205,225 @@ export function PublicRoadmapView({ roadmap }: { roadmap: PublicRoadmap }) {
   );
 }
 
+function PriorityProposals({ token, official }: { token: string; official: PublicRoadmap }) {
+  const { t } = useTranslation();
+  const { user } = useData();
+  const auth = useAuthDialogProps();
+  const action = useAsyncAction();
+  const [preview, setPreview] = useState<PublicRoadmap | null>(null);
+  const [selected, setSelected] = useState("");
+  const [comparison, setComparison] = useState("");
+  const [naming, setNaming] = useState(false);
+  const [login, setLogin] = useState(false);
+  const proposals = useQuery({
+    queryKey: ["priority-proposals", token],
+    queryFn: () => {
+      if (!repository) throw new Error(t("publicRoadmap.unavailable"));
+      return repository.listPriorityProposals(token);
+    },
+    retry: false,
+    refetchInterval: 60_000,
+  });
+  const saved = useQuery({
+    queryKey: ["priority-proposal", token, selected],
+    enabled: !!selected,
+    queryFn: () => {
+      if (!repository) throw new Error(t("publicRoadmap.unavailable"));
+      return repository.loadRoadmapLink(token, { proposal: selected });
+    },
+  });
+  const compared = useQuery({
+    queryKey: ["priority-proposal", token, comparison],
+    enabled: !!comparison && comparison !== "official",
+    queryFn: () => {
+      if (!repository) throw new Error(t("publicRoadmap.unavailable"));
+      return repository.loadRoadmapLink(token, { proposal: comparison });
+    },
+  });
+  const roadmap = selected ? saved.data : (preview ?? official);
+  const form = useNameForm({
+    isOpen: naming,
+    onClose: () => setNaming(false),
+    onSubmit: async (name) => {
+      if (!repository || !user || !roadmap) throw new Error(t("priorityProposals.signIn"));
+      const ids = roadmap.features.map((feature) => {
+        if (!feature.id) throw new Error(t("priorityProposals.changed"));
+        return feature.id;
+      });
+      if (!roadmap.revision) throw new Error(t("priorityProposals.changed"));
+      const id = await repository.savePriorityProposal(token, name, ids, roadmap.revision);
+      await proposals.refetch();
+      setSelected(id);
+      setPreview(null);
+    },
+  });
+  function move(from: string, to: string) {
+    if (!roadmap || action.busy) return;
+    void action.run(async () => {
+      if (!repository) throw new Error(t("publicRoadmap.unavailable"));
+      const features = roadmap.features.map((feature) => {
+        if (!feature.id) throw new Error(t("priorityProposals.changed"));
+        return { ...feature, id: feature.id, dependency_ids: feature.dependency_ids ?? [] };
+      });
+      const ids = reorderPriority(features, from, to, true);
+      if (!roadmap.revision) throw new Error(t("priorityProposals.changed"));
+      setPreview(
+        await repository.loadRoadmapLink(token, {
+          featureIds: ids,
+          expectedRevision: roadmap.revision,
+        })
+      );
+    });
+  }
+  const options = (proposals.data ?? []).map((proposal) => ({
+    value: proposal.id,
+    label: proposal.name,
+  }));
+  const comparisonRoadmap = comparison === "official" ? official : compared.data;
+  const viewName = selected
+    ? options.find((option) => option.value === selected)?.label
+    : t(preview ? "priorityProposals.experiment" : "priorityProposals.official");
+  const comparisonName =
+    comparison === "official"
+      ? t("priorityProposals.official")
+      : options.find((option) => option.value === comparison)?.label;
+  return (
+    <section className="space-y-4" aria-label={t("priorityProposals.title")}>
+      <div className="panel space-y-3">
+        <h2 className="text-lg font-semibold">{t("priorityProposals.title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("priorityProposals.description")}</p>
+        <p className="text-xs text-muted-foreground">{t("priorityProposals.locked")}</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <SelectField
+            aria-label={t("priorityProposals.restore")}
+            value={selected}
+            disabled={action.busy}
+            onValueChange={(value) => {
+              setSelected(value);
+              setPreview(null);
+              action.reset();
+            }}
+            options={[{ value: "", label: t("priorityProposals.official") }, ...options]}
+          />
+          <Button
+            disabled={
+              action.busy ||
+              !!selected ||
+              !roadmap?.features.length ||
+              (!!preview && preview.revision !== official.revision)
+            }
+            onClick={() => (user ? setNaming(true) : setLogin(true))}
+          >
+            {t("priorityProposals.save")}
+          </Button>
+          {selected && (
+            <Button
+              variant="outline"
+              disabled={action.busy || !saved.data}
+              onClick={() =>
+                void action.run(async () => {
+                  if (!repository || !saved.data || !official.revision)
+                    throw new Error(t("priorityProposals.changed"));
+                  const ids = saved.data.features.map((feature) => {
+                    if (!feature.id) throw new Error(t("priorityProposals.changed"));
+                    return feature.id;
+                  });
+                  const features = official.features.map((feature) => {
+                    if (!feature.id) throw new Error(t("priorityProposals.changed"));
+                    return {
+                      ...feature,
+                      id: feature.id,
+                      dependency_ids: feature.dependency_ids ?? [],
+                    };
+                  });
+                  validatePriorityOrder(features, ids, true);
+                  const restored = await repository.loadRoadmapLink(token, {
+                    featureIds: ids,
+                    expectedRevision: official.revision,
+                  });
+                  setSelected("");
+                  setPreview(restored);
+                })
+              }
+            >
+              {t("priorityProposals.resume")}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            disabled={action.busy}
+            onClick={() => {
+              setPreview(null);
+              setSelected("");
+              action.reset();
+            }}
+          >
+            {t("priorityProposals.reset")}
+          </Button>
+          <SelectField
+            aria-label={t("priorityProposals.compare")}
+            value={comparison}
+            onValueChange={setComparison}
+            options={[
+              { value: "", label: t("priorityProposals.noComparison") },
+              { value: "official", label: t("priorityProposals.official") },
+              ...options,
+            ]}
+          />
+        </div>
+        {selected && <p className="text-sm">{t("priorityProposals.snapshot")}</p>}
+        {preview && (
+          <p role="status" className="text-sm">
+            {t("priorityProposals.draft")}
+          </p>
+        )}
+        {preview && preview.revision !== official.revision && (
+          <ErrorState message={t("priorityProposals.changed")} />
+        )}
+        {[action.error, proposals.error?.message, saved.error?.message, compared.error?.message]
+          .filter((message): message is string => typeof message === "string")
+          .map((message, index) => (
+            <ErrorState key={index} message={message} />
+          ))}
+      </div>
+      {(saved.isFetching && selected) || action.busy ? (
+        <AppSkeleton label={t("priorityProposals.recalculating")} fullPage={false} />
+      ) : null}
+      <div className={cn("grid gap-4", comparison && "xl:grid-cols-2")}>
+        {roadmap && (
+          <section aria-label={viewName} className="min-w-0 space-y-2">
+            <h3 className="font-semibold">{viewName}</h3>
+            <PublicRoadmapView
+              roadmap={roadmap}
+              {...(!selected ? { onMove: move } : {})}
+              disabled={action.busy}
+            />
+          </section>
+        )}
+        {comparison && comparisonRoadmap && (
+          <section aria-label={comparisonName} className="min-w-0 space-y-2">
+            <h3 className="font-semibold">{comparisonName}</h3>
+            <PublicRoadmapView roadmap={comparisonRoadmap} />
+          </section>
+        )}
+      </div>
+      <NameDialog
+        isOpen={naming}
+        onClose={() => setNaming(false)}
+        form={form}
+        labels={{
+          title: t("priorityProposals.save"),
+          description: t("priorityProposals.nameDescription"),
+          name: t("priorityProposals.name"),
+          submit: t("priorityProposals.save"),
+          cancel: t("buttons.cancel"),
+        }}
+      />
+      <AuthDialog {...auth} isOpen={login} onClose={() => setLogin(false)} />
+    </section>
+  );
+}
+
 export default function RoadmapLink() {
   const { token = "" } = useParams();
   const { t, i18n } = useTranslation();
@@ -148,14 +452,13 @@ export default function RoadmapLink() {
       }}
     >
       {query.isPending && <AppSkeleton label={t("app.loading.page")} fullPage={false} />}
-      {query.error ? (
+      {query.error && (
         <div role="alert" className="space-y-3">
           <p>{query.error.message}</p>
           <Button onClick={() => void query.refetch()}>{t("app.actions.tryAgain")}</Button>
         </div>
-      ) : (
-        query.data && <PublicRoadmapView roadmap={query.data} />
       )}
+      {query.data && <PriorityProposals key={token} token={token} official={query.data} />}
     </PublicAppShell>
   );
 }

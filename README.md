@@ -44,13 +44,13 @@ link. Linked team access alone does not grant sharing access. The shared UI
 `20261030234000_workspace_sharing_directory.sql` has been applied to the shared
 database with approval; the RPC enforces owner-only public-link writes and
 app-scoped directory/token reads.
-Anyone with the public link sees a standalone read-only timeline:
+Anyone with the public link sees a standalone timeline, without official editing rights:
 one overall bar per feature, including UAT, with no roles, effort or capacity details.
 Project headings reuse the internal roadmap's pinned group headers. Consecutive
 features in the same project share a heading; priority order remains unchanged.
 Project names appear only in these headings, not repeated beneath each feature.
 Names of roadmap features and their projects are public while sharing is enabled.
-The page reloads live data every minute; revoking the link blocks subsequent reads.
+The official plan reloads every minute; revoking the link blocks subsequent reads.
 Visitors see each feature's status, the Today line, light weekly lines with stronger
 month boundaries, and can change the language. The footer stays visible.
 
@@ -75,7 +75,8 @@ the `roadmap` Edge Function to include markers in the public projection.
 
 The `roadmap` Supabase Edge Function reads a service-only, token-gated RPC, reuses
 the exact scheduling engine from `src/lib/planning.ts`, and returns only feature
-names, project names, dates and status. Staff, vacations and estimates
+names, project names, dates, status, feature/dependency IDs and an opaque revision.
+Staff, vacations and estimates
 never reach the public client. Its Deno import map selects a server-only i18n
 instance instead of React/browser initialization. No second scheduler is maintained.
 
@@ -84,6 +85,49 @@ Deployment requires the `20261019190000_public_roadmap.sql` migration and
 Supabase's server-provided URL and service-role key; never put that key in Vite
 configuration. `verify_jwt = false` is intentional: a valid, revocable share token
 is required instead. Do not grant anonymous access to `planner_roadmap_source`.
+
+### Dependencies and priority proposals
+
+Feature creation/editing offers multiple prerequisites across projects in the same
+workspace. Prerequisites must be earlier on the roadmap; cycles, self-references,
+foreign-workspace/missing features and removal of referenced prerequisites are
+rejected by the database, including direct REST mutations. Bulk priority changes
+are checked at transaction commit, not against an intermediate ordering.
+Scheduling waits for every prerequisite to finish delivery **and UAT**, even when
+other roles have unused capacity.
+
+On a public link, drag a feature or use its up/down buttons to experiment without
+writing official priorities. Only pending/paused features **after the last done or
+in-progress feature** can move; the whole earlier prefix is fixed. Dependencies
+are checked before preview requests and again on the server. Preview computation
+reuses the same scheduler; private capacity and vacation inputs stay server-side.
+The separate draft is never silently reset by polling. A changed source revision
+rejects stale previews/saves and requires returning to the official plan.
+
+**Propose priority** saves a named snapshot after sign-in with a verified email;
+workspace membership is not required, but the active link is. Anyone with that
+link can view saved proposals and compare them with the official plan or another
+proposal. Saved dates/inputs do not change with subsequent official edits.
+Returning to the official plan starts a new experiment. **Try these priorities on
+the current plan** recovers a proposal's order with current inputs, validates it
+against today's dependencies/locked prefix, and recalculates without changing
+the saved snapshot. Missing features or incompatible orders are rejected.
+A manager applies any
+agreed priorities through the normal authenticated roadmap, not through the link.
+Snapshots belong to the share link: revoking it deletes its proposals. Saved
+proposals count as workspace content; revoke the link to clear them before
+deleting an otherwise empty workspace.
+
+Apply backend `20261106233000_planner_dependencies_proposals.sql` **and redeploy
+the roadmap Edge Function before releasing this client**. Both require explicit
+deployment approval. No UI package publication is needed.
+
+From the E2E repository, use
+`APP_NAVIGATION_ROOT=<parent-of-planner-worktree> npx playwright test --config=planner-proposals.config.ts`.
+The five browser scenarios simulate the not-yet-deployed service, covering drag,
+keyboard controls, protected rows, naming, recovery/comparison, stale errors and
+all six languages on mobile. Real SQL constraints and scheduling are tested in
+Backend and Planner respectively; production verification must follow deployment.
 
 ## Start locally
 
