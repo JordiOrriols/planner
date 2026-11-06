@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Dépendances",
+    "description": "Sélectionnez les prérequis, y compris dans d'autres projets de cet espace. Ajoutez-les d'abord à la roadmap. Les cycles sont interdits.",
+    "orderError": "\"{{feature}}\" doit suivre sa dépendance \"{{dependency}}\".",
+    "after": "Après : {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Essai",
+    "resume": "Tester ces priorités sur le plan actuel",
+    "title": "Propositions de priorité",
+    "description": "Testez les priorités et recalculez les prévisions sans modifier le plan officiel. Enregistrez des propositions nommées pour les comparer avec les personnes disposant du lien. Un manager appliquera les changements officiellement.",
+    "locked": "Seules les fonctionnalités en attente ou en pause après la dernière terminée ou en cours peuvent être déplacées.",
+    "changed": "La roadmap a changé ou ne peut pas être réordonnée. Rechargez le plan officiel avant de proposer des priorités.",
+    "moveUp": "Monter {{feature}}",
+    "moveDown": "Descendre {{feature}}",
+    "restore": "Voir une proposition enregistrée",
+    "official": "Plan officiel",
+    "compare": "Comparer avec",
+    "noComparison": "Sans comparaison",
+    "save": "Proposer une priorité",
+    "reset": "Revenir au plan officiel",
+    "snapshot": "Instantané enregistré : dates, capacité et priorités sont conservées au moment de l'enregistrement. Testez ses priorités sur le plan actuel pour recalculer les dates sans modifier cet instantané.",
+    "draft": "Essai temporaire. Les priorités officielles n'ont pas changé.",
+    "name": "Nom de la proposition",
+    "nameDescription": "Enregistrez un instantané nommé distinct. Toute personne disposant du lien peut le voir. Une connexion est nécessaire.",
+    "signIn": "Connectez-vous pour enregistrer une proposition.",
+    "recalculating": "Recalcul de la proposition..."
+  },
   "vacationTimeline": {
     "title": "Calendrier des congés de l'équipe",
     "day": "Jour",
@@ -27,7 +55,7 @@
   "publicRoadmap": {
     "title": "Feuille de route",
     "share": "Partager la feuille de route",
-    "sharingDescription": "Toute personne disposant du lien peut voir les fonctionnalités, projets, dates de livraison et repères de dates nommés. Les effectifs, congés et estimations techniques restent privés. La mise à jour est automatique.",
+    "sharingDescription": "Toute personne disposant du lien peut voir les fonctionnalités, dépendances, projets, dates de livraison et repères de dates. Les effectifs, congés et estimations techniques restent privés. Les visiteurs peuvent enregistrer des propositions nommées sans modifier votre plan. Désactiver le lien supprime définitivement toutes ses propositions enregistrées. La roadmap officielle se met à jour automatiquement.",
     "link": "Lien public de la feuille de route",
     "create": "Créer un lien",
     "copy": "Copier le lien",

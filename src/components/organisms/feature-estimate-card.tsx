@@ -7,9 +7,11 @@ import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/li
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
 import { StatusBadge } from "@/components/organisms/roadmap-timeline";
+import { FeatureDependencies } from "@/components/molecules/feature-dependencies";
 
 export default function FeatureEstimateCard({
   feature,
+  features = [],
   projectName,
   onEdit,
   onDelete,
@@ -17,6 +19,7 @@ export default function FeatureEstimateCard({
   readOnly,
 }: {
   feature: Feature;
+  features?: Feature[];
   projectName?: string | undefined;
   onEdit: () => void;
   onDelete: () => void;
@@ -52,6 +55,7 @@ export default function FeatureEstimateCard({
           {feature.description && (
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{feature.description}</p>
           )}
+          <FeatureDependencies ids={feature.dependency_ids ?? []} features={features} />
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <StatusBadge status={feature.status} />

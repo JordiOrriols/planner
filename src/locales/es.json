@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Dependencias",
+    "description": "Selecciona requisitos previos, incluso de otros proyectos de este espacio. Añádelos primero al roadmap. No se permiten ciclos.",
+    "orderError": "\"{{feature}}\" debe ir después de su dependencia \"{{dependency}}\".",
+    "after": "Después de: {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Prueba",
+    "resume": "Probar estas prioridades en el plan actual",
+    "title": "Propuestas de prioridad",
+    "description": "Prueba prioridades y recalcula la previsión sin cambiar el plan oficial. Guarda propuestas con nombre para que quienes tengan el enlace puedan compararlas. Un manager aplicará los cambios oficialmente.",
+    "locked": "Solo se pueden mover features pendientes o pausadas posteriores a la última completada o en progreso.",
+    "changed": "El roadmap ha cambiado o no se puede reordenar. Recarga el plan oficial antes de proponer prioridades.",
+    "moveUp": "Subir {{feature}}",
+    "moveDown": "Bajar {{feature}}",
+    "restore": "Ver propuesta guardada",
+    "official": "Plan oficial",
+    "compare": "Comparar con",
+    "noComparison": "Sin comparación",
+    "save": "Proponer prioridad",
+    "reset": "Volver al plan oficial",
+    "snapshot": "Instantánea guardada: conserva las fechas, capacidad y prioridades del momento del guardado. Puedes probar sus prioridades en el plan actual; se recalcularán las fechas sin cambiar esta instantánea.",
+    "draft": "Prueba temporal. Las prioridades oficiales no han cambiado.",
+    "name": "Nombre de la propuesta",
+    "nameDescription": "Guarda una instantánea independiente con nombre. Quien tenga el enlace podrá verla. Debes iniciar sesión.",
+    "signIn": "Inicia sesión para guardar una propuesta.",
+    "recalculating": "Recalculando propuesta..."
+  },
   "vacationTimeline": {
     "title": "Cronología de vacaciones del equipo",
     "day": "Día",
@@ -27,7 +55,7 @@
   "publicRoadmap": {
     "title": "Hoja de ruta",
     "share": "Compartir hoja de ruta",
-    "sharingDescription": "Cualquiera con este enlace puede ver los nombres de las funcionalidades, proyectos, fechas de entrega y marcadores de fechas con nombre. El personal, las vacaciones y las estimaciones técnicas son privados. Se actualiza automáticamente.",
+    "sharingDescription": "Cualquiera con este enlace puede ver las funcionalidades, dependencias, proyectos, fechas de entrega y marcadores de fechas. El personal, las vacaciones y las estimaciones técnicas son privados. Los visitantes pueden guardar propuestas con nombre sin cambiar tu plan. Desactivar el enlace elimina permanentemente todas sus propuestas guardadas. El roadmap oficial se actualiza automáticamente.",
     "link": "Enlace público de la hoja de ruta",
     "create": "Crear enlace",
     "copy": "Copiar enlace",

@@ -100,6 +100,8 @@ describe("live public roadmap", () => {
       markers: [],
       features: [
         {
+          id: feature,
+          dependency_ids: [],
           name: "Checkout",
           project: "Payments",
           status: "pending",
@@ -116,7 +118,6 @@ describe("live public roadmap", () => {
       "backend",
       "vacations",
       member,
-      feature,
       workspace,
     ])
       expect(json).not.toContain(secret);

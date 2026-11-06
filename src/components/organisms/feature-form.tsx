@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
-import { Modal, Button, FormField, Input, SelectField, Textarea } from "@jordiorriols/ui";
+import { Modal, Button, Checkbox, FormField, Input, SelectField, Textarea } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
 import {
@@ -9,6 +9,7 @@ import {
   type FeatureInput,
   type FeatureStatus,
   type Project,
+  type Feature,
 } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { ROLE_COLORS } from "@/config/roleColors";
@@ -22,8 +23,12 @@ export default function FeatureForm({
   initial,
   projects = [],
   onCreateProject,
+  features = [],
+  featureId,
 }: {
   projects?: Project[];
+  features?: Feature[];
+  featureId?: string;
   open: boolean;
   onClose: () => void;
   onSave: (input: FeatureInput) => Promise<void>;
@@ -158,6 +163,34 @@ export default function FeatureForm({
             />
           )}
         </FormField>
+        <fieldset className="space-y-2 rounded-lg border border-border p-3">
+          <legend className="px-1 text-sm font-medium">{t("dependencies.title")}</legend>
+          <p className="text-xs text-muted-foreground">{t("dependencies.description")}</p>
+          <div className="max-h-40 space-y-2 overflow-y-auto">
+            {features
+              .filter((feature) => feature.id !== featureId)
+              .map((feature) => (
+                <label key={feature.id} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={(form.dependency_ids ?? []).includes(feature.id)}
+                    onCheckedChange={(checked) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        dependency_ids:
+                          checked === true
+                            ? [...(previous.dependency_ids ?? []), feature.id]
+                            : (previous.dependency_ids ?? []).filter((id) => id !== feature.id),
+                      }))
+                    }
+                  />
+                  {feature.name}
+                  <span className="text-xs text-muted-foreground">
+                    {projects.find((project) => project.id === feature.project_id)?.name}
+                  </span>
+                </label>
+              ))}
+          </div>
+        </fieldset>
         <div className="rounded-xl border overflow-hidden">
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 text-xs font-medium">
             <span>{t("featureForm.columns.role")}</span>

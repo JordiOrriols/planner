@@ -9,6 +9,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import { hasHolidayCalendar, isHoliday } from "./barcelonaHolidays";
+import { validatePriorityOrder } from "./featureDependencies";
 import {
   ROLES,
   type Role,
@@ -172,6 +173,10 @@ export function computeSchedule(
   const sorted = [...features]
     .filter((p) => p.in_backlog)
     .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  validatePriorityOrder(
+    sorted,
+    sorted.map((feature) => feature.id)
+  );
   const schedule: ScheduledFeature[] = sorted.map((feature) => {
     validateFeature(feature);
     const missing = ROLES.filter(
@@ -209,6 +214,7 @@ export function computeSchedule(
       ) as Record<Role, number>,
     ])
   );
+  const scheduledById = new Map(schedule.map((item) => [item.feature.id, item]));
   weeks.forEach((week, weekIndex) => {
     for (let day = 0; day < 7; day++) {
       const date = addDays(week.weekStart, day);
@@ -222,6 +228,17 @@ export function computeSchedule(
       ) as Record<Role, number>;
       for (const item of schedule) {
         if (item.reason || item.complete) continue;
+        if (
+          (item.feature.dependency_ids ?? []).some((id) => {
+            const dependency = scheduledById.get(id);
+            return (
+              !dependency?.complete ||
+              !dependency.end ||
+              date <= addWeeks(dependency.end, UAT_WEEKS)
+            );
+          })
+        )
+          continue;
         const effort = remaining.get(item.feature.id)!;
         // Snapshot dependencies before today's work so successive phases start on later days.
         const designDone = effort.design === 0;

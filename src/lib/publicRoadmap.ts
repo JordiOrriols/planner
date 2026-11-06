@@ -20,10 +20,13 @@ export interface RoadmapSource {
 }
 
 export interface PublicRoadmap {
+  revision?: string | undefined;
   name: string;
   startDate: string;
   markers: { name: string; date: string }[];
   features: {
+    id?: string | undefined;
+    dependency_ids?: string[] | undefined;
     name: string;
     project: string;
     status: FeatureStatus;
@@ -35,6 +38,7 @@ export interface PublicRoadmap {
 
 /** The only public projection: all technical inputs stay inside the Edge Function. */
 const sourceSchema = z.object({
+  revision: z.string().optional(),
   name: z.string(),
   startDate: z.string().date(),
   markers: z.array(z.object({ name: z.string(), date: z.string().date() })).default([]),
@@ -48,6 +52,7 @@ const sourceSchema = z.object({
       in_backlog: z.boolean(),
       status: z.enum(FEATURE_STATUSES),
       priority: z.number(),
+      dependency_ids: z.array(z.string()).default([]),
       backend_devs: z.number(),
       backend_weeks: z.number(),
       frontend_devs: z.number(),
@@ -81,10 +86,13 @@ export function buildPublicRoadmap(input: unknown): PublicRoadmap {
   );
   const projects = new Map(source.projects.map((project) => [project.id, project.name]));
   return {
+    ...(source.revision ? { revision: source.revision } : {}),
     name: source.name,
     startDate: source.startDate,
     markers: source.markers,
     features: result.schedule.map((item) => ({
+      id: item.feature.id,
+      dependency_ids: item.feature.dependency_ids ?? [],
       name: item.feature.name,
       project: projects.get(item.feature.project_id) ?? "",
       status: item.feature.status,
