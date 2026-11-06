@@ -1,22 +1,34 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import i18n from "@/i18n";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
 
-const { loadRoadmapLink } = vi.hoisted(() => ({ loadRoadmapLink: vi.fn() }));
+const { loadRoadmapLink, listPriorityProposals, savePriorityProposal, authUser } = vi.hoisted(
+  () => ({
+    loadRoadmapLink: vi.fn(),
+    listPriorityProposals: vi.fn(),
+    savePriorityProposal: vi.fn(),
+    authUser: vi.fn(),
+  })
+);
+vi.mock("@/data/DataProvider", () => ({
+  useData: () => ({ user: authUser(), authEnabled: true, signOut: vi.fn() }),
+}));
 vi.mock("@/data/supabaseClient", () => ({ supabase: {} }));
 vi.mock("@/data/plannerRepository", () => ({
-  createPlannerRepository: () => ({ loadRoadmapLink }),
+  createPlannerRepository: () => ({ loadRoadmapLink, listPriorityProposals, savePriorityProposal }),
 }));
 
 const { default: RoadmapLink, PublicRoadmapView } = await import("@/pages/roadmap-link");
 
 type Item = PublicRoadmap["features"][number];
 const checkout: Item = {
+  id: "11111111-1111-4111-8111-111111111111",
+  dependency_ids: [],
   name: "Checkout",
   project: "Payments",
   start: "2026-02-02",
@@ -25,6 +37,7 @@ const checkout: Item = {
   status: "pending",
 };
 const roadmap = (...features: Item[]): PublicRoadmap => ({
+  revision: "a".repeat(32),
   name: "Workspace",
   startDate: "2026-02-02",
   markers: [],
@@ -32,6 +45,9 @@ const roadmap = (...features: Item[]): PublicRoadmap => ({
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  authUser.mockReturnValue(null);
+  listPriorityProposals.mockResolvedValue([]);
   localStorage.clear();
   sessionStorage.clear();
 });
@@ -171,10 +187,10 @@ describe("nontechnical roadmap", () => {
 });
 
 describe("public roadmap page", () => {
-  function renderPage() {
-    loadRoadmapLink.mockResolvedValue(roadmap(checkout));
+  function renderPage(data = roadmap(checkout), client = new QueryClient()) {
+    loadRoadmapLink.mockResolvedValue(data);
     return render(
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={["/roadmap/token"]}>
           <Routes>
             <Route path="/roadmap/:token" element={<RoadmapLink />} />
@@ -201,5 +217,150 @@ describe("public roadmap page", () => {
     await userEvent.click(screen.getByRole("button", { name: "Full width" }));
     expect(screen.getByRole("main")).toHaveClass("max-w-none");
     expect(screen.getByRole("main")).not.toHaveClass("max-w-7xl");
+  });
+
+  it("recalculates a local move and resets without saving official priorities", async () => {
+    const second = { ...checkout, id: "22222222-2222-4222-8222-222222222222", name: "Search" };
+    const official = roadmap(checkout, second);
+    renderPage(official);
+    await screen.findByRole("button", { name: "Move Search up" });
+    loadRoadmapLink.mockResolvedValueOnce(roadmap(second, checkout));
+    await userEvent.click(screen.getByRole("button", { name: "Move Search up" }));
+    expect(
+      await screen.findByText("Temporary experiment. The official priorities have not changed.")
+    ).toBeVisible();
+    expect(loadRoadmapLink).toHaveBeenLastCalledWith("token", {
+      featureIds: [second.id, checkout.id],
+      expectedRevision: official.revision,
+    });
+    expect(savePriorityProposal).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Return to official plan" }));
+    expect(
+      screen.queryByText("Temporary experiment. The official priorities have not changed.")
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Propose priority" }));
+    expect(await screen.findByRole("alertdialog")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  });
+
+  it("blocks dependency violations with feature names before requesting a preview", async () => {
+    const dependent = {
+      ...checkout,
+      id: "22222222-2222-4222-8222-222222222222",
+      name: "Search",
+      dependency_ids: [checkout.id!],
+    };
+    renderPage(roadmap(checkout, dependent));
+    await userEvent.click(await screen.findByRole("button", { name: "Move Search up" }));
+    expect(
+      await screen.findByText('"Search" must come after its dependency "Checkout".')
+    ).toBeVisible();
+    expect(loadRoadmapLink).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("After: Checkout")).toBeVisible();
+  });
+
+  it("saves a named authenticated proposal and reopens its immutable snapshot", async () => {
+    authUser.mockReturnValue({ id: "owner", email: "owner@example.com" });
+    const proposal = "33333333-3333-4333-8333-333333333333";
+    savePriorityProposal.mockResolvedValue(proposal);
+    renderPage();
+    await screen.findByRole("heading", { name: "Workspace" });
+    listPriorityProposals.mockResolvedValue([
+      { id: proposal, name: "Alternative", created_at: "2026-11-06T00:00:00Z" },
+    ]);
+    await userEvent.click(screen.getByRole("button", { name: "Propose priority" }));
+    const dialog = await screen.findByRole("alertdialog");
+    await userEvent.type(
+      within(dialog).getByRole("textbox", { name: "Proposal name" }),
+      "Alternative"
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: "Propose priority" }));
+    expect(await screen.findByText(/Saved snapshot: dates/)).toBeVisible();
+    expect(savePriorityProposal).toHaveBeenCalledWith(
+      "token",
+      "Alternative",
+      [checkout.id],
+      "a".repeat(32)
+    );
+    expect(loadRoadmapLink).toHaveBeenLastCalledWith("token", { proposal });
+    expect(screen.queryByRole("button", { name: "Move Checkout up" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the entire locked prefix fixed, including pending work ahead of active work", () => {
+    const move = vi.fn();
+    render(
+      <PublicRoadmapView
+        onMove={move}
+        roadmap={roadmap(
+          checkout,
+          { ...checkout, id: "active", name: "Active", status: "in_progress" },
+          { ...checkout, id: "later", name: "Later", status: "paused" },
+          { ...checkout, id: "last", name: "Last" }
+        )}
+      />
+    );
+    expect(screen.queryByRole("button", { name: "Move Checkout down" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Move Active down" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move Later up" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Move Later down" })).toBeEnabled();
+  });
+
+  it("preserves the draft during live changes and disables stale saves until reset", async () => {
+    const client = new QueryClient();
+    const second = { ...checkout, id: "22222222-2222-4222-8222-222222222222", name: "Search" };
+    const official = roadmap(checkout, second);
+    renderPage(official, client);
+    await screen.findByRole("button", { name: "Move Search up" });
+    loadRoadmapLink.mockResolvedValueOnce(roadmap(second, checkout));
+    await userEvent.click(screen.getByRole("button", { name: "Move Search up" }));
+    await screen.findByText("Temporary experiment. The official priorities have not changed.");
+    loadRoadmapLink.mockRejectedValueOnce(new Error("Connection unavailable"));
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: ["public-roadmap", "token"] });
+    });
+    expect(await screen.findByText("Connection unavailable")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Experiment", exact: true })).toBeVisible();
+    await act(async () => {
+      client.setQueryData(["public-roadmap", "token"], { ...official, revision: "b".repeat(32) });
+    });
+    expect(await screen.findByText(/roadmap has changed or cannot be reordered/i)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Experiment", exact: true })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Propose priority" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Return to official plan" }));
+    expect(
+      screen.queryByRole("heading", { name: "Experiment", exact: true })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Propose priority" })).toBeEnabled();
+  });
+
+  it("compares an anonymous saved snapshot with the official plan without exposing reordering", async () => {
+    const proposal = "33333333-3333-4333-8333-333333333333";
+    listPriorityProposals.mockResolvedValue([
+      { id: proposal, name: "Alternative", created_at: "2026-11-06T00:00:00Z" },
+    ]);
+    renderPage();
+    await screen.findByRole("heading", { name: "Workspace" });
+    await userEvent.click(screen.getByLabelText("View saved proposal"));
+    await userEvent.click(await screen.findByRole("option", { name: "Alternative", exact: true }));
+    expect(await screen.findByRole("heading", { name: "Alternative", exact: true })).toBeVisible();
+    await userEvent.click(screen.getByLabelText("Compare with"));
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Official plan", exact: true })
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Official plan", exact: true })
+    ).toBeVisible();
+    expect(screen.getAllByRole("img", { name: /^Checkout:/ })).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "Move Checkout up" })).not.toBeInTheDocument();
+    expect(savePriorityProposal).not.toHaveBeenCalled();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Try these priorities on the current plan" })
+    );
+    expect(await screen.findByRole("heading", { name: "Experiment", exact: true })).toBeVisible();
+    expect(loadRoadmapLink).toHaveBeenLastCalledWith("token", {
+      featureIds: [checkout.id],
+      expectedRevision: "a".repeat(32),
+    });
+    expect(savePriorityProposal).not.toHaveBeenCalled();
   });
 });
