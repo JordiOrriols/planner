@@ -26,6 +26,41 @@ function setup() {
   return { fetch, response, repository: createPlannerRepository(client) };
 }
 describe("Planner repository", () => {
+  it("passes proposal revisions and reports stale previews without success-shaped results", async () => {
+    const { fetch, response, repository } = setup();
+    const revision = "a".repeat(32);
+    fetch.mockResolvedValueOnce(response({ error: "Roadmap changed" }, 409));
+    await expect(
+      repository.loadRoadmapLink(workspace.id, {
+        featureIds: [workspace.owner_id],
+        expectedRevision: revision,
+      })
+    ).rejects.toThrow(/roadmap has changed/i);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toEqual({
+      token: workspace.id,
+      featureIds: [workspace.owner_id],
+      expectedRevision: revision,
+    });
+    fetch.mockResolvedValueOnce(response(workspace.owner_id));
+    expect(
+      await repository.savePriorityProposal(
+        workspace.id,
+        "Alternative",
+        [workspace.owner_id],
+        revision
+      )
+    ).toBe(workspace.owner_id);
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1]?.body))).toEqual({
+      token: workspace.id,
+      proposal_name: "Alternative",
+      feature_ids: [workspace.owner_id],
+      expected_revision: revision,
+    });
+    fetch.mockResolvedValueOnce(response({ message: "Sign in with a verified email" }, 403));
+    await expect(
+      repository.savePriorityProposal(workspace.id, "Alternative", [workspace.owner_id], revision)
+    ).rejects.toThrow(/verified email/);
+  });
   it("pages the current-app sharing directory and surfaces authorization and shape failures", async () => {
     const { fetch, response, repository } = setup();
     const share = {
