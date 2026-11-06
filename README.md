@@ -124,10 +124,15 @@ deployment approval. No UI package publication is needed.
 
 From the E2E repository, use
 `APP_NAVIGATION_ROOT=<parent-of-planner-worktree> npx playwright test --config=planner-proposals.config.ts`.
-The five browser scenarios simulate the not-yet-deployed service, covering drag,
+Five browser scenarios simulate service responses, covering drag,
 keyboard controls, protected rows, naming, recovery/comparison, stale errors and
-all six languages on mobile. Real SQL constraints and scheduling are tested in
-Backend and Planner respectively; production verification must follow deployment.
+all six languages on mobile. An additional live scenario creates only test-owned
+data and verifies the deployed SQL/Edge Function, private-input redaction,
+historical recovery/comparison, unchanged official priorities and anonymous
+snapshot reads. It revokes its test link and removes its own data afterwards.
+It needs the existing primary E2E account. Non-member authorization is also
+covered by the backend database contracts. Real SQL constraints and scheduling
+are tested in Backend and Planner respectively.
 
 ## Start locally
 
