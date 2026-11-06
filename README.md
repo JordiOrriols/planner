@@ -92,7 +92,7 @@ Use Node.js 26 LTS with npm 11.20.0, matching CI. Run `nvm install` and
 `@jordiorriols/ui`. Export a token with `read:packages` scope before installing;
 `.npmrc` reads it from `GITHUB_TOKEN`:
 
-UI `^0.3.32` includes Agents in the shared project switcher and supplies the shared timeline card and green Planner branding for header, project-menu
+UI `^0.3.33` includes Agents in the shared project switcher and supplies the shared timeline card and green Planner branding for header, project-menu
 and login/welcome icons. `projectId` and `ProjectIcon` reuse the UI registry
 without a local palette.
 
@@ -206,6 +206,14 @@ Site URL before the marker reaches either app. Dashboard settings are not change
 by deploying the apps.
 
 ## Workspaces and access
+
+Accounts with no accessible workspace use UI's shared `WorkspaceSetup` inside
+the app shell: explicitly create one or wait for an invitation. Waiting checks
+for invitations automatically and retains language and sign-out controls.
+The workspace menu lets owners delete only empty workspaces after confirmation.
+The backend `delete_workspace` RPC checks content across all five apps, removes
+empty teams/projects and preserves nonempty workspaces. Deploy the backend
+lifecycle migration before enabling these controls.
 
 The workspace dropdown and **Share** sit opposite the page tabs in the tab bar.
 Both come from UI's shared `WorkspaceBar`, the same one Ladders and Pulse use. The
