@@ -101,6 +101,7 @@ export default function AppLayout() {
                   await refresh();
                 }}
                 onSharesChanged={refresh}
+                onDeleted={refresh}
                 labels={getWorkspaceLabels(i18n.language)}
                 {...(sharing ? { sharing } : {})}
               />

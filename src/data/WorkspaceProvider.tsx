@@ -1,14 +1,14 @@
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
-import React, { createContext, useContext, useState, type ReactNode } from "react";
+import React, { createContext, useContext, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAsyncAction, useWorkspaceList } from "@jordiorriols/ui/hooks";
 import {
   AppSkeleton,
+  AppShell,
   Button,
   ErrorState,
-  Input,
-  Label,
+  WorkspaceSetup,
   type WorkspaceApi,
   type WorkspaceSummary,
 } from "@jordiorriols/ui";
@@ -47,12 +47,11 @@ export function useWorkspace() {
 }
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const { repository, workspaceApi, user, signOut } = useData();
   const client = useQueryClient();
   const directory = useWorkspaceList(workspaceApi, "planner");
-  const [name, setName] = useState("");
   const action = useAsyncAction();
   const summary = directory.workspace;
   const data = useQuery({
@@ -89,38 +88,36 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     );
   if (!summary || !data.data)
     return (
-      <main className="max-w-xl mx-auto p-8 space-y-6">
-        <h1 className="text-2xl font-semibold">{t("workspace.create.title")}</h1>
-        <p className="text-muted-foreground">{t("workspace.create.description")}</p>
-        <Button variant="ghost" disabled={action.busy} onClick={() => void action.run(signOut)}>
-          {t("common.actions.signOut")}
-        </Button>
+      <AppShell
+        projectId="planner"
+        footer={{ text: t("app.footer") }}
+        header={{
+          title: t("planner.name"),
+          subtitle: t("planner.subtitle"),
+          projectSwitcherLabel: t("planner.switchProject"),
+          language: {
+            value: i18n.language,
+            label: t("header.language"),
+            className: "inline-flex",
+            onValueChange: (language) =>
+              void action.run(async () => {
+                await i18n.changeLanguage(language);
+              }),
+          },
+        }}
+      >
         {action.error && <ErrorState message={action.error} />}
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void action.run(async () => {
-              const created = await workspaceApi.createWorkspace(name);
-              directory.select(created.id);
-              setName("");
-              await refresh();
-            });
+        <WorkspaceSetup
+          api={workspaceApi}
+          language={i18n.language}
+          onRefresh={directory.refresh}
+          onSignOut={signOut}
+          onCreated={async (created) => {
+            directory.select(created.id);
+            await refresh();
           }}
-        >
-          <Label htmlFor="workspace-name">{t("workspace.create.name")}</Label>
-          <Input
-            id="workspace-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-            maxLength={120}
-          />
-          <Button type="submit" disabled={action.busy}>
-            {t("workspace.create.submit")}
-          </Button>
-        </form>
-      </main>
+        />
+      </AppShell>
     );
   const { workspace, ...loaded } = data.data;
   return (
