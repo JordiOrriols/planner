@@ -1,9 +1,9 @@
 import { addDays, differenceInCalendarDays, format } from "date-fns";
-import type { LinkedTeam, PlannerMember, Vacation } from "@/types/planner";
+import type { LinkedTeam, CalendarMember, Vacation } from "@/types/planner";
 import { parseDate } from "./planning";
 
 export function vacationTimelineRows(
-  members: PlannerMember[],
+  members: CalendarMember[],
   teams: LinkedTeam[],
   vacations: Vacation[],
   start: Date,

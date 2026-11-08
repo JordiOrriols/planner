@@ -49,8 +49,21 @@ using the same extracted add-feature modal and remove tasks from their cards.
 Inclusion appends priorities; dependency ordering and prerequisite removal are
 validated server-side. The start-date control uses the existing calendar rules
 and refreshes the official forecast without changing saved proposals. Viewers
-and external users cannot perform these writes. Vacation editing, capacity
-configuration and the full internal navigation are not yet migrated.
+and external users cannot perform these writes.
+
+Internal roles can navigate to `/planner/workspaces/:workspace/vacations`.
+The same extracted vacation view serves both the legacy provider and the API:
+calendar/timeline switching, member selection, capacity forecasting and sprint
+calibration retain their existing behavior. The API roster has no vacation
+tokens or account emails. Owner/editor grants can edit workspace members'
+vacation ranges and sprint calibration; viewers are read-only and external
+grants cannot read the roster. No self-edit permission is inferred from email.
+Working Day restores the normal calendar by removing saved vacations; it
+never makes weekends/holidays working days. Range/calendar validation and
+sprint cadence rules are reused, and saves refresh the current roadmap without
+rewriting proposal snapshots.
+Team creation/planning-role configuration and the remaining internal navigation
+are not yet migrated.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change
 deployment workflows.

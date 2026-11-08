@@ -16,6 +16,7 @@ export function VacationEditor({
   onMonthChange,
   canEdit,
   save,
+  readOnlyNotice,
 }: {
   member: Pick<PlannerMember, "id" | "name" | "role">;
   members: Pick<PlannerMember, "id" | "name" | "role">[];
@@ -24,6 +25,7 @@ export function VacationEditor({
   onMonthChange: (month: Date) => void;
   canEdit: boolean;
   save: (start: string, end: string, working: boolean) => Promise<void>;
+  readOnlyNotice?: string;
 }) {
   const { t } = useTranslation();
 
@@ -72,7 +74,7 @@ export function VacationEditor({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">{t("vacationEditor.workingDayHelp")}</p>
-      {!canEdit && <p>{t("vacationEditor.readOnlyNotice")}</p>}
+      {!canEdit && <p>{readOnlyNotice ?? t("vacationEditor.readOnlyNotice")}</p>}
       {action.error && <p role="alert">{action.error}</p>}
     </div>
   );

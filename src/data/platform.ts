@@ -1,9 +1,17 @@
 import { z } from "zod";
+import { differenceInCalendarDays } from "date-fns";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
-import { FEATURE_STATUSES, type FeatureInput, type Feature } from "@/types/planner";
+import {
+  FEATURE_STATUSES,
+  ROLES,
+  type FeatureInput,
+  type Feature,
+  type SprintResult,
+} from "@/types/planner";
 import { validateFeature, parseDate } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 import { featureSchema } from "./featureSchema";
+import { validateSprintSettings } from "@/lib/sprints";
 import i18n from "@/i18n";
 import type { PriorityProposalRepository } from "@/components/organisms/priority-proposals";
 
@@ -56,6 +64,25 @@ const featureInputSchema = featureSchema
   .extend({
     name: z.string().trim().min(1).max(120),
   });
+const calendarSchema = z.object({
+  sprint_start_date: z.string().date(),
+  sprint_history: z.array(
+    z.object({ start_date: z.string().date(), story_points: z.number().finite().nonnegative() })
+  ),
+  members: z.array(
+    z.object({
+      id: z.string().uuid(),
+      team_id: z.string().uuid(),
+      name: z.string(),
+      role: z.enum(ROLES).nullable(),
+      can_edit: z.boolean(),
+    })
+  ),
+  teams: z.array(z.object({ id: z.string().uuid(), name: z.string() })),
+  vacations: z.array(
+    z.object({ member_id: z.string().uuid(), date: z.string().date(), is_working: z.boolean() })
+  ),
+});
 function workspacePath(workspace: string) {
   return `planner/workspaces/${z.string().uuid().parse(workspace)}`;
 }
@@ -86,6 +113,34 @@ async function request(
 }
 export const platformRepository = {
   workspaces: async () => z.array(workspaceSchema).parse(await request("apps/planner/workspaces")),
+  calendar: async (workspace: string) =>
+    calendarSchema.parse(await request(`${workspacePath(workspace)}/calendar`)),
+  setVacations: async (
+    workspace: string,
+    member: string,
+    start: string,
+    end: string,
+    working: boolean
+  ) => {
+    const first = parseDate(start),
+      last = parseDate(end);
+    if (!hasHolidayCalendar(start) || !hasHolidayCalendar(end))
+      throw new Error(i18n.t("vacationEditor.errors.unverifiedDates"));
+    if (last < first || differenceInCalendarDays(last, first) > 365)
+      throw new Error(i18n.t("vacationEditor.errors.rangeTooLong"));
+    return calendarSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/members/${z.string().uuid().parse(member)}/vacations`,
+        { start, end, working: z.boolean().parse(working) }
+      )
+    );
+  },
+  setSprintCalibration: async (workspace: string, anchor: string, history: SprintResult[]) => {
+    validateSprintSettings(anchor, history);
+    return calendarSchema.parse(
+      await request(`${workspacePath(workspace)}/calibration`, { anchor, history }, "PATCH")
+    );
+  },
   features: async (workspace: string) =>
     z.array(featureSchema).parse(await request(`${workspacePath(workspace)}/features`)),
   toggleBacklog: async (workspace: string, id: string, included: boolean) =>
@@ -218,6 +273,19 @@ export const platformRepository = {
       })
     ).id,
 } satisfies PriorityProposalRepository & {
+  calendar: (workspace: string) => Promise<z.infer<typeof calendarSchema>>;
+  setVacations: (
+    workspace: string,
+    member: string,
+    start: string,
+    end: string,
+    working: boolean
+  ) => Promise<z.infer<typeof calendarSchema>>;
+  setSprintCalibration: (
+    workspace: string,
+    anchor: string,
+    history: SprintResult[]
+  ) => Promise<z.infer<typeof calendarSchema>>;
   features: (workspace: string) => Promise<Feature[]>;
   toggleBacklog: (workspace: string, id: string, included: boolean) => Promise<Feature>;
   setPlanStart: (workspace: string, date: string) => Promise<PublicRoadmap>;

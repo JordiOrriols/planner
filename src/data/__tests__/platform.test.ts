@@ -33,6 +33,57 @@ const workspace = "11111111-1111-4111-8111-111111111111";
 const proposal = "22222222-2222-4222-8222-222222222222";
 const revision = "a".repeat(32);
 const roadmap = { name: "Local", revision, startDate: "2026-02-02", markers: [], features: [] };
+const calendar = {
+  sprint_start_date: "2026-02-02",
+  sprint_history: [],
+  members: [],
+  teams: [],
+  vacations: [],
+};
+it("calendar writes use internal scoped API paths and validate returned shapes", async () => {
+  const fetcher = vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(calendar))));
+  vi.stubGlobal("fetch", fetcher);
+  expect(await platformRepository.calendar(workspace)).toEqual(calendar);
+  expect(
+    await platformRepository.setVacations(workspace, proposal, "2026-02-02", "2026-02-04", false)
+  ).toEqual(calendar);
+  expect(fetcher.mock.calls[1]?.[0]).toBe(
+    `/api/planner/workspaces/${workspace}/members/${proposal}/vacations`
+  );
+  expect(JSON.parse(fetcher.mock.calls[1]?.[1].body)).toEqual({
+    start: "2026-02-02",
+    end: "2026-02-04",
+    working: false,
+  });
+  expect(await platformRepository.setSprintCalibration(workspace, "2026-02-02", [])).toEqual(
+    calendar
+  );
+  expect(fetcher.mock.calls[2]?.[1].method).toBe("PATCH");
+});
+it("invalid vacation ranges and sprint calibration fail before requests", async () => {
+  const fetcher = vi.fn();
+  vi.stubGlobal("fetch", fetcher);
+  for (const [start, end] of [
+    ["2026-02-30", "2026-03-01"],
+    ["2026-03-02", "2026-02-02"],
+    ["2026-01-01", "2027-01-02"],
+    ["2028-01-01", "2028-01-01"],
+  ])
+    await expect(
+      platformRepository.setVacations(workspace, proposal, start!, end!, false)
+    ).rejects.toThrow();
+  await expect(
+    platformRepository.setSprintCalibration(workspace, "2026-02-02", [
+      { start_date: "2026-02-03", story_points: 1 },
+    ])
+  ).rejects.toThrow();
+  await expect(
+    platformRepository.setSprintCalibration(workspace, "2028-02-02", [])
+  ).rejects.toThrow();
+  expect(fetcher).not.toHaveBeenCalled();
+});
 it("roadmap inclusion and start date use separate scoped operations", async () => {
   const feature = {
     ...EMPTY_FEATURE,

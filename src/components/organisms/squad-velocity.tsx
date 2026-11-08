@@ -9,7 +9,7 @@ import { ROLES, ROLE_LABELS, fmtShortDate } from "@/lib/planning";
 import { calibratedRate, forecastSprints, sprintCapacity } from "@/lib/sprints";
 import { ROLE_COLORS } from "@/config/roleColors";
 import VelocityCalibration from "@/components/organisms/velocity-calibration";
-import type { Vacation, LinkedTeam, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, LinkedTeam, CalendarMember, SprintResult } from "@/types/planner";
 
 const TEAM_COLORS = [
   "#0369a1",
@@ -37,7 +37,7 @@ export default function SquadVelocity({
   history,
   onSaveCalibration,
 }: {
-  members: PlannerMember[];
+  members: CalendarMember[];
   linkedTeams: LinkedTeam[];
   vacations: Vacation[];
   startDate: Date;

@@ -6,7 +6,7 @@ import { Plus, Trash2 } from "@jordiorriols/ui/icons";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
 import { calibratedRate, sprintCapacity } from "@/lib/sprints";
 import { parseDate } from "@/lib/planning";
-import type { Vacation, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, CalendarMember, SprintResult } from "@/types/planner";
 
 export default function VelocityCalibration({
   anchor,
@@ -18,7 +18,7 @@ export default function VelocityCalibration({
 }: {
   anchor: string;
   history: SprintResult[];
-  members: PlannerMember[];
+  members: CalendarMember[];
   vacations: Vacation[];
   onSave: (anchor: string, history: SprintResult[]) => Promise<void>;
   onClose: () => void;
