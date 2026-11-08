@@ -1,4 +1,7 @@
 {
+  "access": {
+    "empty": "Vous n'avez accès à aucun espace Planner. Demandez à un administrateur de vous attribuer un accès."
+  },
   "dependencies": {
     "title": "Dépendances",
     "description": "Sélectionnez les prérequis, y compris dans d'autres projets de cet espace. Ajoutez-les d'abord à la roadmap. Les cycles sont interdits.",

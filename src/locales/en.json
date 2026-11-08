@@ -1,4 +1,7 @@
 {
+  "access": {
+    "empty": "You do not have access to any Planner workspace. Ask an administrator to assign access."
+  },
   "dependencies": {
     "title": "Dependencies",
     "description": "Select prerequisites, including features in other projects of this workspace. Add them to the roadmap first. Cycles are not allowed.",

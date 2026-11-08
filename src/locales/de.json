@@ -1,4 +1,7 @@
 {
+  "access": {
+    "empty": "Sie haben keinen Zugriff auf einen Planner-Arbeitsbereich. Bitten Sie einen Administrator, Ihnen Zugriff zuzuweisen."
+  },
   "dependencies": {
     "title": "Abhängigkeiten",
     "description": "Wählen Sie Voraussetzungen, auch aus anderen Projekten dieses Arbeitsbereichs. Fügen Sie diese zuerst zur Roadmap hinzu. Zyklen sind nicht erlaubt.",

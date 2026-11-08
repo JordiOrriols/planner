@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-scheduler
+.git
+.env
+.env.*
+coverage
+*.log

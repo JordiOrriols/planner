@@ -1,4 +1,7 @@
 {
+  "access": {
+    "empty": "No tens accés a cap espai de Planner. Demana a un administrador que t'assigni accés."
+  },
   "dependencies": {
     "title": "Dependències",
     "description": "Selecciona requisits previs, també d'altres projectes d'aquest espai. Afegeix-los primer al roadmap. No es permeten cicles.",

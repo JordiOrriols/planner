@@ -12,6 +12,7 @@
     "start": "vite",
     "preview": "vite preview",
     "build": "vite build",
+    "build:scheduler": "node scripts/build-scheduler.mjs",
     "compile": "npx tsc --noEmit",
     "test": "vitest run",
     "test:ui": "vitest --ui",
@@ -42,6 +43,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "@electric-sql/pglite": "^0.3.14",
     "@eslint/js": "^9.39.2",
     "@jordiorriols/backend": "^0.1.1",

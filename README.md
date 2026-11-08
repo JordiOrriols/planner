@@ -1,5 +1,24 @@
 # Planner
 
+## Local Cloudflare Access migration branch
+
+This isolated branch serves an authenticated, grant-scoped read-only roadmap at
+`/planner/workspaces/:workspace/roadmap`. It uses browser paths, not hash routes,
+and never imports Supabase or password flows from its active app entrypoint.
+The roadmap renderer is extracted unchanged from the existing link page.
+The NestJS image builds the actual Planner scheduler with `npm run build:scheduler`,
+using a server-only translation instance, so dates/dependencies/UAT are not
+reimplemented. Private scheduler inputs stay behind the API.
+
+The shared local gateway serves both `/planner/` and `/shiplog/` on port 5320.
+The individual Planner Docker web container is available on loopback port 5312 via the backend's
+`web` profile. BuildKit installs GitHub Packages with a secret, not an image
+environment variable. Local Vite uses port 5316 and proxies `/api` to port 5300.
+
+Internal editing, proposals, vacations and permission administration are not
+yet migrated. This branch is not a production replacement and does not change
+deployment workflows.
+
 Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 Feature creation and estimation editing use the shared modal's single content
