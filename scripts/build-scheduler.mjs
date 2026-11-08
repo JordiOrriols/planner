@@ -2,7 +2,12 @@ import { build } from "esbuild";
 import { resolve } from "node:path";
 
 await build({
-  entryPoints: ["src/lib/publicRoadmap.ts"],
+  stdin: {
+    contents:
+      'export { buildPublicRoadmap } from "./src/lib/publicRoadmap"; export { hasHolidayCalendar } from "./src/lib/barcelonaHolidays";',
+    resolveDir: process.cwd(),
+    loader: "ts",
+  },
   outfile: "dist-scheduler/roadmap.mjs",
   platform: "node",
   format: "esm",

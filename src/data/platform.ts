@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
 import { FEATURE_STATUSES, type FeatureInput, type Feature } from "@/types/planner";
-import { validateFeature } from "@/lib/planning";
+import { validateFeature, parseDate } from "@/lib/planning";
+import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 import { featureSchema } from "./featureSchema";
 import i18n from "@/i18n";
 import type { PriorityProposalRepository } from "@/components/organisms/priority-proposals";
@@ -87,6 +88,21 @@ export const platformRepository = {
   workspaces: async () => z.array(workspaceSchema).parse(await request("apps/planner/workspaces")),
   features: async (workspace: string) =>
     z.array(featureSchema).parse(await request(`${workspacePath(workspace)}/features`)),
+  toggleBacklog: async (workspace: string, id: string, included: boolean) =>
+    featureSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/features/${z.string().uuid().parse(id)}/inclusion`,
+        { included: z.boolean().parse(included) },
+        "PATCH"
+      )
+    ),
+  setPlanStart: async (workspace: string, date: string): Promise<PublicRoadmap> => {
+    parseDate(date);
+    if (!hasHolidayCalendar(date)) throw new Error(i18n.t("planning.validation.unverifiedStart"));
+    return roadmapSchema.parse(
+      await request(`${workspacePath(workspace)}/start-date`, { date }, "PATCH")
+    );
+  },
   saveFeature: async (workspace: string, input: FeatureInput, id?: string) => {
     validateFeature(input);
     const payload = featureInputSchema.parse(input);
@@ -203,6 +219,8 @@ export const platformRepository = {
     ).id,
 } satisfies PriorityProposalRepository & {
   features: (workspace: string) => Promise<Feature[]>;
+  toggleBacklog: (workspace: string, id: string, included: boolean) => Promise<Feature>;
+  setPlanStart: (workspace: string, date: string) => Promise<PublicRoadmap>;
   saveFeature: (workspace: string, input: FeatureInput, id?: string) => Promise<Feature>;
   deleteFeature: (workspace: string, id: string) => Promise<Feature>;
   workspaces: () => Promise<z.infer<typeof workspaceSchema>[]>;

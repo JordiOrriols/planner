@@ -44,8 +44,13 @@ Viewers can read but not edit; external users never receive private task data.
 New features start off-roadmap, and editing preserves inclusion and priority.
 Cross-workspace IDs, invalid estimates, cycles, invalid dependency order and
 deleting a prerequisite fail without partial writes. Delete confirmation errors
-remain visible outside the closed dialog. Roadmap inclusion/removal, planning
-settings and vacations are not yet migrated.
+remain visible outside the closed dialog. Owners/editors can add existing tasks
+using the same extracted add-feature modal and remove tasks from their cards.
+Inclusion appends priorities; dependency ordering and prerequisite removal are
+validated server-side. The start-date control uses the existing calendar rules
+and refreshes the official forecast without changing saved proposals. Viewers
+and external users cannot perform these writes. Vacation editing, capacity
+configuration and the full internal navigation are not yet migrated.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change
 deployment workflows.

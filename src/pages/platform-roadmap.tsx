@@ -9,7 +9,11 @@ import {
   AppSkeleton,
   Button,
   LanguageSelector,
+  Input,
 } from "@jordiorriols/ui";
+import { useAsyncAction } from "@jordiorriols/ui/hooks";
+import { PlanSummaryCard } from "@/components/molecules/plan-summary-card";
+import { fmtDate, parseDate } from "@/lib/planning";
 import { platformRepository } from "@/data/platform";
 import { PriorityProposals } from "@/components/organisms/priority-proposals";
 import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
@@ -23,6 +27,7 @@ export default function PlatformRoadmap() {
   const { t, i18n } = useTranslation();
   const { fullWidth } = useRoadmapDisplay();
   const queryClient = useQueryClient();
+  const settingsAction = useAsyncAction();
   const [managingMarkers, setManagingMarkers] = useState(false);
   const directory = useQuery({
     queryKey: ["platform-workspaces", "planner"],
@@ -129,6 +134,29 @@ export default function PlatformRoadmap() {
             )}
             {internal && (
               <div className="space-y-2">
+                <PlanSummaryCard
+                  label={t("roadmap.dates.start")}
+                  value={fmtDate(parseDate(roadmap.data.startDate))}
+                >
+                  {canManage && (
+                    <Input
+                      type="date"
+                      aria-label={t("roadmap.dates.start")}
+                      min="2026-01-01"
+                      max="2027-12-31"
+                      value={roadmap.data.startDate}
+                      disabled={settingsAction.busy}
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        void settingsAction.run(async () => {
+                          const updated = await platformRepository.setPlanStart(workspace, date);
+                          queryClient.setQueryData(["platform-roadmap", workspace], updated);
+                        });
+                      }}
+                    />
+                  )}
+                </PlanSummaryCard>
+                {settingsAction.error && <p role="alert">{settingsAction.error}</p>}
                 {(projects.isPending || features.isPending) && (
                   <AppSkeleton label={t("app.loading.page")} fullPage={false} />
                 )}
@@ -155,6 +183,9 @@ export default function PlatformRoadmap() {
                     workspace={{ id: workspace }}
                     canEdit={canManage}
                     refresh={refreshFeatures}
+                    onToggleBacklog={(id, included) =>
+                      platformRepository.toggleBacklog(workspace, id, included)
+                    }
                     repository={{
                       saveFeature: (input, id) =>
                         platformRepository.saveFeature(workspace, input, id),

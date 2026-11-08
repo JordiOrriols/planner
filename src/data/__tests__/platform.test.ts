@@ -33,6 +33,36 @@ const workspace = "11111111-1111-4111-8111-111111111111";
 const proposal = "22222222-2222-4222-8222-222222222222";
 const revision = "a".repeat(32);
 const roadmap = { name: "Local", revision, startDate: "2026-02-02", markers: [], features: [] };
+it("roadmap inclusion and start date use separate scoped operations", async () => {
+  const feature = {
+    ...EMPTY_FEATURE,
+    id: proposal,
+    project_id: workspace,
+    name: "Task",
+    priority: 1,
+    in_backlog: true,
+  };
+  const fetcher = vi
+    .fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify(feature)))
+    .mockResolvedValueOnce(new Response(JSON.stringify(roadmap)));
+  vi.stubGlobal("fetch", fetcher);
+  expect(await platformRepository.toggleBacklog(workspace, proposal, true)).toEqual(feature);
+  expect(fetcher.mock.calls[0]?.[0]).toBe(
+    `/api/planner/workspaces/${workspace}/features/${proposal}/inclusion`
+  );
+  expect(JSON.parse(fetcher.mock.calls[0]?.[1].body)).toEqual({ included: true });
+  expect(await platformRepository.setPlanStart(workspace, "2026-02-02")).toEqual(roadmap);
+  expect(fetcher.mock.calls[1]?.[0]).toBe(`/api/planner/workspaces/${workspace}/start-date`);
+});
+it("invalid or unverified plan dates and feature IDs do not send requests", async () => {
+  const fetcher = vi.fn();
+  vi.stubGlobal("fetch", fetcher);
+  await expect(platformRepository.setPlanStart(workspace, "2026-02-30")).rejects.toThrow();
+  await expect(platformRepository.setPlanStart(workspace, "2028-02-02")).rejects.toThrow();
+  await expect(platformRepository.toggleBacklog(workspace, "bad", true)).rejects.toThrow();
+  expect(fetcher).not.toHaveBeenCalled();
+});
 it("feature editing uses scoped API writes without allowing priority or inclusion changes", async () => {
   const input = {
     ...EMPTY_FEATURE,

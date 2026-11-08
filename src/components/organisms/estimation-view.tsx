@@ -6,6 +6,7 @@ import { Plus, Calculator, FolderKanban } from "@jordiorriols/ui/icons";
 import FeatureForm from "@/components/organisms/feature-form";
 import FeatureEstimateCard from "@/components/organisms/feature-estimate-card";
 import ProjectsManager from "@/components/organisms/projects-manager";
+import AddFeatureModal from "@/components/organisms/add-feature-modal";
 import { totalDevWeeks } from "@/lib/planning";
 import type { Feature, Project, FeatureInput } from "@/types/planner";
 
@@ -24,6 +25,7 @@ export default function EstimationView({
   canEdit,
   refresh,
   repository,
+  onToggleBacklog,
 }: {
   features: Feature[];
   projects: Project[];
@@ -31,6 +33,7 @@ export default function EstimationView({
   canEdit: boolean;
   refresh: () => Promise<void>;
   repository: EstimationRepository;
+  onToggleBacklog?: (id: string, included: boolean) => Promise<unknown>;
 }) {
   const { t } = useTranslation();
 
@@ -39,6 +42,15 @@ export default function EstimationView({
   const [editing, setEditing] = useState<Feature | null>(null);
   const [deleting, setDeleting] = useState<Feature | null>(null);
   const [managingProjects, setManagingProjects] = useState(false);
+  const [adding, setAdding] = useState(false);
+  function toggle(id: string, included: boolean) {
+    if (action.busy || !onToggleBacklog) return;
+    const toggleBacklog = onToggleBacklog;
+    void action.run(async () => {
+      await toggleBacklog(id, included);
+      await refresh();
+    });
+  }
   const projectNames = new Map(projects.map((item) => [item.id, item.name]));
   const roadmap = features
     .filter((feature) => feature.in_backlog)
@@ -55,6 +67,11 @@ export default function EstimationView({
         </div>
         {canEdit && (
           <div className="flex flex-wrap gap-2">
+            {onToggleBacklog && (
+              <Button variant="outline" onClick={() => setAdding(true)}>
+                {t("roadmap.actions.addFeature")}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setManagingProjects(true)}>
               <FolderKanban className="h-4 w-4 mr-2" />
               {t("projects.manage")}
@@ -134,6 +151,9 @@ export default function EstimationView({
                       setFormOpen(true);
                     }}
                     onDelete={() => setDeleting(feature)}
+                    {...(canEdit && onToggleBacklog && feature.in_backlog
+                      ? { onRemove: () => toggle(feature.id, false) }
+                      : {})}
                   />
                 ))}
               </div>
@@ -154,6 +174,27 @@ export default function EstimationView({
             await repository.saveFeature(input, editing?.id);
             await refresh();
           }}
+        />
+      )}
+      {canEdit && adding && onToggleBacklog && (
+        <AddFeatureModal
+          features={features}
+          busy={action.busy}
+          error={action.error}
+          onClose={() => setAdding(false)}
+          onAdd={(id) => toggle(id, true)}
+          createAction={
+            <Button
+              variant="link"
+              onClick={() => {
+                setAdding(false);
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              {t("roadmap.addFeature.create")}
+            </Button>
+          }
         />
       )}
       {managingProjects && (
