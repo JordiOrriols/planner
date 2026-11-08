@@ -14,7 +14,7 @@ import MarkersManager from "@/components/organisms/markers-manager";
 import EstimationView from "@/components/organisms/estimation-view";
 import type { Feature } from "@/types/planner";
 
-export default function PlatformRoadmap() {
+export default function PlatformRoadmap({ estimation = false }: { estimation?: boolean }) {
   const { workspace } = useParams();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -26,7 +26,7 @@ export default function PlatformRoadmap() {
   const internal = canManage || role === "viewer";
   const features = useQuery({
     queryKey: ["platform-features", workspace],
-    enabled: !!workspace && internal,
+    enabled: !!workspace && internal && estimation,
     queryFn: () => {
       if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
       return platformRepository.features(workspace);
@@ -34,7 +34,7 @@ export default function PlatformRoadmap() {
   });
   const projects = useQuery({
     queryKey: ["platform-projects", workspace],
-    enabled: !!workspace && internal,
+    enabled: !!workspace && internal && estimation,
     queryFn: () => {
       if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
       return platformRepository.projects(workspace);
@@ -42,7 +42,7 @@ export default function PlatformRoadmap() {
   });
   const markers = useQuery({
     queryKey: ["platform-markers", workspace],
-    enabled: !!workspace && canManage,
+    enabled: !!workspace && canManage && !estimation,
     queryFn: () => {
       if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
       return platformRepository.markers(workspace);
@@ -90,7 +90,7 @@ export default function PlatformRoadmap() {
               <Button onClick={() => void directory.refetch()}>{t("app.actions.tryAgain")}</Button>
             </div>
           )}
-          {canManage && (
+          {canManage && !estimation && (
             <div className="space-y-2">
               <Button
                 variant="outline"
@@ -111,48 +111,51 @@ export default function PlatformRoadmap() {
           )}
           {internal && (
             <div className="space-y-2">
-              <PlanSummaryCard
-                label={t("roadmap.dates.start")}
-                value={fmtDate(parseDate(roadmap.data.startDate))}
-              >
-                {canManage && (
-                  <Input
-                    type="date"
-                    aria-label={t("roadmap.dates.start")}
-                    min="2026-01-01"
-                    max="2027-12-31"
-                    value={roadmap.data.startDate}
-                    disabled={settingsAction.busy}
-                    onChange={(event) => {
-                      const date = event.target.value;
-                      void settingsAction.run(async () => {
-                        const updated = await platformRepository.setPlanStart(workspace, date);
-                        queryClient.setQueryData(["platform-roadmap", workspace], updated);
-                      });
-                    }}
-                  />
-                )}
-              </PlanSummaryCard>
+              {!estimation && (
+                <PlanSummaryCard
+                  label={t("roadmap.dates.start")}
+                  value={fmtDate(parseDate(roadmap.data.startDate))}
+                >
+                  {canManage && (
+                    <Input
+                      type="date"
+                      aria-label={t("roadmap.dates.start")}
+                      min="2026-01-01"
+                      max="2027-12-31"
+                      value={roadmap.data.startDate}
+                      disabled={settingsAction.busy}
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        void settingsAction.run(async () => {
+                          const updated = await platformRepository.setPlanStart(workspace, date);
+                          queryClient.setQueryData(["platform-roadmap", workspace], updated);
+                        });
+                      }}
+                    />
+                  )}
+                </PlanSummaryCard>
+              )}
               {settingsAction.error && <p role="alert">{settingsAction.error}</p>}
-              {(projects.isPending || features.isPending) && (
+              {estimation && (projects.isPending || features.isPending) && (
                 <AppSkeleton label={t("app.loading.page")} fullPage={false} />
               )}
-              {[projects.error, features.error]
-                .filter((error) => error !== null)
-                .map((error, index) => (
-                  <div role="alert" key={index}>
-                    <p>{error.message}</p>
-                    <Button
-                      onClick={() => {
-                        void projects.refetch();
-                        void features.refetch();
-                      }}
-                    >
-                      {t("app.actions.tryAgain")}
-                    </Button>
-                  </div>
-                ))}
-              {features.data && projects.data && (
+              {estimation &&
+                [projects.error, features.error]
+                  .filter((error) => error !== null)
+                  .map((error, index) => (
+                    <div role="alert" key={index}>
+                      <p>{error.message}</p>
+                      <Button
+                        onClick={() => {
+                          void projects.refetch();
+                          void features.refetch();
+                        }}
+                      >
+                        {t("app.actions.tryAgain")}
+                      </Button>
+                    </div>
+                  ))}
+              {estimation && features.data && projects.data && (
                 <EstimationView
                   key={workspace}
                   features={features.data}
@@ -175,37 +178,40 @@ export default function PlatformRoadmap() {
               )}
             </div>
           )}
-          <PriorityProposals
-            key={workspace}
-            scope={workspace}
-            official={roadmap.data}
-            repository={platformRepository}
-            audience="workspace"
-            {...(canManage
-              ? {
-                  onApply: async (ids: string[], revision: string) => {
-                    const updated = await platformRepository.applyPriorities(
-                      workspace,
-                      ids,
-                      revision
-                    );
-                    queryClient.setQueryData(["platform-roadmap", workspace], updated);
-                    const priorities = new Map(
-                      updated.features.map((feature, index) => [feature.id, index + 1])
-                    );
-                    queryClient.setQueryData<Feature[]>(
-                      ["platform-features", workspace],
-                      (current) =>
-                        current?.map((feature) => {
-                          const priority = priorities.get(feature.id);
-                          return priority === undefined ? feature : { ...feature, priority };
-                        })
-                    );
-                  },
-                }
-              : {})}
-          />
-          {canManage && managingMarkers && markers.data && (
+          {estimation && !internal && <p role="alert">{t("publicRoadmap.unavailable")}</p>}
+          {!estimation && (
+            <PriorityProposals
+              key={workspace}
+              scope={workspace}
+              official={roadmap.data}
+              repository={platformRepository}
+              audience="workspace"
+              {...(canManage
+                ? {
+                    onApply: async (ids: string[], revision: string) => {
+                      const updated = await platformRepository.applyPriorities(
+                        workspace,
+                        ids,
+                        revision
+                      );
+                      queryClient.setQueryData(["platform-roadmap", workspace], updated);
+                      const priorities = new Map(
+                        updated.features.map((feature, index) => [feature.id, index + 1])
+                      );
+                      queryClient.setQueryData<Feature[]>(
+                        ["platform-features", workspace],
+                        (current) =>
+                          current?.map((feature) => {
+                            const priority = priorities.get(feature.id);
+                            return priority === undefined ? feature : { ...feature, priority };
+                          })
+                      );
+                    },
+                  }
+                : {})}
+            />
+          )}
+          {canManage && !estimation && managingMarkers && markers.data && (
             <MarkersManager
               markers={markers.data}
               description={t("access.markersDescription")}

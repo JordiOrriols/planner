@@ -68,8 +68,15 @@ viewers can inspect the roster with disabled controls. Roles change capacity,
 not Ladders job titles. Member IDs are workspace-scoped by the API, and the
 authenticated view never offers anonymous vacation links. Legacy token copying
 remains only in its dormant provider adapter.
-Remaining internal navigation and safe local acceptance authentication setup
-are not yet complete.
+Internal navigation now separates estimation (`.../estimation`), roadmap,
+vacations and configuration. The roadmap does not fetch private task/project
+directories; estimation reuses the same API-backed view and shared query cache.
+The header workspace selector lists only explicitly granted workspaces and
+returns to the selected workspace's roadmap. External grants have no internal
+navigation and cannot open estimation, vacations or configuration.
+Unknown paths show a localized not-found message, not an unrelated workspace.
+Deep routes reload without hashes. Safe local acceptance authentication setup
+is still pending; ordinary localhost requests without Access tokens get 401.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change
 deployment workflows.
