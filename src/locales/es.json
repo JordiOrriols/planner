@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Gestiona marcadores con nombre para la hoja de ruta de este espacio. Las personas con acceso a Planner pueden verlos.",
+    "proposalsDescription": "Prueba prioridades y recalcula la previsión sin cambiar el plan oficial. Guarda propuestas con nombre para que las personas con acceso a Planner en este espacio puedan compararlas. Un responsable aplica los cambios oficialmente.",
+    "proposalNameDescription": "Guarda una instantánea independiente con un nombre. Las personas con acceso a Planner en este espacio pueden verla.",
     "empty": "No tienes acceso a ningún espacio de Planner. Pide a un administrador que te asigne acceso."
   },
   "dependencies": {

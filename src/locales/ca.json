@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Gestiona marcadors amb nom per al full de ruta d'aquest espai. Les persones amb accés a Planner els poden veure.",
+    "proposalsDescription": "Prova prioritats i recalcula la previsió sense canviar el pla oficial. Desa propostes amb nom perquè les persones amb accés a Planner en aquest espai les puguin comparar. Un responsable aplica els canvis oficialment.",
+    "proposalNameDescription": "Desa una instantània independent amb un nom. Les persones amb accés a Planner en aquest espai la poden veure.",
     "empty": "No tens accés a cap espai de Planner. Demana a un administrador que t'assigni accés."
   },
   "dependencies": {

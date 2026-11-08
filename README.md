@@ -15,8 +15,21 @@ The individual Planner Docker web container is available on loopback port 5312 v
 `web` profile. BuildKit installs GitHub Packages with a secret, not an image
 environment variable. Local Vite uses port 5316 and proxies `/api` to port 5300.
 
-Internal editing, proposals, vacations and permission administration are not
-yet migrated. This branch is not a production replacement and does not change
+Priority proposals reuse the existing component and domain validation with a
+workspace-scoped API adapter. Drag pending/paused tasks after the locked
+completed/in-progress prefix to recalculate without saving. Named snapshots
+can be saved, restored, compared and tried against the current plan. Dependencies
+and stale revisions are checked in the API; official priorities never change.
+Only people with explicit Planner access to the workspace can read or save
+proposals. No anonymous link or app sign-in dialog is used by the active app.
+Manual grants use the backend's local administrator command.
+
+Owners/editors can manage markers through the same existing modal: create,
+rename and delete via the API, preserving ID/date on rename. Viewers/external
+users cannot edit; external users never receive the internal marker directory.
+Other internal editing and vacations are not yet migrated.
+Legacy share-token snapshots await reviewed migration.
+This branch is not a production replacement and does not change
 deployment workflows.
 
 Workspace-based feature estimation, roadmap scheduling and team

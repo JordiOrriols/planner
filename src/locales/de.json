@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Verwalte benannte Datumsmarkierungen für die Roadmap dieses Arbeitsbereichs. Personen mit Planner-Zugriff können sie ansehen.",
+    "proposalsDescription": "Teste Prioritäten und berechne die Prognose neu, ohne den offiziellen Plan zu ändern. Speichere benannte Vorschläge, damit Personen mit Planner-Zugriff auf diesen Arbeitsbereich sie vergleichen können. Eine verantwortliche Person übernimmt die Änderungen offiziell.",
+    "proposalNameDescription": "Speichere einen separaten Schnappschuss mit einem Namen. Personen mit Planner-Zugriff auf diesen Arbeitsbereich können ihn ansehen.",
     "empty": "Sie haben keinen Zugriff auf einen Planner-Arbeitsbereich. Bitten Sie einen Administrator, Ihnen Zugriff zuzuweisen."
   },
   "dependencies": {

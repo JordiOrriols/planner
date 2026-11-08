@@ -12,12 +12,14 @@ export default function MarkersManager({
   onCreate,
   onDelete,
   onRename,
+  description,
 }: {
   markers: RoadmapMarker[];
   onClose: () => void;
   onCreate: (name: string, date: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
+  description?: string;
 }) {
   const { t } = useTranslation();
   const action = useAsyncAction();
@@ -32,7 +34,7 @@ export default function MarkersManager({
         if (!open && !action.busy) onClose();
       }}
       title={t("markers.title")}
-      description={t("markers.description")}
+      description={description ?? t("markers.description")}
       closeLabel={t("common.actions.close")}
     >
       <div className="space-y-4">

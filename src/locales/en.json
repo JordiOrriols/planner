@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Manage named date markers for this workspace's roadmap. People with Planner access can view them.",
+    "proposalsDescription": "Experiment with priorities and recalculate the forecast without changing the official plan. Save named proposals for people with Planner access to this workspace to compare. A manager applies changes officially.",
+    "proposalNameDescription": "Save a separate snapshot with a name. People with Planner access to this workspace can view it.",
     "empty": "You do not have access to any Planner workspace. Ask an administrator to assign access."
   },
   "dependencies": {

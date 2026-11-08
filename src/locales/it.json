@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Gestisci gli indicatori di data con nome per la roadmap di questo spazio. Le persone con accesso a Planner possono visualizzarli.",
+    "proposalsDescription": "Prova le priorità e ricalcola la previsione senza modificare il piano ufficiale. Salva proposte con un nome per consentire alle persone con accesso a Planner in questo spazio di confrontarle. Un responsabile applica le modifiche ufficialmente.",
+    "proposalNameDescription": "Salva un'istantanea separata con un nome. Le persone con accesso a Planner in questo spazio possono visualizzarla.",
     "empty": "Non hai accesso ad alcuno spazio Planner. Chiedi a un amministratore di assegnarti l'accesso."
   },
   "dependencies": {

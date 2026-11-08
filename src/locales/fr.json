@@ -1,5 +1,8 @@
 {
   "access": {
+    "markersDescription": "Gérez les repères de date nommés de la feuille de route de cet espace. Les personnes ayant accès à Planner peuvent les consulter.",
+    "proposalsDescription": "Testez les priorités et recalculez les prévisions sans modifier le plan officiel. Enregistrez des propositions nommées pour que les personnes ayant accès à Planner dans cet espace puissent les comparer. Un responsable applique les changements officiellement.",
+    "proposalNameDescription": "Enregistrez un instantané distinct avec un nom. Les personnes ayant accès à Planner dans cet espace peuvent le consulter.",
     "empty": "Vous n'avez accès à aucun espace Planner. Demandez à un administrateur de vous attribuer un accès."
   },
   "dependencies": {
