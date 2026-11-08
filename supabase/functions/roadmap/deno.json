@@ -6,6 +6,7 @@
     "@/i18n": "./i18n.ts",
     "@/lib/planning": "../../../src/lib/planning.ts",
     "@/types/planner": "../../../src/types/planner.ts",
-    "../../../src/lib/barcelonaHolidays": "../../../src/lib/barcelonaHolidays.ts"
+    "../../../src/lib/barcelonaHolidays": "../../../src/lib/barcelonaHolidays.ts",
+    "../../../src/lib/featureDependencies": "../../../src/lib/featureDependencies.ts"
   }
 }

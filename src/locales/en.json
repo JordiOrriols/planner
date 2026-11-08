@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Dependencies",
+    "description": "Select prerequisites, including features in other projects of this workspace. Add them to the roadmap first. Cycles are not allowed.",
+    "orderError": "\"{{feature}}\" must come after its dependency \"{{dependency}}\".",
+    "after": "After: {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Experiment",
+    "resume": "Try these priorities on the current plan",
+    "title": "Priority proposals",
+    "description": "Experiment with priorities and recalculate the forecast without changing the official plan. Save named proposals for everyone with this link to compare. A manager applies changes officially.",
+    "locked": "Only pending or paused features after the last completed or in-progress feature can move.",
+    "changed": "The roadmap has changed or cannot be reordered. Reload the official plan before proposing priorities.",
+    "moveUp": "Move {{feature}} up",
+    "moveDown": "Move {{feature}} down",
+    "restore": "View saved proposal",
+    "official": "Official plan",
+    "compare": "Compare with",
+    "noComparison": "No comparison",
+    "save": "Propose priority",
+    "reset": "Return to official plan",
+    "snapshot": "Saved snapshot: dates, capacity and priorities are preserved from when this proposal was saved. You can try its priorities with the current plan; dates will be recalculated without changing this snapshot.",
+    "draft": "Temporary experiment. The official priorities have not changed.",
+    "name": "Proposal name",
+    "nameDescription": "Save a separate snapshot with a name. Everyone with this link can view it. You must be signed in.",
+    "signIn": "Sign in to save a proposal.",
+    "recalculating": "Recalculating proposal..."
+  },
   "vacationTimeline": {
     "title": "Team vacation timeline",
     "day": "Day",
@@ -18,6 +46,7 @@
     "date": "Marker date",
     "add": "Add marker",
     "delete": "Delete marker {{markerName}}",
+    "edit": "Edit marker {{markerName}}",
     "empty": "No markers yet. Add an important date above.",
     "show": "Show markers",
     "hide": "Hide markers",
@@ -27,7 +56,7 @@
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Share roadmap",
-    "sharingDescription": "Anyone with this link can see feature names, projects, overall delivery dates and named date markers. Staffing, vacations and technical estimates stay private. The roadmap updates automatically.",
+    "sharingDescription": "Anyone with this link can see feature names, dependencies, projects, overall delivery dates and named date markers. Staffing, vacations and technical estimates stay private. Visitors may save named priority proposals without changing your plan. Disabling this link permanently deletes all its saved proposals. The official roadmap updates automatically.",
     "link": "Public roadmap link",
     "create": "Create share link",
     "copy": "Copy link",

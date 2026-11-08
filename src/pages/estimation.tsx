@@ -108,6 +108,7 @@ export default function Estimation() {
                   <FeatureEstimateCard
                     key={feature.id}
                     feature={feature}
+                    features={features}
                     projectName={projectNames.get(feature.project_id)}
                     disabled={action.busy}
                     readOnly={!canEdit}
@@ -129,6 +130,8 @@ export default function Estimation() {
           onClose={() => setFormOpen(false)}
           initial={editing}
           projects={projects}
+          features={features}
+          {...(editing ? { featureId: editing.id } : {})}
           onCreateProject={(name) => repository.createProject(workspace.id, name)}
           onSave={async (input) => {
             await repository.saveFeature(input, editing?.id);

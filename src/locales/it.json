@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Dipendenze",
+    "description": "Seleziona i prerequisiti, anche di altri progetti di questo spazio. Aggiungili prima alla roadmap. I cicli non sono consentiti.",
+    "orderError": "\"{{feature}}\" deve seguire la dipendenza \"{{dependency}}\".",
+    "after": "Dopo: {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Prova",
+    "resume": "Prova queste priorità nel piano attuale",
+    "title": "Proposte di priorità",
+    "description": "Prova le priorità e ricalcola le previsioni senza modificare il piano ufficiale. Salva proposte con nome per confrontarle con chi dispone del link. Un manager applicherà le modifiche ufficialmente.",
+    "locked": "Si possono spostare solo le funzionalità in attesa o in pausa dopo l'ultima completata o in corso.",
+    "changed": "La roadmap è cambiata o non può essere riordinata. Ricarica il piano ufficiale prima di proporre priorità.",
+    "moveUp": "Sposta {{feature}} in alto",
+    "moveDown": "Sposta {{feature}} in basso",
+    "restore": "Visualizza proposta salvata",
+    "official": "Piano ufficiale",
+    "compare": "Confronta con",
+    "noComparison": "Nessun confronto",
+    "save": "Proponi priorità",
+    "reset": "Torna al piano ufficiale",
+    "snapshot": "Istantanea salvata: date, capacità e priorità restano quelle del salvataggio. Prova le sue priorità nel piano attuale per ricalcolare le date senza modificare questa istantanea.",
+    "draft": "Prova temporanea. Le priorità ufficiali non sono cambiate.",
+    "name": "Nome della proposta",
+    "nameDescription": "Salva un'istantanea separata con nome. Chi dispone del link può vederla. È necessario accedere.",
+    "signIn": "Accedi per salvare una proposta.",
+    "recalculating": "Ricalcolo della proposta..."
+  },
   "vacationTimeline": {
     "title": "Calendario delle ferie del team",
     "day": "Giorno",
@@ -18,6 +46,7 @@
     "date": "Data dell'indicatore",
     "add": "Aggiungi indicatore",
     "delete": "Elimina indicatore {{markerName}}",
+    "edit": "Modifica indicatore {{markerName}}",
     "empty": "Nessun indicatore. Aggiungi una data importante qui sopra.",
     "show": "Mostra indicatori",
     "hide": "Nascondi indicatori",
@@ -27,7 +56,7 @@
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Condividi roadmap",
-    "sharingDescription": "Chiunque abbia il link può vedere funzionalità, progetti, date di consegna e indicatori di date con nome. Personale, ferie e stime tecniche restano privati. La roadmap si aggiorna automaticamente.",
+    "sharingDescription": "Chiunque abbia il link può vedere funzionalità, dipendenze, progetti, date di consegna e indicatori di date. Personale, ferie e stime tecniche restano privati. I visitatori possono salvare proposte con nome senza modificare il piano. Disattivare il link elimina definitivamente tutte le sue proposte salvate. La roadmap ufficiale si aggiorna automaticamente.",
     "link": "Link pubblico della roadmap",
     "create": "Crea link",
     "copy": "Copia link",

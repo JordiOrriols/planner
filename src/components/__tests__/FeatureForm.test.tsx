@@ -11,6 +11,58 @@ const projects = [
 ];
 
 describe("Feature form footer actions", () => {
+  it("restores and saves multiple dependencies from other projects without offering itself", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const features = [
+      {
+        ...EMPTY_FEATURE,
+        id: "self",
+        project_id: "payments",
+        name: "Checkout",
+        priority: 2,
+        in_backlog: true,
+      },
+      {
+        ...EMPTY_FEATURE,
+        id: "one",
+        project_id: "payments",
+        name: "API",
+        priority: 0,
+        in_backlog: true,
+      },
+      {
+        ...EMPTY_FEATURE,
+        id: "two",
+        project_id: "growth",
+        name: "Design",
+        priority: 1,
+        in_backlog: true,
+      },
+    ];
+    render(
+      <FeatureForm
+        open
+        initial={{ ...features[0]!, dependency_ids: ["one"] }}
+        featureId="self"
+        features={features}
+        projects={projects}
+        onSave={onSave}
+        onCreateProject={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+    expect(screen.queryByRole("checkbox", { name: /Checkout/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /API/ })).toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: /Design/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dependency_ids: ["one", "two"],
+        })
+      )
+    );
+  });
   it("places primary save beside discard and submits the associated form", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onClose = vi.fn();

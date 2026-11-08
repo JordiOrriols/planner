@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Dependències",
+    "description": "Selecciona requisits previs, també d'altres projectes d'aquest espai. Afegeix-los primer al roadmap. No es permeten cicles.",
+    "orderError": "\"{{feature}}\" ha d'anar després de la seva dependència \"{{dependency}}\".",
+    "after": "Després de: {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Prova",
+    "resume": "Provar aquestes prioritats en el pla actual",
+    "title": "Propostes de prioritat",
+    "description": "Prova prioritats i recalcula la previsió sense canviar el pla oficial. Desa propostes amb nom perquè qui tingui l'enllaç les pugui comparar. Un manager aplicarà els canvis oficialment.",
+    "locked": "Només es poden moure features pendents o pausades posteriors a l'última completada o en progrés.",
+    "changed": "El roadmap ha canviat o no es pot reordenar. Recarrega el pla oficial abans de proposar prioritats.",
+    "moveUp": "Pujar {{feature}}",
+    "moveDown": "Baixar {{feature}}",
+    "restore": "Veure proposta desada",
+    "official": "Pla oficial",
+    "compare": "Comparar amb",
+    "noComparison": "Sense comparació",
+    "save": "Proposar prioritat",
+    "reset": "Tornar al pla oficial",
+    "snapshot": "Instantània desada: conserva les dates, capacitat i prioritats del moment de desar-la. Pots provar les seves prioritats en el pla actual; es recalcularan les dates sense canviar aquesta instantània.",
+    "draft": "Prova temporal. Les prioritats oficials no han canviat.",
+    "name": "Nom de la proposta",
+    "nameDescription": "Desa una instantània independent amb nom. Qui tingui l'enllaç la podrà veure. Has d'iniciar sessió.",
+    "signIn": "Inicia sessió per desar una proposta.",
+    "recalculating": "Recalculant proposta..."
+  },
   "vacationTimeline": {
     "title": "Cronologia de vacances de l'equip",
     "day": "Dia",
@@ -18,6 +46,7 @@
     "date": "Data del marcador",
     "add": "Afegeix un marcador",
     "delete": "Suprimeix el marcador {{markerName}}",
+    "edit": "Edita el marcador {{markerName}}",
     "empty": "Encara no hi ha marcadors. Afegeix una data important a dalt.",
     "show": "Mostra els marcadors",
     "hide": "Amaga els marcadors",
@@ -27,7 +56,7 @@
   "publicRoadmap": {
     "title": "Full de ruta",
     "share": "Comparteix el full de ruta",
-    "sharingDescription": "Qualsevol persona amb l'enllaç pot veure els noms de les funcionalitats, projectes, dates de lliurament i marcadors de dates amb nom. El personal, les vacances i les estimacions tècniques són privats. S'actualitza automàticament.",
+    "sharingDescription": "Qualsevol persona amb l'enllaç pot veure les funcionalitats, dependències, projectes, dates de lliurament i marcadors de dates. El personal, les vacances i les estimacions tècniques són privats. Els visitants poden desar propostes amb nom sense canviar el teu pla. Desactivar l'enllaç elimina permanentment totes les seves propostes desades. El roadmap oficial s'actualitza automàticament.",
     "link": "Enllaç públic del full de ruta",
     "create": "Crea un enllaç",
     "copy": "Copia l'enllaç",

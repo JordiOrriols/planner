@@ -44,6 +44,7 @@ const featureSchema = z.object({
   in_backlog: z.boolean(),
   status: z.enum(FEATURE_STATUSES),
   priority: z.number(),
+  dependency_ids: z.array(z.string().uuid()).default([]),
   backend_devs: z.number(),
   backend_weeks: z.number(),
   frontend_devs: z.number(),
@@ -146,6 +147,19 @@ export function createPlannerRepository(client: SupabaseClient) {
       if (error) throw new Error(error.message, { cause: error });
       return markerSchema.parse(data);
     },
+    async renameMarker(workspace: string, id: string, name: string) {
+      const trimmed = name.trim();
+      if (!trimmed || trimmed.length > 80) throw new Error(i18n.t("markers.invalid"));
+      const { data, error } = await client
+        .from("roadmap_markers")
+        .update({ name: trimmed })
+        .eq("workspace_id", workspace)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message, { cause: error });
+      return markerSchema.parse(data);
+    },
     async deleteMarker(workspace: string, id: string) {
       const { data, error } = await client
         .from("roadmap_markers")
@@ -169,12 +183,50 @@ export function createPlannerRepository(client: SupabaseClient) {
           })
         );
     },
-    async loadRoadmapLink(token: string) {
+    async loadRoadmapLink(
+      token: string,
+      options: { featureIds?: string[]; proposal?: string; expectedRevision?: string } = {}
+    ) {
       if (!z.string().uuid().safeParse(token).success)
         throw new Error(i18n.t("publicRoadmap.invalid"));
-      const { data, error } = await client.functions.invoke("roadmap", { body: { token } });
-      if (error) throw new Error(i18n.t("publicRoadmap.unavailable"), { cause: error });
+      const { data, error } = await client.functions.invoke("roadmap", {
+        body: { token, ...options },
+      });
+      if (error) {
+        const context: unknown = error.context;
+        if (context instanceof Response && context.status === 409)
+          throw new Error(i18n.t("priorityProposals.changed"), { cause: error });
+        throw new Error(i18n.t("publicRoadmap.unavailable"), { cause: error });
+      }
       return publicRoadmapSchema.parse(data);
+    },
+    listPriorityProposals: (token: string) =>
+      rpcList(
+        "planner_list_priority_proposals",
+        z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          created_at: z.string().datetime({ offset: true }),
+        }),
+        { token }
+      ),
+    async savePriorityProposal(
+      token: string,
+      name: string,
+      featureIds: string[],
+      expectedRevision: string
+    ) {
+      return z
+        .string()
+        .uuid()
+        .parse(
+          await rpc("planner_save_priority_proposal", {
+            token,
+            proposal_name: name,
+            feature_ids: featureIds,
+            expected_revision: expectedRevision,
+          })
+        );
     },
     async setPlanStart(workspace: string, date: string) {
       parseDate(date);

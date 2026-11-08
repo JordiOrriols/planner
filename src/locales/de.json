@@ -1,4 +1,32 @@
 {
+  "dependencies": {
+    "title": "Abhängigkeiten",
+    "description": "Wählen Sie Voraussetzungen, auch aus anderen Projekten dieses Arbeitsbereichs. Fügen Sie diese zuerst zur Roadmap hinzu. Zyklen sind nicht erlaubt.",
+    "orderError": "\"{{feature}}\" muss nach der Abhängigkeit \"{{dependency}}\" stehen.",
+    "after": "Nach: {{features}}"
+  },
+  "priorityProposals": {
+    "experiment": "Versuch",
+    "resume": "Diese Prioritäten im aktuellen Plan testen",
+    "title": "Prioritätsvorschläge",
+    "description": "Testen Sie Prioritäten und berechnen Sie die Prognose neu, ohne den offiziellen Plan zu ändern. Speichern Sie benannte Vorschläge zum Vergleich für alle mit diesem Link. Ein Manager übernimmt Änderungen offiziell.",
+    "locked": "Nur wartende oder pausierte Features nach dem letzten abgeschlossenen oder laufenden Feature können verschoben werden.",
+    "changed": "Die Roadmap hat sich geändert oder kann nicht umgeordnet werden. Laden Sie den offiziellen Plan neu.",
+    "moveUp": "{{feature}} nach oben",
+    "moveDown": "{{feature}} nach unten",
+    "restore": "Gespeicherten Vorschlag ansehen",
+    "official": "Offizieller Plan",
+    "compare": "Vergleichen mit",
+    "noComparison": "Kein Vergleich",
+    "save": "Priorität vorschlagen",
+    "reset": "Zum offiziellen Plan zurück",
+    "snapshot": "Gespeicherter Stand: Termine, Kapazität und Prioritäten bleiben wie beim Speichern. Testen Sie die Prioritäten im aktuellen Plan, um Termine neu zu berechnen, ohne diesen Stand zu ändern.",
+    "draft": "Temporärer Versuch. Die offiziellen Prioritäten sind unverändert.",
+    "name": "Name des Vorschlags",
+    "nameDescription": "Speichern Sie einen separaten benannten Stand. Jeder mit diesem Link kann ihn sehen. Sie müssen angemeldet sein.",
+    "signIn": "Melden Sie sich an, um einen Vorschlag zu speichern.",
+    "recalculating": "Vorschlag wird neu berechnet..."
+  },
   "vacationTimeline": {
     "title": "Urlaubsübersicht des Teams",
     "day": "Tag",
@@ -18,6 +46,7 @@
     "date": "Datum der Markierung",
     "add": "Markierung hinzufügen",
     "delete": "Markierung {{markerName}} löschen",
+    "edit": "Markierung {{markerName}} bearbeiten",
     "empty": "Noch keine Markierungen. Fügen Sie oben einen wichtigen Termin hinzu.",
     "show": "Markierungen anzeigen",
     "hide": "Markierungen ausblenden",
@@ -27,7 +56,7 @@
   "publicRoadmap": {
     "title": "Roadmap",
     "share": "Roadmap teilen",
-    "sharingDescription": "Jeder mit diesem Link sieht Funktionsnamen, Projekte, Liefertermine und benannte Datumsmarkierungen. Personal, Urlaub und technische Schätzungen bleiben privat. Die Roadmap wird automatisch aktualisiert.",
+    "sharingDescription": "Jeder mit diesem Link sieht Features, Abhängigkeiten, Projekte, Liefertermine und Datumsmarkierungen. Personal, Urlaub und technische Schätzungen bleiben privat. Besucher können benannte Vorschläge speichern, ohne Ihren Plan zu ändern. Das Deaktivieren des Links löscht alle zugehörigen Vorschläge dauerhaft. Die offizielle Roadmap wird automatisch aktualisiert.",
     "link": "Öffentlicher Roadmap-Link",
     "create": "Link erstellen",
     "copy": "Link kopieren",

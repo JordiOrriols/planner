@@ -12,6 +12,7 @@ import { computeSchedule, parseDate, fmtDate } from "@/lib/planning";
 import { useWorkspace } from "@/data/WorkspaceProvider";
 import { useData } from "@/data/DataProvider";
 import type { FeatureStatus } from "@/types/planner";
+import { reorderPriority } from "@/lib/featureDependencies";
 
 export default function Backlog() {
   const { t } = useTranslation();
@@ -44,13 +45,9 @@ export default function Backlog() {
     null
   );
   function move(fromId: string, toId: string) {
-    const ids = backlog.map((feature) => feature.id);
-    const from = ids.indexOf(fromId),
-      to = ids.indexOf(toId);
-    if (!repository || action.busy || from < 0 || to < 0 || from === to) return;
-    ids.splice(from, 1);
-    ids.splice(to, 0, fromId);
+    if (!repository || action.busy || fromId === toId) return;
     void action.run(async () => {
+      const ids = reorderPriority(backlog, fromId, toId);
       await repository.reorder(workspace.id, ids);
       await refresh();
     });
@@ -209,6 +206,10 @@ export default function Backlog() {
       )}
       {canEdit && managingMarkers && (
         <MarkersManager
+          onRename={async (id, name) => {
+            await repository.renameMarker(workspace.id, id, name);
+            await refresh();
+          }}
           markers={markers}
           onClose={() => setManagingMarkers(false)}
           onCreate={async (name, date) => {

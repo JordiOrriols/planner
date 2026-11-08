@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal } from "@jordiorriols/ui";
 import { useAsyncAction } from "@jordiorriols/ui/hooks";
-import { Plus, Trash2 } from "@jordiorriols/ui/icons";
+import { Pencil, Plus, Trash2 } from "@jordiorriols/ui/icons";
 import { fmtDate, parseDate } from "@/lib/planning";
 import type { RoadmapMarker } from "@/types/planner";
 
@@ -11,16 +11,20 @@ export default function MarkersManager({
   onClose,
   onCreate,
   onDelete,
+  onRename,
 }: {
   markers: RoadmapMarker[];
   onClose: () => void;
   onCreate: (name: string, date: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onRename: (id: string, name: string) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const action = useAsyncAction();
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editedName, setEditedName] = useState("");
   return (
     <Modal
       isOpen
@@ -88,11 +92,68 @@ export default function MarkersManager({
                   className="h-8 border-l-2 border-dashed border-amber-600"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="break-words text-sm font-medium">{marker.name}</p>
+                  {editing === marker.id ? (
+                    <form
+                      className="flex flex-wrap gap-2"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (action.busy) return;
+                        void action.run(async () => {
+                          await onRename(marker.id, editedName);
+                          setEditing(null);
+                        });
+                      }}
+                    >
+                      <Input
+                        aria-label={t("markers.name")}
+                        value={editedName}
+                        onChange={(event) => setEditedName(event.target.value)}
+                        maxLength={80}
+                        required
+                        disabled={action.busy}
+                        autoFocus
+                        className="min-w-0 flex-1"
+                      />
+                      <Button type="submit" size="sm" disabled={action.busy || !editedName.trim()}>
+                        {t("buttons.save")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={action.busy}
+                        onClick={() => {
+                          setEditing(null);
+                          action.reset();
+                        }}
+                      >
+                        {t("buttons.cancel")}
+                      </Button>
+                    </form>
+                  ) : (
+                    <p className="break-words text-sm font-medium">{marker.name}</p>
+                  )}
                   <time dateTime={marker.date} className="text-xs text-muted-foreground">
                     {fmtDate(parseDate(marker.date))}
                   </time>
                 </div>
+                {editing !== marker.id && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    aria-label={t("markers.edit", { markerName: marker.name })}
+                    disabled={action.busy}
+                    onClick={() => {
+                      setEditing(marker.id);
+                      setEditedName(marker.name);
+                      action.reset();
+                    }}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="ghost"

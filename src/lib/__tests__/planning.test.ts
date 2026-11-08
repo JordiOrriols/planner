@@ -61,6 +61,65 @@ const exampleFeatures: Feature[] = [
   },
 ];
 
+describe("dependency scheduling", () => {
+  it("waits for multiple cross-project prerequisites including their UAT despite free capacity", () => {
+    const prerequisites = [
+      { ...feature("backend", 1), priority: 1 },
+      {
+        ...feature("frontend", 2),
+        priority: 2,
+        backend_devs: 0,
+        backend_weeks: 0,
+        frontend_devs: 1,
+        frontend_weeks: 2,
+      },
+    ];
+    const dependent = {
+      ...feature("dependent"),
+      project_id: "other",
+      priority: 3,
+      dependency_ids: ["backend", "frontend"],
+    };
+    const result = computeSchedule([...prerequisites, dependent], squad, [], date("2026-02-02"));
+    const task = result.schedule[2]!;
+    expect(format(result.schedule[0]!.end!, "yyyy-MM-dd")).toBe("2026-02-20");
+    expect(format(result.schedule[1]!.end!, "yyyy-MM-dd")).toBe("2026-02-27");
+    expect(format(task.start!, "yyyy-MM-dd")).toBe("2026-03-02");
+  });
+  it("does not schedule a dependent when its prerequisite cannot finish", () => {
+    const result = computeSchedule(
+      [
+        {
+          ...feature("parent"),
+          backend_devs: 0,
+          backend_weeks: 0,
+          design_devs: 1,
+          design_weeks: 1,
+        },
+        { ...feature("child"), priority: 1, dependency_ids: ["parent"] },
+      ],
+      [member],
+      [],
+      date("2026-02-02"),
+      4
+    );
+    expect(result.schedule[1]).toMatchObject({ start: null, end: null, complete: false });
+  });
+  it("rejects a roadmap ordered ahead of a dependency rather than returning misleading dates", () => {
+    expect(() =>
+      computeSchedule(
+        [
+          { ...feature("child"), dependency_ids: ["parent"] },
+          { ...feature("parent"), priority: 1 },
+        ],
+        squad,
+        [],
+        date("2026-02-02")
+      )
+    ).toThrow(/must come after/);
+  });
+});
+
 describe("the two-backend / one-frontend backlog", () => {
   it("fills weeks 1–2, overlaps single-backend tasks in weeks 3–4, and separates mixed roles", () => {
     const result = computeSchedule(exampleFeatures, squad, [], date("2026-02-02"), 6);
