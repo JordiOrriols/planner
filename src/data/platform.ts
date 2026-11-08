@@ -7,6 +7,7 @@ import {
   type FeatureInput,
   type Feature,
   type SprintResult,
+  type Role,
 } from "@/types/planner";
 import { validateFeature, parseDate } from "@/lib/planning";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
@@ -115,6 +116,22 @@ export const platformRepository = {
   workspaces: async () => z.array(workspaceSchema).parse(await request("apps/planner/workspaces")),
   calendar: async (workspace: string) =>
     calendarSchema.parse(await request(`${workspacePath(workspace)}/calendar`)),
+  createTeam: async (workspace: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed || Array.from(trimmed).length > 120)
+      throw new Error(i18n.t("teamConfiguration.errors.teamNameRequired"));
+    return calendarSchema.parse(
+      await request(`${workspacePath(workspace)}/teams`, { name: trimmed })
+    );
+  },
+  updatePlanningRole: async (workspace: string, member: string, role: Role | null) =>
+    calendarSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/members/${z.string().uuid().parse(member)}/planning-role`,
+        { role: z.enum(ROLES).nullable().parse(role) },
+        "PATCH"
+      )
+    ),
   setVacations: async (
     workspace: string,
     member: string,
@@ -273,6 +290,12 @@ export const platformRepository = {
       })
     ).id,
 } satisfies PriorityProposalRepository & {
+  createTeam: (workspace: string, name: string) => Promise<z.infer<typeof calendarSchema>>;
+  updatePlanningRole: (
+    workspace: string,
+    member: string,
+    role: Role | null
+  ) => Promise<z.infer<typeof calendarSchema>>;
   calendar: (workspace: string) => Promise<z.infer<typeof calendarSchema>>;
   setVacations: (
     workspace: string,

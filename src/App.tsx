@@ -12,6 +12,10 @@ export default function App() {
         <Route index element={<PlatformRoadmap />} />
         <Route path="workspaces/:workspace/roadmap" element={<PlatformRoadmap />} />
         <Route path="workspaces/:workspace/vacations" element={<PlatformVacations />} />
+        <Route
+          path="workspaces/:workspace/configuration"
+          element={<PlatformVacations configuration />}
+        />
         <Route path="*" element={<PlatformRoadmap />} />
       </Routes>
     </QueryClientProvider>

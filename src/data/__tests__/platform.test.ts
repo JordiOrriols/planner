@@ -40,6 +40,26 @@ const calendar = {
   teams: [],
   vacations: [],
 };
+it("team creation and planning-role changes use scoped paths without identity or token fields", async () => {
+  const fetcher = vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(calendar))));
+  vi.stubGlobal("fetch", fetcher);
+  await expect(platformRepository.createTeam(workspace, "  Core  ")).resolves.toEqual(calendar);
+  expect(fetcher.mock.calls[0]?.[0]).toBe(`/api/planner/workspaces/${workspace}/teams`);
+  expect(JSON.parse(fetcher.mock.calls[0]?.[1].body)).toEqual({ name: "Core" });
+  await platformRepository.updatePlanningRole(workspace, proposal, "qa");
+  expect(fetcher.mock.calls[1]?.[0]).toBe(
+    `/api/planner/workspaces/${workspace}/members/${proposal}/planning-role`
+  );
+  expect(JSON.parse(fetcher.mock.calls[1]?.[1].body)).toEqual({ role: "qa" });
+  await platformRepository.updatePlanningRole(workspace, proposal, null);
+  expect(JSON.parse(fetcher.mock.calls[2]?.[1].body)).toEqual({ role: null });
+  expect(fetcher.mock.calls[1]?.[1].method).toBe("PATCH");
+  await expect(platformRepository.createTeam(workspace, " ")).rejects.toThrow();
+  await expect(platformRepository.createTeam(workspace, "a".repeat(121))).rejects.toThrow();
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
 it("calendar writes use internal scoped API paths and validate returned shapes", async () => {
   const fetcher = vi
     .fn()

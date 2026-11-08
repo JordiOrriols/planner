@@ -50,6 +50,14 @@ export default function PlatformFrame({
             >
               {t("vacations.title")}
             </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                cn("underline underline-offset-4", isActive && "font-semibold")
+              }
+              to={`/workspaces/${workspace}/configuration`}
+            >
+              {t("teamConfiguration.title")}
+            </NavLink>
           </nav>
         )}
         {children}

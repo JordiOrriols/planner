@@ -7,8 +7,9 @@ import { platformRepository } from "@/data/platform";
 import { usePlatformDirectory } from "@/data/platformQueries";
 import PlatformFrame from "@/components/organisms/platform-frame";
 import VacationsView from "@/components/organisms/vacations-view";
+import TeamConfigurationView from "@/components/organisms/team-configuration-view";
 
-export default function PlatformVacations() {
+export default function PlatformVacations({ configuration = false }: { configuration?: boolean }) {
   const { workspace } = useParams();
   const { t } = useTranslation();
   const client = useQueryClient();
@@ -48,6 +49,26 @@ export default function PlatformVacations() {
         </div>
       ) : !workspace || !internal ? (
         <p role="alert">{t("publicRoadmap.unavailable")}</p>
+      ) : calendar.data && configuration ? (
+        <TeamConfigurationView
+          members={calendar.data.members}
+          linkedTeams={calendar.data.teams}
+          isOwner={access?.role === "owner"}
+          refresh={async () => {
+            await client.invalidateQueries(
+              { queryKey: ["platform-roadmap", workspace] },
+              { throwOnError: true }
+            );
+          }}
+          createTeam={async (name) => {
+            const updated = await platformRepository.createTeam(workspace, name);
+            client.setQueryData(["platform-calendar", workspace], updated);
+          }}
+          updatePlanningRole={async (member, role) => {
+            const updated = await platformRepository.updatePlanningRole(workspace, member, role);
+            client.setQueryData(["platform-calendar", workspace], updated);
+          }}
+        />
       ) : calendar.data ? (
         <VacationsView
           key={workspace}

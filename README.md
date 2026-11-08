@@ -62,8 +62,14 @@ Working Day restores the normal calendar by removing saved vacations; it
 never makes weekends/holidays working days. Range/calendar validation and
 sprint cadence rules are reused, and saves refresh the current roadmap without
 rewriting proposal snapshots.
-Team creation/planning-role configuration and the remaining internal navigation
-are not yet migrated.
+`/planner/workspaces/:workspace/configuration` reuses the existing team view.
+Owners can create teams; owners/editors can assign or clear planning roles;
+viewers can inspect the roster with disabled controls. Roles change capacity,
+not Ladders job titles. Member IDs are workspace-scoped by the API, and the
+authenticated view never offers anonymous vacation links. Legacy token copying
+remains only in its dormant provider adapter.
+Remaining internal navigation and safe local acceptance authentication setup
+are not yet complete.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change
 deployment workflows.
