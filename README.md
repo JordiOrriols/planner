@@ -37,7 +37,15 @@ rename and delete with workspace-scoped permissions. Projects containing any
 feature, even off-roadmap backlog tasks, cannot be deleted. Renaming preserves
 the project ID and feature membership. The API returns only project
 ID/workspace/name and an in-use flag, not raw feature details.
-Other internal editing and vacations are not yet migrated.
+Internal roles now see the existing estimation view and cards, without a
+duplicate UI. Owners/editors reuse the feature modal to create and edit names,
+descriptions, status, project, whole-number estimates and multiple dependencies.
+Viewers can read but not edit; external users never receive private task data.
+New features start off-roadmap, and editing preserves inclusion and priority.
+Cross-workspace IDs, invalid estimates, cycles, invalid dependency order and
+deleting a prerequisite fail without partial writes. Delete confirmation errors
+remain visible outside the closed dialog. Roadmap inclusion/removal, planning
+settings and vacations are not yet migrated.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change
 deployment workflows.

@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { platformRepository } from "../platform";
+import { EMPTY_FEATURE } from "@/types/planner";
 
 afterEach(() => vi.unstubAllGlobals());
 it("uses same-origin API queries and validates workspace data", async () => {
@@ -32,6 +33,50 @@ const workspace = "11111111-1111-4111-8111-111111111111";
 const proposal = "22222222-2222-4222-8222-222222222222";
 const revision = "a".repeat(32);
 const roadmap = { name: "Local", revision, startDate: "2026-02-02", markers: [], features: [] };
+it("feature editing uses scoped API writes without allowing priority or inclusion changes", async () => {
+  const input = {
+    ...EMPTY_FEATURE,
+    project_id: proposal,
+    name: "Task",
+    description: "Private",
+    backend_devs: 1,
+    backend_weeks: 2,
+  };
+  const feature = { ...input, id: workspace, in_backlog: false, priority: 0 };
+  const fetcher = vi
+    .fn()
+    .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(feature))));
+  vi.stubGlobal("fetch", fetcher);
+  expect(await platformRepository.saveFeature(workspace, feature, feature.id)).toEqual(feature);
+  expect(fetcher).toHaveBeenLastCalledWith(
+    `/api/planner/workspaces/${workspace}/features/${feature.id}`,
+    {
+      credentials: "same-origin",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      method: "PATCH",
+      body: expect.any(String),
+    }
+  );
+  expect(JSON.parse(fetcher.mock.calls[0]?.[1].body)).toEqual(input);
+  expect(await platformRepository.saveFeature(workspace, input)).toEqual(feature);
+  expect(fetcher.mock.calls[1]?.[1].method).toBe("POST");
+  expect(await platformRepository.deleteFeature(workspace, feature.id)).toEqual(feature);
+  expect(fetcher.mock.calls[2]?.[1].method).toBe("DELETE");
+});
+it("invalid feature estimates or IDs fail before sending requests", async () => {
+  const fetcher = vi.fn();
+  vi.stubGlobal("fetch", fetcher);
+  const input = { ...EMPTY_FEATURE, project_id: proposal, name: "Task" };
+  for (const invalid of [
+    { ...input, backend_devs: 1 },
+    { ...input, backend_devs: 1.5, backend_weeks: 2 },
+    { ...input, name: "a".repeat(121) },
+    { ...input, project_id: "bad" },
+  ])
+    await expect(platformRepository.saveFeature(workspace, invalid)).rejects.toThrow();
+  await expect(platformRepository.deleteFeature(workspace, "bad")).rejects.toThrow();
+  expect(fetcher).not.toHaveBeenCalled();
+});
 it("official priority updates use a separate authenticated API operation with a revision", async () => {
   const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(roadmap)));
   vi.stubGlobal("fetch", fetcher);

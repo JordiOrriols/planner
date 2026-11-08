@@ -15,7 +15,8 @@ import { PriorityProposals } from "@/components/organisms/priority-proposals";
 import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import { cn } from "@/lib/utils";
 import MarkersManager from "@/components/organisms/markers-manager";
-import ProjectsManager from "@/components/organisms/projects-manager";
+import EstimationView from "@/components/organisms/estimation-view";
+import type { Feature } from "@/types/planner";
 
 export default function PlatformRoadmap() {
   const { workspace } = useParams();
@@ -23,7 +24,6 @@ export default function PlatformRoadmap() {
   const { fullWidth } = useRoadmapDisplay();
   const queryClient = useQueryClient();
   const [managingMarkers, setManagingMarkers] = useState(false);
-  const [managingProjects, setManagingProjects] = useState(false);
   const directory = useQuery({
     queryKey: ["platform-workspaces", "planner"],
     queryFn: platformRepository.workspaces,
@@ -31,9 +31,18 @@ export default function PlatformRoadmap() {
   });
   const role = directory.data?.find((item) => item.id === workspace)?.role;
   const canManage = role === "owner" || role === "editor";
+  const internal = canManage || role === "viewer";
+  const features = useQuery({
+    queryKey: ["platform-features", workspace],
+    enabled: !!workspace && internal,
+    queryFn: () => {
+      if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
+      return platformRepository.features(workspace);
+    },
+  });
   const projects = useQuery({
     queryKey: ["platform-projects", workspace],
-    enabled: !!workspace && canManage,
+    enabled: !!workspace && internal,
     queryFn: () => {
       if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
       return platformRepository.projects(workspace);
@@ -51,8 +60,8 @@ export default function PlatformRoadmap() {
     const results = await Promise.all([markers.refetch(), roadmap.refetch()]);
     for (const result of results) if (result.error) throw result.error;
   }
-  async function refreshProjects() {
-    const results = await Promise.all([projects.refetch(), roadmap.refetch()]);
+  async function refreshFeatures() {
+    const results = await Promise.all([features.refetch(), projects.refetch(), roadmap.refetch()]);
     for (const result of results) if (result.error) throw result.error;
   }
   const roadmap = useQuery({
@@ -103,13 +112,6 @@ export default function PlatformRoadmap() {
               <div className="space-y-2">
                 <Button
                   variant="outline"
-                  disabled={!projects.data}
-                  onClick={() => setManagingProjects(true)}
-                >
-                  {t("projects.manage")}
-                </Button>
-                <Button
-                  variant="outline"
                   disabled={!markers.data}
                   onClick={() => setManagingMarkers(true)}
                 >
@@ -123,13 +125,45 @@ export default function PlatformRoadmap() {
                     </Button>
                   </div>
                 )}
-                {projects.error && (
-                  <div role="alert">
-                    <p>{projects.error.message}</p>
-                    <Button onClick={() => void projects.refetch()}>
-                      {t("app.actions.tryAgain")}
-                    </Button>
-                  </div>
+              </div>
+            )}
+            {internal && (
+              <div className="space-y-2">
+                {(projects.isPending || features.isPending) && (
+                  <AppSkeleton label={t("app.loading.page")} fullPage={false} />
+                )}
+                {[projects.error, features.error]
+                  .filter((error) => error !== null)
+                  .map((error, index) => (
+                    <div role="alert" key={index}>
+                      <p>{error.message}</p>
+                      <Button
+                        onClick={() => {
+                          void projects.refetch();
+                          void features.refetch();
+                        }}
+                      >
+                        {t("app.actions.tryAgain")}
+                      </Button>
+                    </div>
+                  ))}
+                {features.data && projects.data && (
+                  <EstimationView
+                    key={workspace}
+                    features={features.data}
+                    projects={projects.data}
+                    workspace={{ id: workspace }}
+                    canEdit={canManage}
+                    refresh={refreshFeatures}
+                    repository={{
+                      saveFeature: (input, id) =>
+                        platformRepository.saveFeature(workspace, input, id),
+                      deleteFeature: (id) => platformRepository.deleteFeature(workspace, id),
+                      createProject: platformRepository.createProject,
+                      renameProject: platformRepository.renameProject,
+                      deleteProject: platformRepository.deleteProject,
+                    }}
+                  />
                 )}
               </div>
             )}
@@ -148,6 +182,17 @@ export default function PlatformRoadmap() {
                         revision
                       );
                       queryClient.setQueryData(["platform-roadmap", workspace], updated);
+                      const priorities = new Map(
+                        updated.features.map((feature, index) => [feature.id, index + 1])
+                      );
+                      queryClient.setQueryData<Feature[]>(
+                        ["platform-features", workspace],
+                        (current) =>
+                          current?.map((feature) => {
+                            const priority = priorities.get(feature.id);
+                            return priority === undefined ? feature : { ...feature, priority };
+                          })
+                      );
                     },
                   }
                 : {})}
@@ -168,28 +213,6 @@ export default function PlatformRoadmap() {
                 onDelete={async (id) => {
                   await platformRepository.deleteMarker(workspace, id);
                   await refreshMarkers();
-                }}
-              />
-            )}
-            {canManage && managingProjects && projects.data && (
-              <ProjectsManager
-                open
-                projects={projects.data}
-                projectsInUse={
-                  new Set(projects.data.filter((item) => item.in_use).map((item) => item.id))
-                }
-                onClose={() => setManagingProjects(false)}
-                onCreate={async (name) => {
-                  await platformRepository.createProject(workspace, name);
-                  await refreshProjects();
-                }}
-                onRename={async (id, name) => {
-                  await platformRepository.renameProject(workspace, id, name);
-                  await refreshProjects();
-                }}
-                onDelete={async (id) => {
-                  await platformRepository.deleteProject(workspace, id);
-                  await refreshProjects();
                 }}
               />
             )}

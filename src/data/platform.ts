@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { PublicRoadmap } from "@/lib/publicRoadmap";
-import { FEATURE_STATUSES } from "@/types/planner";
+import { FEATURE_STATUSES, type FeatureInput, type Feature } from "@/types/planner";
+import { validateFeature } from "@/lib/planning";
+import { featureSchema } from "./featureSchema";
 import i18n from "@/i18n";
 import type { PriorityProposalRepository } from "@/components/organisms/priority-proposals";
 
@@ -48,6 +50,11 @@ const prioritySchema = z.object({
   featureIds: z.array(z.string().uuid()),
   expectedRevision: z.string().regex(/^[a-f0-9]{32}$/),
 });
+const featureInputSchema = featureSchema
+  .omit({ id: true, in_backlog: true, priority: true })
+  .extend({
+    name: z.string().trim().min(1).max(120),
+  });
 function workspacePath(workspace: string) {
   return `planner/workspaces/${z.string().uuid().parse(workspace)}`;
 }
@@ -78,6 +85,28 @@ async function request(
 }
 export const platformRepository = {
   workspaces: async () => z.array(workspaceSchema).parse(await request("apps/planner/workspaces")),
+  features: async (workspace: string) =>
+    z.array(featureSchema).parse(await request(`${workspacePath(workspace)}/features`)),
+  saveFeature: async (workspace: string, input: FeatureInput, id?: string) => {
+    validateFeature(input);
+    const payload = featureInputSchema.parse(input);
+    const path = `${workspacePath(workspace)}/features`;
+    return featureSchema.parse(
+      await request(
+        id ? `${path}/${z.string().uuid().parse(id)}` : path,
+        payload,
+        id ? "PATCH" : "POST"
+      )
+    );
+  },
+  deleteFeature: async (workspace: string, id: string) =>
+    featureSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/features/${z.string().uuid().parse(id)}`,
+        undefined,
+        "DELETE"
+      )
+    ),
   projects: async (workspace: string) =>
     z.array(projectSchema).parse(await request(`${workspacePath(workspace)}/projects`)),
   createProject: async (workspace: string, name: string) =>
@@ -173,6 +202,9 @@ export const platformRepository = {
       })
     ).id,
 } satisfies PriorityProposalRepository & {
+  features: (workspace: string) => Promise<Feature[]>;
+  saveFeature: (workspace: string, input: FeatureInput, id?: string) => Promise<Feature>;
+  deleteFeature: (workspace: string, id: string) => Promise<Feature>;
   workspaces: () => Promise<z.infer<typeof workspaceSchema>[]>;
   applyPriorities: (workspace: string, ids: string[], revision: string) => Promise<PublicRoadmap>;
   projects: (workspace: string) => Promise<z.infer<typeof projectSchema>[]>;
