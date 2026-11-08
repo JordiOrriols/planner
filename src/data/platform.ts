@@ -38,6 +38,12 @@ const markerSchema = z.object({
   name: z.string(),
   date: z.string().date(),
 });
+const projectSchema = z.object({
+  id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  name: z.string(),
+  in_use: z.boolean(),
+});
 const prioritySchema = z.object({
   featureIds: z.array(z.string().uuid()),
   expectedRevision: z.string().regex(/^[a-f0-9]{32}$/),
@@ -72,6 +78,41 @@ async function request(
 }
 export const platformRepository = {
   workspaces: async () => z.array(workspaceSchema).parse(await request("apps/planner/workspaces")),
+  projects: async (workspace: string) =>
+    z.array(projectSchema).parse(await request(`${workspacePath(workspace)}/projects`)),
+  createProject: async (workspace: string, name: string) =>
+    projectSchema.parse(
+      await request(`${workspacePath(workspace)}/projects`, {
+        name: z.string().trim().min(1).max(80).parse(name),
+      })
+    ),
+  renameProject: async (workspace: string, project: string, name: string) =>
+    projectSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/projects/${z.string().uuid().parse(project)}`,
+        { name: z.string().trim().min(1).max(80).parse(name) },
+        "PATCH"
+      )
+    ),
+  deleteProject: async (workspace: string, project: string) =>
+    projectSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/projects/${z.string().uuid().parse(project)}`,
+        undefined,
+        "DELETE"
+      )
+    ),
+  applyPriorities: async (
+    workspace: string,
+    featureIds: string[],
+    expectedRevision: string
+  ): Promise<PublicRoadmap> =>
+    roadmapSchema.parse(
+      await request(
+        `${workspacePath(workspace)}/priorities`,
+        prioritySchema.parse({ featureIds, expectedRevision })
+      )
+    ),
   markers: async (workspace: string) =>
     z.array(markerSchema).parse(await request(`${workspacePath(workspace)}/markers`)),
   createMarker: async (workspace: string, name: string, date: string) =>
@@ -133,6 +174,15 @@ export const platformRepository = {
     ).id,
 } satisfies PriorityProposalRepository & {
   workspaces: () => Promise<z.infer<typeof workspaceSchema>[]>;
+  applyPriorities: (workspace: string, ids: string[], revision: string) => Promise<PublicRoadmap>;
+  projects: (workspace: string) => Promise<z.infer<typeof projectSchema>[]>;
+  createProject: (workspace: string, name: string) => Promise<z.infer<typeof projectSchema>>;
+  renameProject: (
+    workspace: string,
+    project: string,
+    name: string
+  ) => Promise<z.infer<typeof projectSchema>>;
+  deleteProject: (workspace: string, project: string) => Promise<z.infer<typeof projectSchema>>;
   markers: (workspace: string) => Promise<z.infer<typeof markerSchema>[]>;
   createMarker: (
     workspace: string,

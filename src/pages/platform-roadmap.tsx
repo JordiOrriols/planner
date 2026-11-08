@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AppFooter,
   AppMain,
@@ -15,12 +15,15 @@ import { PriorityProposals } from "@/components/organisms/priority-proposals";
 import { useRoadmapDisplay } from "@/lib/roadmapDisplay";
 import { cn } from "@/lib/utils";
 import MarkersManager from "@/components/organisms/markers-manager";
+import ProjectsManager from "@/components/organisms/projects-manager";
 
 export default function PlatformRoadmap() {
   const { workspace } = useParams();
   const { t, i18n } = useTranslation();
   const { fullWidth } = useRoadmapDisplay();
+  const queryClient = useQueryClient();
   const [managingMarkers, setManagingMarkers] = useState(false);
+  const [managingProjects, setManagingProjects] = useState(false);
   const directory = useQuery({
     queryKey: ["platform-workspaces", "planner"],
     queryFn: platformRepository.workspaces,
@@ -28,6 +31,14 @@ export default function PlatformRoadmap() {
   });
   const role = directory.data?.find((item) => item.id === workspace)?.role;
   const canManage = role === "owner" || role === "editor";
+  const projects = useQuery({
+    queryKey: ["platform-projects", workspace],
+    enabled: !!workspace && canManage,
+    queryFn: () => {
+      if (!workspace) throw new Error(t("publicRoadmap.unavailable"));
+      return platformRepository.projects(workspace);
+    },
+  });
   const markers = useQuery({
     queryKey: ["platform-markers", workspace],
     enabled: !!workspace && canManage,
@@ -38,6 +49,10 @@ export default function PlatformRoadmap() {
   });
   async function refreshMarkers() {
     const results = await Promise.all([markers.refetch(), roadmap.refetch()]);
+    for (const result of results) if (result.error) throw result.error;
+  }
+  async function refreshProjects() {
+    const results = await Promise.all([projects.refetch(), roadmap.refetch()]);
     for (const result of results) if (result.error) throw result.error;
   }
   const roadmap = useQuery({
@@ -88,6 +103,13 @@ export default function PlatformRoadmap() {
               <div className="space-y-2">
                 <Button
                   variant="outline"
+                  disabled={!projects.data}
+                  onClick={() => setManagingProjects(true)}
+                >
+                  {t("projects.manage")}
+                </Button>
+                <Button
+                  variant="outline"
                   disabled={!markers.data}
                   onClick={() => setManagingMarkers(true)}
                 >
@@ -101,6 +123,14 @@ export default function PlatformRoadmap() {
                     </Button>
                   </div>
                 )}
+                {projects.error && (
+                  <div role="alert">
+                    <p>{projects.error.message}</p>
+                    <Button onClick={() => void projects.refetch()}>
+                      {t("app.actions.tryAgain")}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
             <PriorityProposals
@@ -109,6 +139,18 @@ export default function PlatformRoadmap() {
               official={roadmap.data}
               repository={platformRepository}
               audience="workspace"
+              {...(canManage
+                ? {
+                    onApply: async (ids: string[], revision: string) => {
+                      const updated = await platformRepository.applyPriorities(
+                        workspace,
+                        ids,
+                        revision
+                      );
+                      queryClient.setQueryData(["platform-roadmap", workspace], updated);
+                    },
+                  }
+                : {})}
             />
             {canManage && managingMarkers && markers.data && (
               <MarkersManager
@@ -126,6 +168,28 @@ export default function PlatformRoadmap() {
                 onDelete={async (id) => {
                   await platformRepository.deleteMarker(workspace, id);
                   await refreshMarkers();
+                }}
+              />
+            )}
+            {canManage && managingProjects && projects.data && (
+              <ProjectsManager
+                open
+                projects={projects.data}
+                projectsInUse={
+                  new Set(projects.data.filter((item) => item.in_use).map((item) => item.id))
+                }
+                onClose={() => setManagingProjects(false)}
+                onCreate={async (name) => {
+                  await platformRepository.createProject(workspace, name);
+                  await refreshProjects();
+                }}
+                onRename={async (id, name) => {
+                  await platformRepository.renameProject(workspace, id, name);
+                  await refreshProjects();
+                }}
+                onDelete={async (id) => {
+                  await platformRepository.deleteProject(workspace, id);
+                  await refreshProjects();
                 }}
               />
             )}

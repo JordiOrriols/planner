@@ -2,7 +2,7 @@
 
 ## Local Cloudflare Access migration branch
 
-This isolated branch serves an authenticated, grant-scoped read-only roadmap at
+This isolated branch serves an authenticated, grant-scoped reduced roadmap at
 `/planner/workspaces/:workspace/roadmap`. It uses browser paths, not hash routes,
 and never imports Supabase or password flows from its active app entrypoint.
 The roadmap renderer is extracted unchanged from the existing link page.
@@ -19,7 +19,12 @@ Priority proposals reuse the existing component and domain validation with a
 workspace-scoped API adapter. Drag pending/paused tasks after the locked
 completed/in-progress prefix to recalculate without saving. Named snapshots
 can be saved, restored, compared and tried against the current plan. Dependencies
-and stale revisions are checked in the API; official priorities never change.
+and stale revisions are checked in the API; experiments never change official
+priorities. Owners/editors can separately confirm **Apply priorities to official
+plan** for a current experiment. A saved proposal must first be tried against the
+current plan; applying it updates only official priorities, preserving the saved
+snapshot. External/viewer users cannot apply priorities. Invalid or stale writes
+show an error and keep the experiment; concurrent changes are rejected by the API.
 Only people with explicit Planner access to the workspace can read or save
 proposals. No anonymous link or app sign-in dialog is used by the active app.
 Manual grants use the backend's local administrator command.
@@ -27,6 +32,11 @@ Manual grants use the backend's local administrator command.
 Owners/editors can manage markers through the same existing modal: create,
 rename and delete via the API, preserving ID/date on rename. Viewers/external
 users cannot edit; external users never receive the internal marker directory.
+The existing project manager is also API-backed for owners/editors: create,
+rename and delete with workspace-scoped permissions. Projects containing any
+feature, even off-roadmap backlog tasks, cannot be deleted. Renaming preserves
+the project ID and feature membership. The API returns only project
+ID/workspace/name and an in-use flag, not raw feature details.
 Other internal editing and vacations are not yet migrated.
 Legacy share-token snapshots await reviewed migration.
 This branch is not a production replacement and does not change

@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { AppSkeleton, Button, ErrorState, NameDialog, SelectField } from "@jordiorriols/ui";
+import {
+  AppSkeleton,
+  Button,
+  ConfirmDialog,
+  ErrorState,
+  NameDialog,
+  SelectField,
+} from "@jordiorriols/ui";
 import { useAsyncAction, useNameForm } from "@jordiorriols/ui/hooks";
 import { reorderPriority, validatePriorityOrder } from "@/lib/featureDependencies";
 import { cn } from "@/lib/utils";
@@ -28,6 +35,7 @@ export function PriorityProposals({
   canSave = true,
   onSignIn,
   audience = "link",
+  onApply,
 }: {
   scope: string;
   official: PublicRoadmap;
@@ -35,6 +43,7 @@ export function PriorityProposals({
   canSave?: boolean;
   onSignIn?: () => void;
   audience?: "link" | "workspace";
+  onApply?: (ids: string[], revision: string) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const action = useAsyncAction();
@@ -42,6 +51,7 @@ export function PriorityProposals({
   const [selected, setSelected] = useState("");
   const [comparison, setComparison] = useState("");
   const [naming, setNaming] = useState(false);
+  const [applying, setApplying] = useState<{ ids: string[]; revision: string } | null>(null);
   const proposals = useQuery({
     queryKey: ["priority-proposals", scope],
     queryFn: () => repository.proposals(scope),
@@ -174,6 +184,25 @@ export function PriorityProposals({
               {t("priorityProposals.resume")}
             </Button>
           )}
+          {onApply && (
+            <Button
+              disabled={
+                action.busy || !!selected || !preview || preview.revision !== official.revision
+              }
+              onClick={() =>
+                void action.run(async () => {
+                  if (!preview?.revision) throw new Error(t("priorityProposals.changed"));
+                  const ids = preview.features.map((feature) => {
+                    if (!feature.id) throw new Error(t("priorityProposals.changed"));
+                    return feature.id;
+                  });
+                  setApplying({ ids, revision: preview.revision });
+                })
+              }
+            >
+              {t("access.applyPriorities")}
+            </Button>
+          )}
           <Button
             variant="outline"
             disabled={action.busy}
@@ -246,6 +275,26 @@ export function PriorityProposals({
           name: t("priorityProposals.name"),
           submit: t("priorityProposals.save"),
           cancel: t("buttons.cancel"),
+        }}
+      />
+      <ConfirmDialog
+        isOpen={!!applying}
+        title={t("access.applyPriorities")}
+        description={t("access.applyPrioritiesDescription")}
+        confirmLabel={t("access.applyPriorities")}
+        cancelLabel={t("buttons.cancel")}
+        onCancel={() => {
+          if (!action.busy) setApplying(null);
+        }}
+        onConfirm={() => {
+          if (!applying || !onApply || action.busy) return;
+          const request = applying;
+          setApplying(null);
+          void action.run(async () => {
+            await onApply(request.ids, request.revision);
+            setSelected("");
+            setPreview(null);
+          });
         }}
       />
     </section>

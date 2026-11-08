@@ -1,5 +1,7 @@
 {
   "access": {
+    "applyPriorities": "Appliquer les priorités au plan officiel",
+    "applyPrioritiesDescription": "Cela modifie l'ordre officiel des tâches pour toutes les personnes de cet espace. Seules les priorités sont mises à jour ; les propositions enregistrées restent inchangées. Confirmez pour appliquer cet essai.",
     "markersDescription": "Gérez les repères de date nommés de la feuille de route de cet espace. Les personnes ayant accès à Planner peuvent les consulter.",
     "proposalsDescription": "Testez les priorités et recalculez les prévisions sans modifier le plan officiel. Enregistrez des propositions nommées pour que les personnes ayant accès à Planner dans cet espace puissent les comparer. Un responsable applique les changements officiellement.",
     "proposalNameDescription": "Enregistrez un instantané distinct avec un nom. Les personnes ayant accès à Planner dans cet espace peuvent le consulter.",

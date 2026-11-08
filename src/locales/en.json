@@ -1,5 +1,7 @@
 {
   "access": {
+    "applyPriorities": "Apply priorities to official plan",
+    "applyPrioritiesDescription": "This changes the official task order for everyone in this workspace. Only priorities are updated; saved proposals remain unchanged. Confirm to apply this experiment.",
     "markersDescription": "Manage named date markers for this workspace's roadmap. People with Planner access can view them.",
     "proposalsDescription": "Experiment with priorities and recalculate the forecast without changing the official plan. Save named proposals for people with Planner access to this workspace to compare. A manager applies changes officially.",
     "proposalNameDescription": "Save a separate snapshot with a name. People with Planner access to this workspace can view it.",
