@@ -35,6 +35,7 @@ export default function PlatformFrame({
             onValueChange={(value) => void i18n.changeLanguage(value)}
           />
         </header>
+        <a href="/ladders/workspace-access"> {t("access.manageWorkspace")}</a>
         {workspace && (
           <div className="flex flex-wrap items-center gap-4">
             <Link to="/">{t("planner.workspace")}</Link>

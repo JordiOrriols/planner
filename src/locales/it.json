@@ -1,5 +1,6 @@
 {
   "access": {
+    "manageWorkspace": "Accesso allo spazio",
     "applyPriorities": "Applicare le priorità al piano ufficiale",
     "applyPrioritiesDescription": "Questo modifica l'ordine ufficiale delle attività per tutte le persone in questo spazio. Vengono aggiornate solo le priorità; le proposte salvate restano invariate. Conferma per applicare questo esperimento.",
     "markersDescription": "Gestisci gli indicatori di data con nome per la roadmap di questo spazio. Le persone con accesso a Planner possono visualizzarli.",

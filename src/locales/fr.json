@@ -1,5 +1,6 @@
 {
   "access": {
+    "manageWorkspace": "Accès à l'espace",
     "applyPriorities": "Appliquer les priorités au plan officiel",
     "applyPrioritiesDescription": "Cela modifie l'ordre officiel des tâches pour toutes les personnes de cet espace. Seules les priorités sont mises à jour ; les propositions enregistrées restent inchangées. Confirmez pour appliquer cet essai.",
     "markersDescription": "Gérez les repères de date nommés de la feuille de route de cet espace. Les personnes ayant accès à Planner peuvent les consulter.",

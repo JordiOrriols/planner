@@ -1,5 +1,6 @@
 {
   "access": {
+    "manageWorkspace": "Accés a l'espai",
     "applyPriorities": "Aplicar prioritats al pla oficial",
     "applyPrioritiesDescription": "Això canvia l'ordre oficial de les tasques per a totes les persones d'aquest espai. Només s'actualitzen les prioritats; les propostes desades no canvien. Confirma per aplicar aquest experiment.",
     "markersDescription": "Gestiona marcadors amb nom per al full de ruta d'aquest espai. Les persones amb accés a Planner els poden veure.",

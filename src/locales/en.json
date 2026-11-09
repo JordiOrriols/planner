@@ -1,5 +1,6 @@
 {
   "access": {
+    "manageWorkspace": "Workspace access",
     "applyPriorities": "Apply priorities to official plan",
     "applyPrioritiesDescription": "This changes the official task order for everyone in this workspace. Only priorities are updated; saved proposals remain unchanged. Confirm to apply this experiment.",
     "markersDescription": "Manage named date markers for this workspace's roadmap. People with Planner access can view them.",

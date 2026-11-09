@@ -15,6 +15,15 @@ The individual Planner Docker web container is available on loopback port 5312 v
 `web` profile. BuildKit installs GitHub Packages with a secret, not an image
 environment variable. Local Vite uses port 5316 and proxies `/api` to port 5300.
 
+The Workspace link opens the single shared management screen at
+`/ladders/workspace-access` on the same origin. It supports native workspace
+creation, create-or-wait onboarding, exact-account app invitations and acceptance,
+owner-managed role changes/revocation and confirmed empty-workspace deletion.
+Planner external/viewer/editor grants remain distinct; accepting a Planner invite
+does not grant access to Ladders, Shiplog, Pulse or Agents. Creation makes the
+creator owner in all five apps without a legacy auth account. The gateway must
+serve Ladders as well; the management UI is not duplicated inside Planner.
+
 Priority proposals reuse the existing component and domain validation with a
 workspace-scoped API adapter. Drag pending/paused tasks after the locked
 completed/in-progress prefix to recalculate without saving. Named snapshots

@@ -1,5 +1,6 @@
 {
   "access": {
+    "manageWorkspace": "Arbeitsbereichszugriff",
     "applyPriorities": "Prioritäten in den offiziellen Plan übernehmen",
     "applyPrioritiesDescription": "Dies ändert die offizielle Aufgabenreihenfolge für alle Personen in diesem Arbeitsbereich. Nur Prioritäten werden aktualisiert; gespeicherte Vorschläge bleiben unverändert. Bestätige, um dieses Experiment zu übernehmen.",
     "markersDescription": "Verwalte benannte Datumsmarkierungen für die Roadmap dieses Arbeitsbereichs. Personen mit Planner-Zugriff können sie ansehen.",
