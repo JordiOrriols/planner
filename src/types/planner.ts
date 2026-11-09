@@ -51,6 +51,7 @@ export interface LinkedTeam {
   id: string;
   name: string;
 }
+export type CalendarMember = Omit<PlannerMember, "vacation_token">;
 export type WorkspaceAccess = "viewer" | "editor";
 export interface Vacation {
   member_id: string;

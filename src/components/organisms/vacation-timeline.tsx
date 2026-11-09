@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "@jordiorriols/ui/icons";
 import { addDays, addMonths, differenceInCalendarDays, format, startOfMonth } from "date-fns";
 import { fmtDate, fmtMonth, parseDate } from "@/lib/planning";
 import { vacationTimelineRows } from "@/lib/vacationTimeline";
-import type { LinkedTeam, PlannerMember, Vacation } from "@/types/planner";
+import type { LinkedTeam, CalendarMember, Vacation } from "@/types/planner";
 import { FeatureTitle, useLabelWidth, useToday } from "./roadmap-timeline";
 
 const DAYS = 52 * 7;
@@ -15,7 +15,7 @@ export default function VacationTimeline({
   teams,
   vacations,
 }: {
-  members: PlannerMember[];
+  members: CalendarMember[];
   teams: LinkedTeam[];
   vacations: Vacation[];
 }) {

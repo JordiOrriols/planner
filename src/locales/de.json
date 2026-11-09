@@ -1,4 +1,13 @@
 {
+  "access": {
+    "manageWorkspace": "Arbeitsbereichszugriff",
+    "applyPriorities": "Prioritäten in den offiziellen Plan übernehmen",
+    "applyPrioritiesDescription": "Dies ändert die offizielle Aufgabenreihenfolge für alle Personen in diesem Arbeitsbereich. Nur Prioritäten werden aktualisiert; gespeicherte Vorschläge bleiben unverändert. Bestätige, um dieses Experiment zu übernehmen.",
+    "markersDescription": "Verwalte benannte Datumsmarkierungen für die Roadmap dieses Arbeitsbereichs. Personen mit Planner-Zugriff können sie ansehen.",
+    "proposalsDescription": "Teste Prioritäten und berechne die Prognose neu, ohne den offiziellen Plan zu ändern. Speichere benannte Vorschläge, damit Personen mit Planner-Zugriff auf diesen Arbeitsbereich sie vergleichen können. Eine verantwortliche Person übernimmt die Änderungen offiziell.",
+    "proposalNameDescription": "Speichere einen separaten Schnappschuss mit einem Namen. Personen mit Planner-Zugriff auf diesen Arbeitsbereich können ihn ansehen.",
+    "empty": "Sie haben keinen Zugriff auf einen Planner-Arbeitsbereich. Bitten Sie einen Administrator, Ihnen Zugriff zuzuweisen."
+  },
   "dependencies": {
     "title": "Abhängigkeiten",
     "description": "Wählen Sie Voraussetzungen, auch aus anderen Projekten dieses Arbeitsbereichs. Fügen Sie diese zuerst zur Roadmap hinzu. Zyklen sind nicht erlaubt.",

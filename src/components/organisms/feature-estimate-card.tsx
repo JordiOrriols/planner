@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React, { useId, useState } from "react";
-import { ChevronDown, Pencil, Trash2 } from "@jordiorriols/ui/icons";
+import { ChevronDown, Pencil, Trash2, Minus } from "@jordiorriols/ui/icons";
 import { Button } from "@/components/ui/button";
 import type { Feature } from "@/types/planner";
 import { ROLES, ROLE_LABELS, peakDevs, durationWeeks, totalDevWeeks } from "@/lib/planning";
@@ -17,6 +17,7 @@ export default function FeatureEstimateCard({
   onDelete,
   disabled,
   readOnly,
+  onRemove,
 }: {
   feature: Feature;
   features?: Feature[];
@@ -25,6 +26,7 @@ export default function FeatureEstimateCard({
   onDelete: () => void;
   disabled: boolean;
   readOnly: boolean;
+  onRemove?: () => void;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -61,6 +63,18 @@ export default function FeatureEstimateCard({
           <StatusBadge status={feature.status} />
           {!readOnly && (
             <>
+              {onRemove && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={onRemove}
+                  aria-label={t("gantt.actions.remove")}
+                  disabled={disabled}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 size="icon"
                 variant="ghost"

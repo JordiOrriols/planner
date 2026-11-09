@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
-import { Button, EmptyState, Modal } from "@jordiorriols/ui";
+import { Button, EmptyState } from "@jordiorriols/ui";
+import AddFeatureModal from "@/components/organisms/add-feature-modal";
 import { Flag, GanttChartSquare, Plus, Pencil } from "@jordiorriols/ui/icons";
 import { PlanSummaryCard } from "@/components/molecules/plan-summary-card";
 import { Link } from "react-router-dom";
@@ -27,7 +28,6 @@ export default function Backlog() {
   const markerVisibility = useMarkerVisibility();
   const startDate = draftStart ?? workspace.plan_start_date;
   const [adding, setAdding] = useState(false);
-  const availableFeatures = features.filter((feature) => !feature.in_backlog);
   if (!repository) throw new Error(t("roadmap.errors.signInRequired"));
   const backlog = [...features]
     .filter((feature) => feature.in_backlog)
@@ -223,53 +223,21 @@ export default function Backlog() {
         />
       )}
       {canEdit && adding && (
-        <Modal
-          isOpen
-          title={t("roadmap.addFeature.title")}
-          description={t("roadmap.addFeature.description")}
-          closeLabel={t("common.actions.close")}
-          onOpenChange={(open) => {
-            if (!open && !action.busy) setAdding(false);
-          }}
-        >
-          {action.error && (
-            <p role="alert" className="text-destructive">
-              {action.error}
-            </p>
-          )}
-          {availableFeatures.length ? (
-            <ul className="space-y-2">
-              {availableFeatures.map((feature) => (
-                <li
-                  key={feature.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
-                >
-                  <span className="font-medium">{feature.name}</span>
-                  <Button
-                    size="sm"
-                    disabled={action.busy}
-                    aria-label={t("roadmap.addFeature.addLabel", { featureName: feature.name })}
-                    onClick={() => toggle(feature.id, true)}
-                  >
-                    {t("roadmap.actions.addFeature")}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {features.length
-                ? t("roadmap.addFeature.allIncluded")
-                : t("roadmap.addFeature.noEstimates")}
-            </p>
-          )}
-          <Link
-            to="/"
-            className="inline-flex mt-4 text-sm text-primary underline underline-offset-4"
-          >
-            {t("roadmap.addFeature.create")}
-          </Link>
-        </Modal>
+        <AddFeatureModal
+          features={features}
+          busy={action.busy}
+          error={action.error}
+          onClose={() => setAdding(false)}
+          onAdd={(id) => toggle(id, true)}
+          createAction={
+            <Link
+              to="/"
+              className="inline-flex mt-4 text-sm text-primary underline underline-offset-4"
+            >
+              {t("roadmap.addFeature.create")}
+            </Link>
+          }
+        />
       )}
     </div>
   );

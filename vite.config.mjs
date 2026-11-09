@@ -5,8 +5,11 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "./",
-  server: { host: "127.0.0.1", port: 5176, strictPort: true },
+  base: "/planner/",
+  server: {
+    host: "127.0.0.1", port: 5316, strictPort: true,
+    proxy: { "/api": "http://127.0.0.1:5300" },
+  },
   optimizeDeps: {
     exclude: [
       "@jordiorriols/ui",

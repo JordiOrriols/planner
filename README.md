@@ -1,5 +1,95 @@
 # Planner
 
+## Local Cloudflare Access migration branch
+
+This isolated branch serves an authenticated, grant-scoped reduced roadmap at
+`/planner/workspaces/:workspace/roadmap`. It uses browser paths, not hash routes,
+and never imports Supabase or password flows from its active app entrypoint.
+The roadmap renderer is extracted unchanged from the existing link page.
+The NestJS image builds the actual Planner scheduler with `npm run build:scheduler`,
+using a server-only translation instance, so dates/dependencies/UAT are not
+reimplemented. Private scheduler inputs stay behind the API.
+
+The shared local gateway serves both `/planner/` and `/shiplog/` on port 5320.
+The individual Planner Docker web container is available on loopback port 5312 via the backend's
+`web` profile. BuildKit installs GitHub Packages with a secret, not an image
+environment variable. Local Vite uses port 5316 and proxies `/api` to port 5300.
+
+The Workspace link opens the single shared management screen at
+`/ladders/workspace-access` on the same origin. It supports native workspace
+creation, create-or-wait onboarding, exact-account app invitations and acceptance,
+owner-managed role changes/revocation and confirmed empty-workspace deletion.
+Planner external/viewer/editor grants remain distinct; accepting a Planner invite
+does not grant access to Ladders, Shiplog, Pulse or Agents. Creation makes the
+creator owner in all five apps without a legacy auth account. The gateway must
+serve Ladders as well; the management UI is not duplicated inside Planner.
+
+Priority proposals reuse the existing component and domain validation with a
+workspace-scoped API adapter. Drag pending/paused tasks after the locked
+completed/in-progress prefix to recalculate without saving. Named snapshots
+can be saved, restored, compared and tried against the current plan. Dependencies
+and stale revisions are checked in the API; experiments never change official
+priorities. Owners/editors can separately confirm **Apply priorities to official
+plan** for a current experiment. A saved proposal must first be tried against the
+current plan; applying it updates only official priorities, preserving the saved
+snapshot. External/viewer users cannot apply priorities. Invalid or stale writes
+show an error and keep the experiment; concurrent changes are rejected by the API.
+Only people with explicit Planner access to the workspace can read or save
+proposals. No anonymous link or app sign-in dialog is used by the active app.
+Manual grants use the backend's local administrator command.
+
+Owners/editors can manage markers through the same existing modal: create,
+rename and delete via the API, preserving ID/date on rename. Viewers/external
+users cannot edit; external users never receive the internal marker directory.
+The existing project manager is also API-backed for owners/editors: create,
+rename and delete with workspace-scoped permissions. Projects containing any
+feature, even off-roadmap backlog tasks, cannot be deleted. Renaming preserves
+the project ID and feature membership. The API returns only project
+ID/workspace/name and an in-use flag, not raw feature details.
+Internal roles now see the existing estimation view and cards, without a
+duplicate UI. Owners/editors reuse the feature modal to create and edit names,
+descriptions, status, project, whole-number estimates and multiple dependencies.
+Viewers can read but not edit; external users never receive private task data.
+New features start off-roadmap, and editing preserves inclusion and priority.
+Cross-workspace IDs, invalid estimates, cycles, invalid dependency order and
+deleting a prerequisite fail without partial writes. Delete confirmation errors
+remain visible outside the closed dialog. Owners/editors can add existing tasks
+using the same extracted add-feature modal and remove tasks from their cards.
+Inclusion appends priorities; dependency ordering and prerequisite removal are
+validated server-side. The start-date control uses the existing calendar rules
+and refreshes the official forecast without changing saved proposals. Viewers
+and external users cannot perform these writes.
+
+Internal roles can navigate to `/planner/workspaces/:workspace/vacations`.
+The same extracted vacation view serves both the legacy provider and the API:
+calendar/timeline switching, member selection, capacity forecasting and sprint
+calibration retain their existing behavior. The API roster has no vacation
+tokens or account emails. Owner/editor grants can edit workspace members'
+vacation ranges and sprint calibration; viewers are read-only and external
+grants cannot read the roster. No self-edit permission is inferred from email.
+Working Day restores the normal calendar by removing saved vacations; it
+never makes weekends/holidays working days. Range/calendar validation and
+sprint cadence rules are reused, and saves refresh the current roadmap without
+rewriting proposal snapshots.
+`/planner/workspaces/:workspace/configuration` reuses the existing team view.
+Owners can create teams; owners/editors can assign or clear planning roles;
+viewers can inspect the roster with disabled controls. Roles change capacity,
+not Ladders job titles. Member IDs are workspace-scoped by the API, and the
+authenticated view never offers anonymous vacation links. Legacy token copying
+remains only in its dormant provider adapter.
+Internal navigation now separates estimation (`.../estimation`), roadmap,
+vacations and configuration. The roadmap does not fetch private task/project
+directories; estimation reuses the same API-backed view and shared query cache.
+The header workspace selector lists only explicitly granted workspaces and
+returns to the selected workspace's roadmap. External grants have no internal
+navigation and cannot open estimation, vacations or configuration.
+Unknown paths show a localized not-found message, not an unrelated workspace.
+Deep routes reload without hashes. Safe local acceptance authentication setup
+is still pending; ordinary localhost requests without Access tokens get 401.
+Legacy share-token snapshots await reviewed migration.
+This branch is not a production replacement and does not change
+deployment workflows.
+
 Workspace-based feature estimation, roadmap scheduling and team
 availability. The copied Base44 layouts now use Supabase instead of Base44.
 Feature creation and estimation editing use the shared modal's single content

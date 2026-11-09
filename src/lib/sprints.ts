@@ -2,7 +2,7 @@ import { addDays, differenceInCalendarDays, format } from "date-fns";
 import i18n from "@/i18n";
 import { hasHolidayCalendar } from "@/lib/barcelonaHolidays";
 import { isWorking, parseDate } from "@/lib/planning";
-import type { Vacation, PlannerMember, SprintResult } from "@/types/planner";
+import type { Vacation, CalendarMember, SprintResult } from "@/types/planner";
 
 export function sprintDays(start: Date) {
   return Array.from({ length: 14 }, (_, day) => addDays(start, day));
@@ -30,7 +30,7 @@ export function validateSprintSettings(anchor: string, history: SprintResult[]) 
   }
 }
 
-export function sprintCapacity(members: PlannerMember[], vacations: Vacation[], start: Date) {
+export function sprintCapacity(members: CalendarMember[], vacations: Vacation[], start: Date) {
   verifySprint(start);
   const assigned = members.filter((member) => member.role !== null);
   return (
@@ -44,7 +44,7 @@ export function sprintCapacity(members: PlannerMember[], vacations: Vacation[], 
 export function calibratedRate(
   anchor: string,
   history: SprintResult[],
-  members: PlannerMember[],
+  members: CalendarMember[],
   vacations: Vacation[],
   reference = new Date()
 ): number | null {
